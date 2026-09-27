@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>문서 제목</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* BEGIN report-base (build.py가 채운다. 손으로 고치지 않는다) */
+/* 보고서 규격 기준 CSS — 각 HTML의 <style> 맨 앞에 그대로 붙여 넣는다.
+   규칙의 근거와 금지 목록은 같은 폴더의 보고서-규격.md에 있다. */
+:root{
+  --paper:#FFFFFF; --ink:#111418; --ink-2:#3F4650; --ink-3:#6B7280;
+  --rule:#111418; --hair:#D6D9DE; --tint:#F4F4F1;
+  --accent:#1F3A5F; --accent-2:#8FA3BC; --neg:#A8322A;
+  --s1:#1F3A5F; --s2:#5E8C7E; --s3:#B07A2A; --s4:#8A8F98;
+  --sans:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"D2Coding",Consolas,ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#15171A; --ink:#E9EBEE; --ink-2:#BCC2CA; --ink-3:#8D949E;
+    --rule:#E9EBEE; --hair:#343941; --tint:#1D2024;
+    --accent:#9DB7D8; --accent-2:#4B5E78; --neg:#E0776C;
+    --s1:#9DB7D8; --s2:#86B5A6; --s3:#D6A45A; --s4:#8D949E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15171A; --ink:#E9EBEE; --ink-2:#BCC2CA; --ink-3:#8D949E;
+  --rule:#E9EBEE; --hair:#343941; --tint:#1D2024;
+  --accent:#9DB7D8; --accent-2:#4B5E78; --neg:#E0776C;
+  --s1:#9DB7D8; --s2:#86B5A6; --s3:#D6A45A; --s4:#8D949E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 var(--sans);
+  font-variant-numeric:tabular-nums;word-break:keep-all;padding:48px 16px 72px}
+.doc{max-width:880px;margin:0 auto}
+p{margin:0 0 .9em}
+p:last-child{margin-bottom:0}
+b,strong{font-weight:600}
+a{color:var(--accent);text-underline-offset:2px}
+code,.code{font-family:var(--mono);font-size:.88em;color:var(--ink-2)}
+
+/* 머리말: 소속·날짜 한 줄, 제목, 리드, 이중 괘선 */
+.doc-head{padding-bottom:8px}
+.doc-meta{font-size:13px;color:var(--ink-3);margin:0 0 10px}
+h1{font-size:30px;line-height:1.3;font-weight:700;margin:0 0 14px;letter-spacing:-.01em}
+.lede{font-size:17px;color:var(--ink-2);max-width:68ch;margin:0}
+
+/* 절: 카드 없이 괘선과 여백으로 구분 */
+section{margin-top:56px}
+h2{font-size:21px;line-height:1.4;font-weight:700;margin:0 0 16px}
+h3{font-size:16px;line-height:1.5;font-weight:600;margin:28px 0 8px}
+.prose{max-width:68ch;color:var(--ink)}
+.note,.cap{font-size:13px;line-height:1.6;color:var(--ink-3)}
+
+/* 핵심 수치: 타일 대신 괘선 사이의 한 줄 표 */
+.keyfig{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border-top:1px solid var(--rule);border-bottom:1px solid var(--hair);margin:24px 0 0}
+.keyfig{grid-template-rows:auto auto auto}
+.keyfig>div{padding:12px 16px 12px 0;display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}
+.keyfig>div+div{padding-left:16px;border-left:1px solid var(--hair)}
+.keyfig .k{display:block;font-size:13px;line-height:1.5;color:var(--ink-3);padding-bottom:4px}
+.keyfig .v{display:block;font-size:18px;font-weight:600;line-height:1.4;color:var(--ink)}
+.keyfig .d{display:block;font-size:13px;color:var(--ink-2)}
+
+/* 요지: 문서당 한 번. 옅은 바탕 하나만 허용하고 색 띠는 쓰지 않는다 */
+.gist{background:var(--tint);padding:20px 24px;margin-top:32px}
+.gist h2{font-size:17px;margin-bottom:8px}
+.gist ul{margin:0;padding-left:1.2em}
+.gist li+li{margin-top:4px}
+
+/* 주석성 문단: 굵은 머리말로 구분하고 상자를 쓰지 않는다 */
+.aside{margin:16px 0;padding-top:10px;border-top:1px solid var(--hair);font-size:15px;color:var(--ink-2)}
+.aside>b:first-child{color:var(--ink)}
+.aside.warn>b:first-child{color:var(--neg)}
+
+/* 표: 위아래 괘선만 쓰는 형식 */
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.55}
+caption{caption-side:top;text-align:left;font-weight:600;font-size:15px;padding-bottom:6px;color:var(--ink)}
+thead th{font-size:13px;font-weight:600;color:var(--ink-2);text-align:left;padding:8px 12px 6px 0;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--rule);vertical-align:bottom}
+td{padding:8px 12px 8px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+tbody tr:last-child td{border-bottom:1.5px solid var(--rule)}
+table:has(tfoot) tbody tr:last-child td{border-bottom:1px solid var(--rule)}
+tfoot td{font-weight:600;border-bottom:1.5px solid var(--rule)}
+th.n,td.n{text-align:right;white-space:nowrap}
+th:last-child,td:last-child{padding-right:0}
+tr.pick td{font-weight:600}
+tr.pick td:first-child{box-shadow:none}
+
+/* 도표: 제목(메시지), 단위·기간, 본체, 자료 출처 순서 */
+figure{margin:24px 0}
+figcaption .t{display:block;font-weight:600;font-size:15px}
+figcaption .u{display:block;font-size:13px;color:var(--ink-3)}
+.src{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+svg text{font-family:var(--sans);fill:var(--ink)}
+
+/* 가로 막대 */
+.bars{display:grid;gap:8px;margin-top:12px}
+.brow{display:grid;grid-template-columns:minmax(150px,240px) 1fr 52px;gap:12px;align-items:center;font-size:14px}
+.brow .l{color:var(--ink-2)}
+.brow .l b{color:var(--ink)}
+.track{position:relative;height:12px}
+.fill{position:absolute;left:0;top:0;height:12px;background:var(--accent-2);width:var(--w)}
+.fill.pick{background:var(--accent)}
+.ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
+.brow .n{text-align:right;font-weight:600}
+
+/* 번호 목록 형태의 단계 */
+.steps{list-style:none;margin:0;padding:0;counter-reset:st}
+.steps>li{counter-increment:st;display:grid;grid-template-columns:2.2em 1fr;gap:0 8px;padding:14px 0;border-bottom:1px solid var(--hair)}
+.steps>li::before{content:counter(st) ".";font-weight:600;color:var(--ink-3)}
+
+/* 정의 목록 */
+.gloss{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin:0}
+.gloss>div{padding:10px 0;border-top:1px solid var(--hair)}
+.gloss dt{font-weight:600}
+.gloss dd{margin:2px 0 0;color:var(--ink-2);font-size:14.5px}
+
+/* 페이지형 문서: <main class="doc paged">. 한 페이지씩 넘겨 보고, 인쇄하면 페이지마다 나뉜다 */
+.pager{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-bottom:1px solid var(--hair);padding:0 0 10px;margin:0 0 8px;font-size:13px;color:var(--ink-3)}
+.pager button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.pager button:disabled{color:var(--ink-3);cursor:default}
+.pager .cnt{min-width:4.5em;color:var(--ink-2)}
+.toc{font-size:13px;line-height:1.9;color:var(--ink-3);margin:0 0 8px}
+.toc a{color:var(--ink-2);text-decoration:none}
+.toc a.on{color:var(--accent);font-weight:600;text-decoration:underline}
+.page{margin-top:32px}
+.js .page{display:none}
+.js .page.on{display:block}
+.pno{font-size:12.5px;color:var(--ink-3);margin:0 0 6px}
+.paged .lede,.paged .prose{max-width:none}
+.page td:first-child{white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* 페이지 안의 블록: 요점 목록, 블록 머리(근거·중요 포인트·유의사항·출처) */
+.pts{margin:0 0 6px;padding-left:1.2em;max-width:none}
+.pts li+li{margin-top:4px}
+.pts li>b:first-child{color:var(--ink)}
+.page>h2+ul.pts{margin-bottom:8px}
+.blk{margin:28px 0 6px;font-size:16px}
+.blk.warn b{color:var(--neg)}
+.src-list{font-size:13px;color:var(--ink-2)}
+.src-list a{word-break:break-all}
+
+footer{margin-top:64px;border-top:1px solid var(--rule);padding-top:12px;font-size:13px;color:var(--ink-3)}
+footer p{margin:0 0 4px}
+
+@media (max-width:760px){
+  body{padding-top:32px}
+  h1{font-size:25px}
+  .keyfig>div+div{border-left:none;padding-left:0}
+  .keyfig>div{border-bottom:1px solid var(--hair)}
+  .gloss{grid-template-columns:1fr}
+  .brow{grid-template-columns:110px 1fr 44px;font-size:13px}
+}
+@media print{
+  .js .page{display:block}
+  .pager,.toc{display:none}
+  .page{break-before:page}
+  @page{size:A4;margin:16mm 14mm}
+  body{padding:0;font-size:10.5pt}
+  section,figure,table,.gist{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  a{color:inherit;text-decoration:none}
+}
+/* END report-base */
+/* 이 문서 전용: 토큰(var(--…))만 쓴다 */
+</style>
+<script>
+document.documentElement.classList.add('js');
+addEventListener('DOMContentLoaded',function(){
+  var P=[].slice.call(document.querySelectorAll('.page')),L=[].slice.call(document.querySelectorAll('.toc a'));
+  var prev=document.getElementById('prev'),next=document.getElementById('next'),cnt=document.getElementById('cnt'),i=0;
+  function show(k){i=Math.max(0,Math.min(P.length-1,k));
+    P.forEach(function(p,j){p.classList.toggle('on',j===i)});L.forEach(function(a,j){a.classList.toggle('on',j===i)});
+    cnt.textContent=(i+1)+' / '+P.length;prev.disabled=i===0;next.disabled=i===P.length-1;
+    if(location.hash!=='#p'+(i+1))history.replaceState(null,'','#p'+(i+1));scrollTo(0,0)}
+  prev.onclick=function(){show(i-1)};next.onclick=function(){show(i+1)};
+  L.forEach(function(a,j){a.onclick=function(e){e.preventDefault();show(j)}});
+  addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='PageDown')show(i+1);if(e.key==='ArrowLeft'||e.key==='PageUp')show(i-1)});
+  var m=/^#p(\d+)$/.exec(location.hash);show(m?parseInt(m[1],10)-1:0)});
+</script>
+</head>
+<body>
+<main class="doc paged">
+<nav class="pager"><button id="prev" type="button">이전</button><span class="cnt" id="cnt"></span><button id="next" type="button">다음</button><span>화살표 키로도 넘깁니다</span></nav>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 절 이름</a></p>
+
+<section class="page" id="p1"><p class="pno">1 / 2</p>
+<header class="doc-head">
+  <p class="doc-meta">소속 · 2026년 9월</p>
+  <h1>문서 제목</h1>
+  <p class="lede">문서 전체의 결론을 수치를 넣은 단정문으로 적습니다.</p>
+  <div class="keyfig">
+    <div><span class="k">수치 이름</span><span class="v">0.85 → 1.11</span><span class="d">단위나 설명</span></div>
+    <div><span class="k">수치 이름</span><span class="v">0.62</span><span class="d">단위나 설명</span></div>
+  </div>
+</header>
+<div class="gist">
+  <h2>요약</h2>
+  <ul><li><b>항목 이름:</b> 결론을 문장으로 적습니다.</li></ul>
+</div>
+</section>
+
+<section class="page" id="p2"><p class="pno">2 / 2</p>
+<h2>절 이름</h2>
+<ul class="pts">
+  <li>이 페이지의 결론을 수치와 함께 문장으로 적습니다.</li>
+  <li>결론이 여럿이면 줄을 나눠 적습니다.</li>
+</ul>
+<p class="blk"><b>근거</b></p>
+<div class="tbl"><table>
+  <caption>표 제목</caption>
+  <thead><tr><th>항목</th><th class="n">값</th></tr></thead>
+  <tbody><tr><td>항목 설명</td><td class="n">1.00</td></tr></tbody>
+</table></div>
+<p class="blk"><b>중요 포인트</b></p>
+<ul class="pts"><li><b>항목 이름:</b> 근거에서 읽어야 할 사항을 적습니다.</li></ul>
+<p class="blk warn"><b>유의사항</b></p>
+<ul class="pts"><li><b>항목 이름:</b> 가정과 관리 방안을 적습니다.</li></ul>
+<p class="blk"><b>출처</b></p>
+<ul class="pts src-list"><li><b>자료 이름</b> — 파일 경로나 주소</li></ul>
+</section>
+
+</main>
+</body>
+</html>
