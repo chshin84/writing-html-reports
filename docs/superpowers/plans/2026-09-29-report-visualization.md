@@ -1254,3 +1254,5 @@ Expected: `위반 0건`.
 - [ ] **Step 4: 서버 종료와 결과 보고**
 
 `http.server` 백그라운드 작업을 종료한다. 사용자에게 판정과 check.py 출력 원문을 보고하고, GitHub 저장소 push 여부를 묻는다.
+
+<!-- spec-review: passed -->
