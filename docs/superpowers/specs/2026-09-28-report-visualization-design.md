@@ -136,3 +136,5 @@ ECharts 옵션 안의 제목·축 이름·범례 글자는 JS 문자열이라 �
 ## 반영 범위
 
 변경은 이 PC의 스킬 폴더(`~/.claude/skills/writing-html-reports`)에 커밋까지만 한다. GitHub 저장소 push는 검증을 통과한 뒤 사용자에게 따로 확인받는다.
+
+<!-- spec-review: passed -->
