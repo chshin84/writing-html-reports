@@ -12,15 +12,32 @@
 
 ## Global Constraints
 
-- 작업 폴더는 `C:/Users/CHSHIN/.claude/skills/writing-html-reports`(아래 `$S`)이고, 모든 명령은 이 폴더에서 실행한다.
+- 설치된 스킬 폴더 `C:/Users/CHSHIN/.claude/skills/writing-html-reports`(아래 `$S`)는 작업 중에 고치지 않는다. Task 1 Step 1이 `$S`의 저장소에서 `viz` 브랜치의 git worktree(같은 저장소를 다른 폴더에 꺼낸 작업 사본)를 세션 scratchpad 아래 `wt-viz`(아래 `$W`)에 만든다. Task 1~7의 모든 명령은 `$W`에서 실행하고, Task 7을 통과한 뒤에만 `$S`에 병합한다. 과제 사이에 다른 세션이 절반만 바뀐 스킬을 쓰지 않게 하기 위해서다.
+- 명령은 Bash 도구로 실행한다. Bash 도구는 호출 사이에 셸 변수를 유지하지 않으므로, 명령마다 앞에 `W=<wt-viz 절대 경로>; OUT=<scratchpad 절대 경로>; E="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"; cd "$W"`를 붙인다.
 - CDN 주소는 `https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js`, `https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js`, `https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js` 세 개로 고정한다.
 - 색은 토큰(`var(--…)` 또는 `RC.color('이름')`)만 쓰고, 문서 스크립트와 Mermaid 원문에 `#xxxxxx` 색을 쓰지 않는다.
 - 모서리는 직각이다. 그림자·그라데이션·진입 애니메이션·자동 반복을 쓰지 않는다.
 - 움직임은 `RC.demo` 안에서만 쓴다. 동작 예시는 키 입력을 처리하지 않는다.
 - 파이썬은 `python -B`로 실행해 `__pycache__`를 만들지 않는다. 한국어 출력을 받는 subprocess에는 `PYTHONIOENCODING=utf-8`을 준다.
 - 사람이 읽는 한국어 문구는 '-습니다'체나 '-다'체 문어로 쓰고, `금지어.md`의 금지어를 쓰지 않는다.
-- 브라우저 시험은 `python -B -m http.server 8765` 서버(스킬 폴더 기준)로 연다. 임시 시험 파일은 `tests/_tmp-*.html`로 만들고 커밋하지 않는다.
-- 스크린샷과 PDF는 세션 scratchpad에 저장한다. 아래 명령의 `$OUT`은 scratchpad 절대 경로이고, 셸마다 `OUT=<경로>`로 먼저 정한다.
+- 브라우저 시험은 `$W`를 기준으로 한 `python -B -m http.server 8765` 서버로 연다. 서버가 필요한 과제(Task 1, Task 5, Task 7)는 과제 첫머리에서 서버를 백그라운드로 켜고 과제 끝에서 끈다. 임시 시험 파일은 `tests/_tmp-*.html`로 만들고 커밋하지 않는다.
+- 스크린샷과 PDF는 세션 scratchpad(`$OUT`)에 저장한다.
+- 브라우저 시험 식은 연결 코드 준비를 기다리도록 `RC.ready.then(…)` 안에서 평가한다.
+
+## spec과 다르게 정한 사항
+
+아래 사항은 spec을 구현하면서 정했으며, 같은 내용을 spec 본문에도 반영한다.
+
+- **BEGIN 표시의 버전:** 대상 버전의 원본은 `report-charts.js` 첫 줄이다. build.py가 BEGIN 표시에 그 버전을 적어 넣고, 문서의 CDN 주소 버전을 같은 값과 대조한다. spec의 'BEGIN 표시 버전과 CDN 버전 대조'와 같은 결과이며, 버전을 한 곳에만 적기 위한 방식이다.
+- **`play`의 두 번째 인자:** `play(tl, $)`의 `$('이름')`은 figure 안의 `#이름` 요소나 Mermaid 노드를 돌려준다. Mermaid 도식을 동작 예시의 무대로 쓰려면 노드를 찾는 수단이 필요하다.
+- **판단 마름모 노드:** Mermaid 노드는 직각 상자와 함께 판단 마름모(`{텍스트}`)를 허용한다. 흐름도의 분기를 나타내는 표준 모양이고, 2026-09-28 사용자 검토 때 알렸다.
+- **GSAP 로드 실패:** 동작 예시는 실패 문구 대신 단계 설명 목록을 보인다. 목록이 같은 내용을 글로 전달하므로 독자에게 더 유용하다.
+- **색 리터럴 검출 범위:** 문서 스크립트에서는 따옴표나 백틱 문자열 안의 `#`16진 색만 검출하고, `querySelector`·`getElementById` 인자는 뺀다. 요소 id 선택자(`'#abc'`)의 오검출을 방지하기 위해서다.
+- **추가 파일:** build.py 시험 `tests/test_build.py`와 `.gitignore`의 임시 파일 규칙을 추가한다.
+- **SKILL.md description:** 차트·도식·동작 예시 요청에서도 이 스킬이 열리도록 description에 시각화 대상을 추가한다.
+- **스킬 동작 시험 프롬프트:** 모델이 자료를 지어내지 않도록 거래대금 값을 주고, 결과 판정을 위해 저장 경로와 완료 기준 실행을 지시한다. 문서 형식(단일·페이지형)은 지정하지 않는다.
+- **원본 스크립트의 위반:** 기존 HTML 수정 작업에서 원본에 이미 있던 스크립트 규칙 위반은 금지어처럼 참고로만 출력한다.
+- **연결 코드 없는 RC 호출:** build.py는 문서가 `RC.` 함수를 호출하는데 연결 코드 표시가 없으면 멈춘다.
 
 ## Review Focus
 
@@ -34,7 +51,7 @@
 
 ### Task 1: 가정 확인 (숨은 페이지의 Mermaid, 헤드리스 PDF의 beforeprint, Mermaid 노드 id 형식)
 
-spec의 두 가정과 `RC.demo`의 `$` 조회 함수가 기대하는 Mermaid 노드 id 형식을 측정한다. 이 과제의 파일은 버리는 시험물이며 커밋하지 않는다.
+작업용 worktree를 만들고, spec의 두 가정과 `RC.demo`의 `$` 조회 함수가 기대하는 Mermaid 노드 형식을 측정한다. 시험 파일은 버리는 시험물이며 커밋하지 않는다.
 
 **Files:**
 - Create(임시): `tests/_tmp-probe.html`
@@ -42,11 +59,20 @@ spec의 두 가정과 `RC.demo`의 `$` 조회 함수가 기대하는 Mermaid 노
 
 **Interfaces:**
 - Consumes: 없음
-- Produces: 세 측정 결과. (a) 숨은 요소에서 그린 Mermaid SVG의 크기가 보이는 요소의 크기와 같은지, (b) 헤드리스 Edge `--print-to-pdf`에서 `beforeprint`가 발생하는지, (c) flowchart 노드 `A`의 `<g>` id가 `-A-`를 포함하는지. (c)가 아니면 Task 4의 `$` 함수 선택자를 측정한 형식으로 바꾼다.
+- Produces: `$W` worktree(`viz` 브랜치)와 네 측정 결과. (a) 숨은 요소에서 그린 Mermaid SVG의 크기가 보이는 요소의 크기와 같고 숨은 요소 전용 글자가 상자 밖으로 넘치지 않는지, (b) 헤드리스 Edge `--print-to-pdf`에서 `beforeprint`가 발생하는지, (c) flowchart 노드 `A`의 `<g>` id가 `-A-`를 포함하는지, (d) `[ ]` 노드의 `<g>` 안에 `rect`가 있는지. (c)나 (d)가 아니면 Task 4 Step 1의 `$` 함수와 Task 5 견본의 `querySelector('rect')`를 측정한 형식으로 바꾼다.
 
-- [ ] **Step 1: `.gitignore`에 임시 파일 규칙 추가**
+- [ ] **Step 1: worktree 만들기와 `.gitignore` 갱신**
 
-`.gitignore` 전체를 아래로 바꾼다.
+Run:
+```bash
+S="C:/Users/CHSHIN/.claude/skills/writing-html-reports"; W=<scratchpad>/wt-viz
+git -C "$S" status --short
+git -C "$S" worktree add -b viz "$W"
+cd "$W" && git log --oneline -1
+```
+Expected: `status`가 아무것도 출력하지 않고, worktree가 만들어지며, 마지막 줄이 `$S`의 최신 커밋과 같다.
+
+`$W/.gitignore` 전체를 아래로 바꾼다.
 
 ```
 __pycache__/
@@ -67,7 +93,7 @@ tests/_tmp-*
 <div id="vis"><pre class="mermaid">flowchart LR
   A[주문 접수] --> B{금액 &lt; 한도} --> C[체결]</pre></div>
 <div id="hid"><pre class="mermaid">flowchart LR
-  A[주문 접수] --> B{금액 &lt; 한도} --> C[체결]</pre></div>
+  A[퇴직연금 편입] --> B{듀레이션 &lt; 목표} --> C[리밸런싱]</pre></div>
 <script>
 addEventListener('beforeprint', function () { var p = document.createElement('p'); p.textContent = 'BEFOREPRINT-FIRED'; document.body.appendChild(p); });
 mermaid.initialize({ startOnLoad: false, theme: 'base' });
@@ -84,41 +110,50 @@ document.fonts.ready.then(function () {
 
 - [ ] **Step 3: 서버 실행**
 
-Run(백그라운드): `python -B -m http.server 8765`
-Expected: `Serving HTTP on :: port 8765`
+Run(Bash 도구 `run_in_background`): `cd "$W" && python -B -m http.server 8765`
+Expected: `curl -s -o /dev/null -w "%{http_code}" http://localhost:8765/tests/_tmp-probe.html`이 `200`을 출력한다.
 
-- [ ] **Step 4: 숨은 요소의 크기와 노드 id 측정**
+- [ ] **Step 4: 숨은 요소의 크기와 노드 형식 측정**
 
-Playwright로 `http://localhost:8765/tests/_tmp-probe.html`을 열고 제목이 `rendered`가 될 때까지 기다린 뒤 아래 식을 평가한다(`browser_evaluate`).
+`#vis`와 `#hid`는 같은 모양의 도식에 서로 다른 한글 낱말을 쓴다. 숨은 요소에만 있는 글자의 글꼴 조각이 늦게 로드되는 조건을 재현하기 위해서다. Playwright로 `http://localhost:8765/tests/_tmp-probe.html`을 열고 제목이 `rendered`가 될 때까지 기다린 뒤 아래 식을 평가한다(`browser_evaluate`).
 
 ```js
 () => {
   document.getElementById('hid').style.display = 'block';
   const size = id => { const s = document.querySelector('#' + id + ' svg').getBoundingClientRect(); return [Math.round(s.width), Math.round(s.height)]; };
-  const ids = [...document.querySelectorAll('#hid g.node')].map(g => g.id);
-  const overflow = [...document.querySelectorAll('#hid g.node')].some(g => {
-    const r = g.querySelector('rect,polygon').getBoundingClientRect(), t = g.querySelector('.label, text').getBoundingClientRect();
-    return t.width > r.width + 1;
+  const nodes = [...document.querySelectorAll('#hid g.node')];
+  const overflow = nodes.some(g => {
+    const box = g.querySelector('rect,polygon,path'), lab = g.querySelector('.label, text');
+    return box && lab && lab.getBoundingClientRect().width > box.getBoundingClientRect().width + 1;
   });
-  const txt = document.querySelector('#hid svg').textContent;
-  return { vis: size('vis'), hid: size('hid'), ids, overflow, hasLt: txt.includes('금액 < 한도') };
+  return {
+    vis: size('vis'), hid: size('hid'), ids: nodes.map(g => g.id), overflow,
+    rectInA: !!document.querySelector('#hid g.node[id*="-A-"] rect'),
+    hasLt: document.querySelector('#hid svg').textContent.includes('듀레이션 < 목표')
+  };
 }
 ```
 
-Expected: `vis`와 `hid`가 같고, `overflow`가 `false`이고, `hasLt`가 `true`이며, `ids`에 `-A-`를 포함한 id가 있다. `vis`와 `hid`가 다르면 멈추고 사용자에게 알린다. spec은 이때 Mermaid 방식을 '페이지가 보일 때 그리기'로 바꾸라고 정한다. `ids` 형식이 다르면 실제 형식을 기록하고 Task 4 Step 3의 `$` 함수를 그 형식에 맞춘다.
+Expected:
+- **크기:** `vis`와 `hid`의 폭 차이가 도식 글자 차이 범위(±40px) 안이고 높이가 같다.
+- **넘침:** `overflow`가 `false`다.
+- **노드 형식:** `ids`에 `-A-`를 포함한 id가 있고 `rectInA`가 `true`다.
+- **문자 `<`:** `hasLt`가 `true`다.
+
+`overflow`가 `true`이거나 높이가 다르면 멈추고 사용자에게 알린다. 대체 방식은 spec에 정해져 있지 않으므로 사용자와 정한다. 노드 형식이 다르면 측정한 형식을 기록하고 Task 4 Step 1의 `$` 함수와 Task 5 견본의 `querySelector('rect')`를 그 형식에 맞춘다.
 
 - [ ] **Step 5: 헤드리스 PDF의 beforeprint 측정**
 
 Run:
 ```bash
-"/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless=new --disable-gpu --no-pdf-header-footer --virtual-time-budget=8000 --print-to-pdf="$(cygpath -w "$OUT")\\probe.pdf" "http://localhost:8765/tests/_tmp-probe.html"
+"$E" --headless=new --disable-gpu --no-pdf-header-footer --virtual-time-budget=8000 --print-to-pdf="$(cygpath -w "$OUT")\\probe.pdf" "http://localhost:8765/tests/_tmp-probe.html"
 OUT="$OUT" python -B -c "import os,pypdf;r=pypdf.PdfReader(os.path.join(os.environ['OUT'],'probe.pdf'));print('BEFOREPRINT-FIRED' in ''.join(p.extract_text() for p in r.pages))"
 ```
 Expected: `True` 또는 `False`가 출력된다. 값을 기록한다. `False`이면 Task 5 인쇄 시험은 인쇄용 CSS만으로 판정한다.
 
 - [ ] **Step 6: 결과 보고와 정리**
 
-세 결과를 사용자에게 보고하고 `tests/_tmp-probe.html`을 지운다. `.gitignore`만 커밋한다.
+네 결과를 사용자에게 보고한다. 서버 백그라운드 작업을 종료하고 `tests/_tmp-probe.html`을 지운 뒤 `.gitignore`만 커밋한다.
 
 ```bash
 rm tests/_tmp-probe.html
@@ -146,6 +181,7 @@ git add .gitignore && git commit -m "임시 시험 파일을 커밋 대상에서
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -194,6 +230,9 @@ class Scripts(unittest.TestCase):
     def test_chart_animation_true(self):
         self.assertTrue(has(check.script_violations(page(script="RC.chart(b,{animation: true})")), "차트 애니메이션"))
 
+    def test_chart_animation_false_ok(self):
+        self.assertEqual(check.script_violations(page(script="RC.chart(b,{animation: false})")), [])
+
     def test_disallowed_src(self):
         html = page(head='<script src="https://unpkg.com/echarts@6.1.0/dist/echarts.min.js"></script>')
         self.assertTrue(has(check.script_violations(html), "허용 밖 스크립트"))
@@ -223,9 +262,11 @@ class Scripts(unittest.TestCase):
         for js in ("{shadowBlur:4}", "{borderRadius:4}", "{borderRadius:[0,4,4,0]}"):
             self.assertTrue(has(check.script_violations(page(script=js)), "차트 장식"), js)
         self.assertEqual(check.script_violations(page(script="{borderRadius:2}")), [])
+        self.assertEqual(check.script_violations(page(script="{shadowBlur: 0}")), [])
 
     def test_script_color_literal(self):
-        self.assertTrue(has(check.script_violations(page(script="{color:'#1F3A5F'}")), "스크립트·도식 색 리터럴"))
+        for js in ("{color:'#1F3A5F'}", "{border:'1px solid #123456'}", "var c=`#abcdef`;"):
+            self.assertTrue(has(check.script_violations(page(script=js)), "스크립트·도식 색 리터럴"), js)
 
     def test_query_selector_id_is_not_color(self):
         self.assertEqual(check.script_violations(page(script="document.querySelector('#abc')")), [])
@@ -250,13 +291,31 @@ class Banned(unittest.TestCase):
         self.assertEqual(check.banned_violations(page(head=block)), [])
 
 
+ENV = dict(os.environ, PYTHONIOENCODING="utf-8")
+
+
+def run_check(*paths):
+    return subprocess.run([sys.executable, "-B", str(ROOT / "check.py"), *map(str, paths)],
+                          capture_output=True, text=True, encoding="utf-8", env=ENV)
+
+
 class Templates(unittest.TestCase):
     def test_templates_pass(self):
-        env = dict(os.environ, PYTHONIOENCODING="utf-8")
         for name in ("template.html", "template-paged.html"):
-            r = subprocess.run([sys.executable, "-B", str(ROOT / "check.py"), str(ROOT / name)],
-                               capture_output=True, text=True, encoding="utf-8", env=env)
+            r = run_check(ROOT / name)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class Original(unittest.TestCase):
+    def test_script_violation_already_in_original_is_note_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            html = page(body="<p>가</p>", script="gsap.to(a,{x:1})")
+            new, old = Path(d) / "new.html", Path(d) / "old.html"
+            new.write_text(html, encoding="utf-8")
+            old.write_text(html, encoding="utf-8")
+            r = run_check(new, old)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("참고: 원본에 있던 스크립트 위반", r.stdout)
 
 
 if __name__ == "__main__":
@@ -266,11 +325,11 @@ if __name__ == "__main__":
 - [ ] **Step 2: 시험이 실패하는지 확인**
 
 Run: `python -B -m unittest discover -s tests -v`
-Expected: FAIL. `AttributeError: module 'check' has no attribute 'script_violations'`와 `test_animation_false_in_script_is_not_movement` 실패가 나온다.
+Expected: FAIL. `AttributeError: module 'check' has no attribute 'script_violations'`와 함께 `test_animation_false_in_script_is_not_movement`, `test_banned_word_in_script_string`, `test_script_violation_already_in_original_is_note_only`가 실패한다.
 
 - [ ] **Step 3: check.py 수정**
 
-`check.py` 모듈 설명(1~7행)의 둘째 줄을 아래로 바꾼다.
+`check.py` 모듈 설명의 4행(`규격 위반(만듦새)과 …`)을 아래로 바꾼다.
 
 ```python
 규격 위반(만듦새)과 페이지형 문서의 근거 없는 페이지와 라벨(제목·표 머리·도표 제목)의 명사구 여부와 한국어 금지어와 시각화 스크립트·Mermaid 원문의 규격 위반을 검사하고, 원본이 있으면 내용 보존(본문 문장·숫자)도 검사한다.
@@ -329,14 +388,14 @@ def script_violations(html):
     rule("차트 애니메이션", re.findall(r"animation\s*:\s*true", js))
     rule("허용 밖 스크립트", [u for u in urls if not LIB_URL.match(u)])
     rule("버전 미고정", [u for u in urls if LIB_URL.match(u) and not re.fullmatch(r"\d+\.\d+\.\d+", LIB_URL.match(u).group(1))])
-    rule("GSAP 직접 호출(play(tl) 안에서는 tl.to·tl.set을 쓴다)",
+    rule("GSAP 직접 호출(play(tl, $) 안에서는 tl.to·tl.set을 쓴다)",
          re.findall(r"\bgsap\.\w+", js) + re.findall(r"\b(?:repeat\s*:\s*-?\s*[1-9]|yoyo\s*:\s*true)", js))
-    rule("차트 장식", re.findall(r"shadowBlur\s*:\s*[^,}\s]+", js)
+    rule("차트 장식", re.findall(r"shadowBlur\s*:\s*(?!0+(?:\.0+)?(?![\d.]))[^,}\s]+", js)
          + [m for m in re.findall(r"borderRadius\s*:\s*(\[[^\]]*\]|[\d.]+)", js)
             if any(float(n) >= 3 for n in re.findall(r"\d+(?:\.\d+)?", m))])
-    js_no_ids = re.sub(r"""(?:querySelector(?:All)?|getElementById)\(\s*['"][^'"]*['"]""", "", js)
+    js_no_ids = re.sub(r"""(?:querySelector(?:All)?|getElementById)\(\s*['"`][^'"`]*['"`]""", "", js)
     rule("스크립트·도식 색 리터럴",
-         re.findall(r"""['"]#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})['"]""", js_no_ids)
+         re.findall(r"""['"`][^'"`\n]*?(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3}))\b""", js_no_ids)
          + re.findall(r"#[0-9a-fA-F]{3,8}\b", mmd)
          + re.findall(r"(?m)^\s*(?:style|classDef)\b.*$", mmd))
     return out
@@ -349,10 +408,17 @@ def all_text(html):
     return visible_text(html) + " " + visible_text(html, SvgText) + " " + script_strings(html)
 ```
 
-`main()`의 `fails = …` 줄을 아래로 바꾼다.
+`main()`의 `fails = …` 줄을 아래로 바꾼다. 원본에 이미 있던 스크립트 규칙 위반은 규칙 이름으로 대조해 참고로만 출력한다. 기존 HTML 수정 작업은 원본 스크립트를 바꾸지 않기 때문이다.
 
 ```python
-    fails = (style_violations(new) + script_violations(new) + label_violations(new)
+    scripts = script_violations(new)
+    if old is not None:
+        old_rules = {f.split(":")[0] for f in script_violations(old)}
+        kept = [f for f in scripts if f.split(":")[0] in old_rules]
+        if kept:
+            print(f"참고: 원본에 있던 스크립트 위반(원본 스크립트는 고치지 않는다) — {kept}")
+        scripts = [f for f in scripts if f not in kept]
+    fails = (style_violations(new) + scripts + label_violations(new)
              + page_violations(new) + banned_violations(new, old))
 ```
 
@@ -453,6 +519,14 @@ class Build(unittest.TestCase):
         self.assertNotIn("연결 코드", r.stdout)
         self.assertIn("<script>var x=1;</script>", self.path.read_text(encoding="utf-8"))
 
+    def test_rc_call_without_marker_stops(self):
+        self.write(CSS + "<script>RC.chart(document.getElementById('c'),{});</script>")
+        before = self.path.read_bytes()
+        r = build(self.path)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("report-charts", r.stderr)
+        self.assertEqual(before, self.path.read_bytes())
+
     def test_version_mismatch_stops(self):
         self.write(CSS + cdn("echarts", "6.0.0") + CHARTS)
         before = self.path.read_bytes()
@@ -469,7 +543,7 @@ if __name__ == "__main__":
 - [ ] **Step 3: 시험이 실패하는지 확인**
 
 Run: `python -B -m unittest tests.test_build -v`
-Expected: `test_idempotent_with_charts`와 `test_version_mismatch_stops`가 FAIL. 지금 build.py는 연결 코드를 모른다.
+Expected: `test_idempotent_with_charts`, `test_version_mismatch_stops`, `test_rc_call_without_marker_stops`가 FAIL. 지금 build.py는 연결 코드를 모른다.
 
 - [ ] **Step 4: build.py 전체 교체**
 
@@ -480,6 +554,7 @@ Expected: `test_idempotent_with_charts`와 `test_version_mismatch_stops`가 FAIL
 - report-base: <style> 안의 표시를 report-base.css로 채운다. 이 표시는 필수다.
 - report-charts: <script> 안의 표시를 report-charts.js로 채운다. 표시가 있는 문서만 채운다.
   문서의 CDN 주소 버전이 report-charts.js 첫 줄의 대상 버전과 다르면 채우지 않고 멈춘다.
+  문서가 RC 함수를 호출하는데 이 표시가 없어도 멈춘다.
 """
 import re
 import sys
@@ -494,6 +569,7 @@ MARK = ("/* BEGIN report-charts " + " ".join(f"{k}@{v}" for k, v in LIBS.items()
 BLOCK = re.compile(r"(/\* BEGIN report-base[^*]*\*/\n).*?(/\* END report-base \*/)", re.S)
 CHART_BLOCK = re.compile(r"/\* BEGIN report-charts[^*]*\*/\n.*?(/\* END report-charts \*/)", re.S)
 CDN_VER = re.compile(r"cdn\.jsdelivr\.net/npm/(echarts|mermaid|gsap)@([^/\"']+)/")
+RC_CALL = re.compile(r"\bRC\.(?:chart|demo|ma|color)\s*\(")
 
 for name in sys.argv[1:]:
     p = Path(name)
@@ -502,6 +578,8 @@ for name in sys.argv[1:]:
         sys.exit(f"{name}: BEGIN/END report-base 표시가 없다")
     out = BLOCK.sub(lambda m: m.group(1) + BASE + m.group(2), html)
     charts = bool(CHART_BLOCK.search(out))
+    if not charts and RC_CALL.search(out):
+        sys.exit(f"{name}: RC 함수를 호출하는데 BEGIN/END report-charts 표시가 없다. 템플릿의 연결 코드 <script>를 넣는다")
     if charts:
         wrong = {k: v for k, v in CDN_VER.findall(out) if LIBS.get(k) != v}
         if wrong:
@@ -556,7 +634,11 @@ git commit -m "build.py가 연결 코드를 삽입하고 CDN 버전을 대조한
     return e;
   }
 
-  RC.color = tok;
+  RC.color = function (name) {
+    var v = tok(name);
+    if (!v) console.error('RC.color: 없는 토큰 이름 ' + name);
+    return v;
+  };
 
   RC.ma = function (values, n) {
     var out = [], sum = 0;
@@ -592,39 +674,38 @@ git commit -m "build.py가 연결 코드를 삽입하고 CDN 버전을 대조한
       candlestick: { itemStyle: { color: tok('neg'), color0: tok('s1'), borderColor: tok('neg'), borderColor0: tok('s1') } }
     });
   }
-  function fit(item) { // 인쇄 폭에 맞춰 줄어들도록 SVG에 viewBox를 둔다
-    var svg = item.box.querySelector('svg');
-    if (svg) svg.setAttribute('viewBox', '0 0 ' + item.chart.getWidth() + ' ' + item.chart.getHeight());
-  }
   RC.chart = function (box, option) {
+    if (!box) { console.error('RC.chart: 차트 상자가 없다'); return null; }
     if (typeof echarts === 'undefined') { fail(box); return null; }
-    registerTheme();
-    var w = box.clientWidth || document.querySelector('main.doc').clientWidth; // 숨은 페이지는 폭이 0이다
-    var h = box.clientHeight || parseFloat(getComputedStyle(box).height) || 320;
-    var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
-    option.animation = false;
-    if (!option.tooltip) {
-      var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
-      option.tooltip = { trigger: pie ? 'item' : 'axis' };
-    }
-    chart.setOption(option);
-    var item = { chart: chart, box: box, h: h };
-    charts.push(item);
-    fit(item);
-    new ResizeObserver(function () {
-      if (box.clientWidth > 0 && box.clientWidth !== chart.getWidth()) {
-        chart.resize({ width: box.clientWidth, height: h });
-        fit(item);
+    try {
+      registerTheme();
+      var w = box.clientWidth || document.querySelector('main.doc').clientWidth; // 숨은 페이지는 폭이 0이다
+      var h = box.clientHeight || parseFloat(getComputedStyle(box).height) || 320;
+      var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
+      option.animation = false;
+      if (!option.tooltip) {
+        var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
+        option.tooltip = { trigger: pie ? 'item' : 'axis' };
       }
+      chart.setOption(option);
+    } catch (e) { // 차트 하나의 오류가 뒤의 시각화를 막지 않게 한다
+      console.error('RC.chart', e);
+      if (chart) chart.dispose();
+      fail(box);
+      return null;
+    }
+    charts.push({ chart: chart, box: box, h: h });
+    new ResizeObserver(function () {
+      if (box.clientWidth > 0 && box.clientWidth !== chart.getWidth()) chart.resize({ width: box.clientWidth, height: h });
     }).observe(box);
     return chart;
   };
   addEventListener('beforeprint', function () {
-    charts.forEach(function (it) { it.chart.resize({ width: PRINT_W, height: it.h }); fit(it); });
+    charts.forEach(function (it) { it.chart.resize({ width: PRINT_W, height: it.h }); });
   });
   addEventListener('afterprint', function () {
     charts.forEach(function (it) {
-      if (it.box.clientWidth > 0) { it.chart.resize({ width: it.box.clientWidth, height: it.h }); fit(it); }
+      if (it.box.clientWidth > 0) it.chart.resize({ width: it.box.clientWidth, height: it.h });
     });
   });
 
@@ -676,10 +757,17 @@ git commit -m "build.py가 연결 코드를 삽입하고 CDN 버전을 대조한
 
     RC.ready.then(function () {
       var $ = function (name) {
-        return fig.querySelector('#' + name) || fig.querySelector('g.node[id*="-' + name + '-"]');
+        return fig.querySelector('[id="' + name + '"]') || fig.querySelector('g.node[id*="-' + name + '-"]');
       };
       var tl = gsap.timeline({ paused: true }), ends = [];
-      steps.forEach(function (s, i) { s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration()); });
+      try {
+        steps.forEach(function (s, i) { s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration()); });
+      } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
+        console.error('RC.demo', e);
+        tl.kill();
+        fig.classList.add('demo-static');
+        return;
+      }
       var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       var cur = 0, tw = null, timer = null, saved = 0, last = steps.length - 1;
 
@@ -698,7 +786,8 @@ git commit -m "build.py가 연결 코드를 삽입하고 CDN 버전을 대조한
       }
       function go(i, animate) {
         stop();
-        if (animate && !reduce) tw = tl.tweenTo('e' + i); else tl.seek('e' + i);
+        if (animate && !reduce) tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
+        else tl.seek('e' + i);
         show(i);
       }
       function tick() {
@@ -709,7 +798,8 @@ git commit -m "build.py가 연결 코드를 삽입하고 CDN 버전을 대조한
         bPlay.textContent = '일시정지';
         if (reduce) timer = gsap.delayedCall(1.2, tick); else tl.play();
       }
-      tl.eventCallback('onUpdate', function () {
+      tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
+        if (tw) return;
         var t = tl.time(), i = 0;
         while (i < last && ends[i] < t - 1e-6) i++;
         if (i !== cur) show(i);
@@ -758,8 +848,12 @@ pre.mermaid rect{rx:0;ry:0}
 ```css
   .demo-ctl,.demo-cap{display:none}
   .demo-steps{display:block}
-  .viz svg,pre.mermaid svg{max-width:100%;height:auto}
+  .viz{height:auto}
+  .viz>div{width:100%!important;height:auto!important}
+  .viz svg,pre.mermaid svg{width:100%;max-width:100%;height:auto}
 ```
+
+ECharts의 SVG 렌더러는 svg를 고정 px 폭의 `div`로 감싸고 svg에 viewBox를 둔다. 그래서 인쇄에서는 감싸는 `div`의 폭을 풀어야 svg가 viewBox 비율대로 용지 폭에 맞춰 줄어든다.
 
 - [ ] **Step 3: 검사기 회귀 확인**
 
@@ -890,7 +984,7 @@ Expected: `template.html: 기준 CSS 반영, 연결 코드 반영`, `template-pa
   <h1>시각화 시험 견본</h1>
   <p class="lede">이 문서는 연결 코드의 렌더링과 동작과 인쇄를 시험합니다.</p>
   <div class="keyfig">
-    <div><span class="k">시험 페이지</span><span class="v">5</span><span class="d">요약 포함</span></div>
+    <div><span class="k">페이지 수</span><span class="v">5</span><span class="d">요약 포함</span></div>
     <div><span class="k">시각화</span><span class="v">6</span><span class="d">차트 2, 도식 2, 동작 예시 2</span></div>
   </div>
 </header>
@@ -898,7 +992,7 @@ Expected: `template.html: 기준 CSS 반영, 연결 코드 반영`, `template-pa
 
 <section class="page" id="p2"><p class="pno">2 / 5</p>
 <h2>거래대금 추이</h2>
-<ul class="pts"><li>6월 거래대금은 24.9조원으로 3개월 이동평균 25.9조원을 밑돌았습니다.</li></ul>
+<ul class="pts"><li>6월 거래대금은 24.9조원으로 3개월 이동평균 25.9조원을 하회했습니다.</li></ul>
 <p class="blk"><b>근거</b></p>
 <figure>
   <figcaption><span class="t">월별 거래대금 (2026년 1~6월)</span><span class="u">단위: 조원, 선은 3개월 이동평균</span></figcaption>
@@ -1029,39 +1123,41 @@ RC.demo(document.getElementById('d-mmd'), [
 Run: `python -B build.py tests/sample-viz.html && python -B check.py tests/sample-viz.html && python -B -m unittest discover -s tests -v`
 Expected: `기준 CSS 반영, 연결 코드 반영`, `위반 0건`, 시험 모두 OK.
 
-- [ ] **Step 7: 렌더링 시험(스크린샷)**
+- [ ] **Step 7: 서버 실행과 렌더링 시험(스크린샷)**
 
-서버(`python -B -m http.server 8765`)가 실행 중인지 확인한다. 다크 사본을 만든다.
+서버를 켠다(Bash 도구 `run_in_background`): `cd "$W" && python -B -m http.server 8765`. `curl -s -o /dev/null -w "%{http_code}" http://localhost:8765/tests/sample-viz.html`이 `200`을 출력하는지 확인한다.
+
+다크 사본을 만들고, 페이지마다 밝은 모드와 다크 모드를 캡처한다.
 
 ```bash
 sed 's/<html lang="ko">/<html lang="ko" data-theme="dark">/' tests/sample-viz.html > tests/_tmp-dark.html
-```
-
-페이지마다 밝은 모드와 다크 모드를 캡처한다(`$OUT`은 세션 scratchpad).
-
-```bash
-E="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
 for f in sample-viz _tmp-dark; do for p in 1 2 3 4 5; do
   "$E" --headless=new --disable-gpu --hide-scrollbars --window-size=1280,1400 --virtual-time-budget=8000 \
     --screenshot="$(cygpath -w "$OUT")\\$f-p$p.png" "http://localhost:8765/tests/$f.html#p$p"
 done; done
 ```
 
-Expected: 열 장의 PNG를 Read로 열어 확인한다. 확인 항목은 다섯 가지다. 차트 두 개와 도식 두 개가 모두 그려져 있다. 막대와 노드가 직각이다. 색이 토큰 색(남색·녹회색·황토색·회색)이다. 제목과 단위 줄과 출처 줄이 보인다. 다크 사본의 선과 글자가 어두운 바탕에서 읽힌다. 문제가 있으면 원인을 적고 Task 4의 해당 코드를 고친 뒤 다시 캡처한다.
+Expected: 열 장의 PNG를 Read로 열어 아래 항목을 확인한다. 문제가 있으면 원인을 적고 Task 4의 해당 코드를 고친 뒤 다시 캡처한다.
+- **그려짐:** 차트 두 개와 도식 두 개와 동작 예시 두 개가 모두 그려져 있다.
+- **모양:** 막대와 노드가 직각이다.
+- **색:** 계열 색이 토큰 색(남색·녹회색·황토색·회색)이다.
+- **figure 구성:** 제목과 단위 줄과 출처 줄이 보인다.
+- **다크 모드:** 다크 사본의 선과 글자가 어두운 바탕에서 읽힌다.
 
 - [ ] **Step 8: 동작 시험(Playwright)**
 
-`http://localhost:8765/tests/sample-viz.html`을 열고 아래를 차례로 확인한다. 각 식은 `browser_evaluate`로 평가하고, 클릭은 식 안의 `.click()`으로 한다.
+`http://localhost:8765/tests/sample-viz.html`을 열고 아래를 차례로 확인한다. 페이지 이동 상태가 앞 항목에 이어지므로 순서대로 실행한다. 각 식은 `browser_evaluate`로 평가하고, 클릭은 식 안의 `.click()`으로 한다. 모든 식은 연결 코드 준비(`RC.ready`)를 기다린 뒤 실행된다.
 
-1. 이동평균: `() => JSON.stringify(RC.ma([1,2,3,4],2))` → `"[null,1.5,2.5,3.5]"`
-2. 숨은 페이지 차트: `() => { document.getElementById('next').click(); return new Promise(r => setTimeout(() => { const b = document.getElementById('c-trend'); r([Math.round(b.querySelector('svg').getBoundingClientRect().width), b.clientWidth]); }, 500)); }` → 두 값의 차이가 1 이하
-3. 숨은 페이지 도식과 `<` 문자: 페이지를 p4로 넘긴 뒤(`#next`를 두 번 클릭) `() => { const s = document.querySelector('#p4 pre.mermaid svg'); return [Math.round(s.getBoundingClientRect().width) > 0, s.textContent.includes('금액 < 한도')]; }` → `[true, true]`
-4. 단계 넘김과 독립성: p5로 넘긴 뒤 `() => { const f = document.getElementById('d-flow'), g = document.getElementById('d-mmd'); const next = f.querySelectorAll('.demo-ctl button')[2]; next.click(); next.click(); return [f.querySelector('.cnt').textContent, g.querySelector('.cnt').textContent]; }` → `["3/3", "1/3"]`
-5. Mermaid 노드 강조: `() => { const b = document.getElementById('d-mmd').querySelectorAll('.demo-ctl button')[2]; b.click(); return new Promise(r => setTimeout(() => r(getComputedStyle(document.querySelector('#d-mmd g.node[id*="-Q-"] rect')).stroke), 800)); }` → `RC.color('accent')`를 `rgb()`로 바꾼 값과 같다(밝은 모드 `rgb(31, 58, 95)`)
-6. 페이지 이동 시 일시정지: `() => { const f = document.getElementById('d-flow'), b = f.querySelectorAll('.demo-ctl button'); b[3].click(); b[1].click(); document.getElementById('prev').click(); return new Promise(r => setTimeout(() => { document.getElementById('next').click(); setTimeout(() => r(b[1].textContent), 300); }, 300)); }` → `"재생"`. 이전 페이지로 넘긴 뒤 300ms를 기다리는 이유는 `ResizeObserver`가 폭 0을 관측할 시간을 주기 위해서다.
-7. 움직임 줄이기: `browser_emulate_media`로 `reducedMotion: "reduce"`를 켜고 `http://localhost:8765/tests/sample-viz.html#p5`를 다시 연 뒤 `() => new Promise(r => setTimeout(() => { const f = document.getElementById('d-flow'); f.querySelectorAll('.demo-ctl button')[2].click(); r(getComputedStyle(document.getElementById('v2')).stroke); }, 1500))` → `rgb(31, 58, 95)`(전환 없이 즉시 끝 상태). 끝나면 `reducedMotion`을 `no-preference`로 되돌린다.
-8. 좁은 화면: `browser_resize`로 390×800으로 바꾸고 `#p2`를 다시 연 뒤 `() => new Promise(r => setTimeout(() => { const b = document.getElementById('c-trend'); r([b.querySelector('svg').getBoundingClientRect().width <= b.clientWidth + 1, document.documentElement.scrollWidth <= 390]); }, 800))` → `[true, true]`. 끝나면 1280×900으로 되돌린다.
-9. 라이브러리 로드 실패: `sed 's#gsap@3.15.0/dist/gsap.min.js#gsap@3.15.0/dist/none.js#' tests/sample-viz.html > tests/_tmp-nogsap.html`을 실행하고 `http://localhost:8765/tests/_tmp-nogsap.html#p5`를 연 뒤 `() => new Promise(r => setTimeout(() => r([document.getElementById('d-flow').classList.contains('demo-static'), !!document.querySelector('#p5 pre.mermaid svg')]), 1500))` → `[true, true]`. 이어서 p2로 넘겨 `#c-trend svg`가 있는지 확인한다.
+1. 이동평균: `() => RC.ready.then(() => JSON.stringify(RC.ma([1,2,3,4],2)))` → `"[null,1.5,2.5,3.5]"`
+2. 숨은 페이지 차트: `() => RC.ready.then(() => { document.getElementById('next').click(); return new Promise(r => setTimeout(() => { const b = document.getElementById('c-trend'); r([Math.round(b.querySelector('svg').getBoundingClientRect().width), b.clientWidth]); }, 500)); })` → 두 값의 차이가 1 이하
+3. 숨은 페이지 도식과 `<` 문자: `() => RC.ready.then(() => { const n = document.getElementById('next'); n.click(); n.click(); const s = document.querySelector('#p4 pre.mermaid svg'); return [Math.round(s.getBoundingClientRect().width) > 0, s.textContent.includes('금액 < 한도')]; })` → `[true, true]`
+4. 단계 넘김과 독립성: `() => RC.ready.then(() => { document.getElementById('next').click(); const f = document.getElementById('d-flow'), g = document.getElementById('d-mmd'); const next = f.querySelectorAll('.demo-ctl button')[2]; next.click(); next.click(); return new Promise(r => setTimeout(() => r([f.querySelector('.cnt').textContent, g.querySelector('.cnt').textContent]), 1500)); })` → `["3/3", "1/3"]`
+5. 다음 뒤 재생: `() => RC.ready.then(() => { const b = document.getElementById('d-flow').querySelectorAll('.demo-ctl button'); b[3].click(); b[2].click(); return new Promise(r => setTimeout(() => { b[1].click(); const now = b[1].textContent; setTimeout(() => r([now, document.querySelector('#d-flow .cnt').textContent, b[1].textContent]), 2500); }, 2000)); })` → `["일시정지", "3/3", "재생"]`
+6. Mermaid 노드 강조: `() => RC.ready.then(() => { document.getElementById('d-mmd').querySelectorAll('.demo-ctl button')[2].click(); return new Promise(r => setTimeout(() => r(getComputedStyle(document.querySelector('#d-mmd g.node[id*="-Q-"] rect')).stroke), 800)); })` → `rgb(31, 58, 95)`(밝은 모드의 `--accent`)
+7. 페이지 이동 시 일시정지: `() => RC.ready.then(() => { const b = document.getElementById('d-flow').querySelectorAll('.demo-ctl button'); b[3].click(); b[1].click(); document.getElementById('prev').click(); return new Promise(r => setTimeout(() => { document.getElementById('next').click(); setTimeout(() => r(b[1].textContent), 300); }, 300)); })` → `"재생"`. 이전 페이지로 넘긴 뒤 300ms를 기다리는 이유는 `ResizeObserver`가 폭 0을 관측할 시간을 주기 위해서다.
+8. 움직임 줄이기: `browser_emulate_media`로 `reducedMotion: "reduce"`를 켜고 `http://localhost:8765/tests/sample-viz.html#p5`를 다시 연 뒤 `() => RC.ready.then(() => { document.getElementById('d-flow').querySelectorAll('.demo-ctl button')[2].click(); return getComputedStyle(document.getElementById('v2')).stroke; })` → `rgb(31, 58, 95)`(전환 없이 즉시 끝 상태). 끝나면 `reducedMotion`을 `no-preference`로 되돌린다.
+9. 좁은 화면: `browser_resize`로 390×800으로 바꾸고 `http://localhost:8765/tests/sample-viz.html#p2`를 다시 연 뒤 `() => RC.ready.then(() => new Promise(r => setTimeout(() => { const b = document.getElementById('c-trend'); r([b.querySelector('svg').getBoundingClientRect().width <= b.clientWidth + 1, document.documentElement.scrollWidth <= 390]); }, 800)))` → `[true, true]`. 끝나면 1280×900으로 되돌린다.
+10. 라이브러리 로드 실패: `sed 's#gsap@3.15.0/dist/gsap.min.js#gsap@3.15.0/dist/none.js#' tests/sample-viz.html > tests/_tmp-nogsap.html`을 실행하고 `http://localhost:8765/tests/_tmp-nogsap.html#p5`를 연 뒤 `() => RC.ready.then(() => { const d = document.getElementById('d-flow'); document.getElementById('prev').click(); document.getElementById('prev').click(); document.getElementById('prev').click(); return new Promise(r => setTimeout(() => r([d.classList.contains('demo-static'), !!document.querySelector('#p4 pre.mermaid svg'), !!document.querySelector('#c-trend svg')]), 500)); })` → `[true, true, true]`
 
 기대와 다르면 멈추고 원인과 사용자가 정할 것을 보고한다.
 
@@ -1073,9 +1169,17 @@ Run:
   --print-to-pdf="$(cygpath -w "$OUT")\\sample-viz.pdf" "http://localhost:8765/tests/sample-viz.html"
 ```
 
-Expected: PDF를 Read로 열어(`pages: "1-5"`) 네 가지를 확인한다. 페이지마다 한 절이 인쇄된다. 차트와 도식이 용지 폭 안에 있다. p5 동작 예시에서 조작 버튼과 설명 줄이 인쇄되지 않는다. 대신 단계 설명 목록 세 줄이 인쇄된다. 차트가 용지 밖으로 넘치면 Task 1 Step 5의 `beforeprint` 측정 결과를 함께 보고하고, `fit()`이 viewBox를 두는지 확인한다.
+Expected: PDF를 Read로 열어(`pages: "1-5"`) 아래 항목을 확인한다.
+- **페이지 나눔:** 페이지마다 한 절이 인쇄된다.
+- **폭:** 차트와 도식이 용지 폭 안에 있다.
+- **동작 예시:** p5에서 조작 버튼과 설명 줄이 인쇄되지 않는다.
+- **단계 목록:** p5에 동작 예시 두 개의 단계 설명 목록 여섯 줄이 인쇄된다.
+
+차트가 용지 밖으로 넘치면 Task 1 Step 5의 `beforeprint` 측정 결과와 함께 보고하고, 인쇄 CSS의 `.viz>div` 규칙이 ECharts의 감싸는 `div`에 적용되었는지 확인한다.
 
 - [ ] **Step 10: 정리와 커밋**
+
+서버 백그라운드 작업을 종료한다.
 
 ```bash
 rm -f tests/_tmp-dark.html tests/_tmp-nogsap.html
@@ -1105,11 +1209,14 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 
 - [ ] **Step 2: 작업 방식 표의 '기존 HTML 수정' 행 갱신**
 
-'본문 글' 칸 끝에 아래 문장을 추가한다.
+'기존 HTML 수정' 행의 '본문 글' 칸은 `고쳐 쓴다`로 끝난다. 그 뒤에 아래 문자열을 그대로 붙인다(앞의 마침표 포함, 칸 안의 다른 문장처럼 끝에는 마침표를 두지 않는다).
 
 ```
- 시각화는 추가하지 않고, '시각화' 절의 기준표에 해당하는 표를 보고에서 '시각화로 바꿀 수 있는 표' 목록으로 알린다
+. 시각화는 추가하지 않고, '시각화' 절의 기준표에 해당하는 표를 보고에서 '시각화로 바꿀 수 있는 표' 목록으로 알린다
 ```
+
+Run: `grep -c "고쳐 쓴다. 시각화는 추가하지 않고" SKILL.md`
+Expected: `1`
 
 - [ ] **Step 3: '## 시각화' 절 추가**
 
@@ -1118,7 +1225,7 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 ````markdown
 ## 시각화
 
-새 문서에서 근거가 아래 표의 내용 유형에 해당하면, 표 대신 또는 표와 함께 해당 시각화를 쓴다. 시각화는 차트(ECharts), 도식(Mermaid 또는 직접 그린 SVG), 동작 예시(버튼으로 단계를 넘기는 애니메이션)를 말한다.
+새 문서에서 근거가 아래 기준표의 내용 유형에 해당하면, 표 대신 또는 표와 함께 해당 시각화를 쓴다. 시각화는 차트(ECharts), 도식(Mermaid 또는 직접 그린 SVG), 동작 예시(버튼으로 단계를 넘기는 애니메이션)를 묶어 가리키고, 모두 `figure`로 감싸는 도표다.
 
 | 내용 유형 | 시각화 | 도구 | 쓰지 않는 조건 |
 |---|---|---|---|
@@ -1127,7 +1234,7 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 | 전체 중 구성비 | 파이(도넛) 차트 | ECharts | 항목이 6개를 넘거나 비율이 비슷하면 가로 막대로 쓴다 |
 | 항목 간 크기 비교 | 가로 막대 차트 | ECharts 또는 `.bars`(CSS 막대 줄) | 값이 2~3개면 핵심 수치 줄(`.keyfig`)로 쓰고, 정확한 값 조회가 목적이면 표로 쓴다 |
 | 두 변수의 관계 | 산점도 | ECharts | 조건 없이 쓴다 |
-| 데이터 흐름과 처리 단계 | 플로우 차트 | Mermaid `flowchart` | 조건 없이 쓴다 |
+| 데이터 흐름과 처리 단계 | 흐름도 | Mermaid `flowchart` | 조건 없이 쓴다 |
 | 모듈과 시스템 구조 | 블록 도식 | Mermaid `flowchart` + `subgraph` | 조건 없이 쓴다 |
 | 주체 간 호출 순서 | 시퀀스 도식 | Mermaid `sequenceDiagram` | 조건 없이 쓴다 |
 | 데이터 구조와 테이블 관계 | 클래스·ER 도식 | Mermaid `classDiagram`·`erDiagram` | 조건 없이 쓴다 |
@@ -1137,23 +1244,32 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 공통 규칙은 다음과 같다.
 
 - **정확한 값 보존:** 독자가 값을 조회해야 하는 자료는 차트 아래에 표를 함께 둔다.
-- **figure 구성:** 모든 시각화는 `figure` 안에 두고 제목(`.t`), 단위·기간(`.u`), 본체, 출처 줄(`.src`)을 둔다.
-- **차트 제목 위치:** 차트 제목은 `figcaption .t`에만 쓰고, ECharts `title` 옵션은 쓰지 않는다.
-- **도식 노드 모양:** Mermaid 노드는 직각 상자(`[텍스트]`)와 판단 마름모(`{텍스트}`)만 쓴다. 둥근 노드(`(텍스트)`, `([텍스트])`)와 `style`·`classDef`는 쓰지 않는다. 원문의 `<`는 `&lt;`로 적는다.
-- **색:** 문서 스크립트에서 색은 `RC.color('s1')`처럼 토큰 이름으로 받는다. `#xxxxxx` 색은 쓰지 않는다.
-- **움직임:** 움직임은 `RC.demo` 안에서만 쓴다. `play(tl, $)` 안에서는 `tl.to`·`tl.set`만 쓰고 `gsap.`을 직접 호출하지 않는다. 자동 반복(`repeat`, `yoyo`)과 진입 애니메이션은 쓰지 않는다.
+- **figure 구성:** 모든 시각화는 `figure` 안에 두고 도표 제목(`.t`), 단위·기간(`.u`), 본체, 출처 줄(`.src`)을 두며, 도표 제목과 축·범례는 `LABEL-NOUN`을 따른다.
+- **도표 제목 위치:** 차트의 제목은 `figcaption .t`에만 쓰고 ECharts `title` 옵션은 쓰지 않는다.
+- **도식 노드 모양:** Mermaid 노드는 직각 상자(`[텍스트]`)와 판단 마름모(`{텍스트}`)만 쓰고, 둥근 노드(`(텍스트)`, `([텍스트])`)와 `style`·`classDef`는 쓰지 않는다.
+- **Mermaid 원문의 `<`:** 원문의 `<`는 `&lt;`로 적는다.
+- **색:** 문서 스크립트의 색은 `RC.color('s1')`처럼 토큰 이름으로 받고 `#xxxxxx` 색은 쓰지 않는다.
+- **장식 금지:** 3D, 그림자, 계열마다 채도 높은 색, 진입 애니메이션, 자동 반복(`repeat`, `yoyo`)을 쓰지 않는다.
+- **움직임:** 움직임은 `RC.demo`의 `play(tl, $)` 안에서 `tl.to`·`tl.set`으로만 쓰고 `gsap.`을 직접 호출하지 않는다.
 
-템플릿에는 스크립트가 세 층으로 들어 있다. `<head>`의 CDN 태그 세 줄과 연결 코드 `<script>`(BEGIN/END report-charts 표시)는 그대로 두고, 문서 스크립트는 `</main>` 바로 뒤의 `<script>`에 쓴다. 시각화가 하나도 없는 문서는 CDN 태그 세 줄과 연결 코드 `<script>`를 지운다. 문서 스크립트가 쓰는 함수는 넷이다.
+템플릿에는 스크립트가 세 층으로 들어 있다. `<head>`의 CDN 태그 세 줄과 연결 코드 `<script>`(BEGIN/END report-charts 표시)는 그대로 둔다. 연결 코드는 build.py가 `report-charts.js`에서 채워 넣는 `RC` 함수 모음이다. 문서마다 쓰는 문서 스크립트는 `</main>` 바로 뒤의 `<script>`에 둔다.
+
+시각화가 하나도 없는 문서는 CDN 태그 세 줄과 연결 코드 `<script>`와 `</main>` 뒤 문서 스크립트를 모두 지운다. build.py는 문서 스크립트가 `RC` 함수를 호출하는데 연결 코드 표시가 없으면 멈춘다.
+
+문서 스크립트가 쓰는 함수는 다음과 같다.
 
 | 함수 | 쓰임 |
 |---|---|
 | `RC.chart(상자, 옵션)` | `<div class="viz" id="…">` 상자에 ECharts 옵션으로 차트를 그린다. 높이는 기본 320px이고 문서 전용 CSS로 바꾼다 |
 | `RC.ma(값 배열, n)` | n개 이동평균 배열을 돌려준다. 앞의 n−1개는 `null`이다 |
-| `RC.color(이름)` | 토큰 색 값을 돌려준다. 이름은 `s1`~`s4`, `accent`, `neg`, `ink` 등이다 |
-| `RC.demo(figure, 단계 배열)` | 단계 항목 `{name, text, play}`로 동작 예시를 만든다. `play(tl, $)`의 `$('이름')`은 figure 안의 `#이름` 요소나 Mermaid 노드 `이름`을 돌려준다 |
+| `RC.color(이름)` | 토큰 색 값을 돌려준다. 이름은 `s1`·`s2`·`s3`·`s4`·`accent`·`accent-2`·`neg`·`ink`·`ink-2`·`ink-3`·`hair`·`rule`·`paper`·`tint` 중 하나다 |
+| `RC.demo(figure, 단계 배열)` | 단계 항목 `{name, text, play}`로 동작 예시를 만든다. `play(tl, $)`의 `$('이름')`은 figure 안에서 id가 `이름`인 요소나 Mermaid 노드 `이름`을 돌려준다 |
 
-도식은 `<pre class="mermaid">` 안에 Mermaid 텍스트를 적으면 연결 코드가 그린다. 쓰는 방법은 `$S/template.html`의 견본 세 개(차트, 플로우 차트, 동작 예시)를 따른다.
+도식은 `<pre class="mermaid">` 안에 Mermaid 텍스트를 적으면 연결 코드가 그린다. 쓰는 방법은 `$S/template.html`의 견본 세 개(차트, 흐름도, 동작 예시)를 따른다.
 ````
+
+Run: `grep -c "^## 시각화$" SKILL.md; grep -c "RC.demo(figure, 단계 배열)" SKILL.md`
+Expected: `1`과 `1`
 
 - [ ] **Step 4: 완료 기준 갱신**
 
@@ -1164,6 +1280,9 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 ```
 
 완료 기준 3번의 `--virtual-time-budget=4000`을 `--virtual-time-budget=8000`으로 바꾼다.
+
+Run: `grep -c "연결 코드 반영" SKILL.md; grep -c "virtual-time-budget=4000" SKILL.md`
+Expected: `1`과 `0`
 
 완료 기준 4번의 불릿 목록 끝(`- **문서 간 일치:** …` 뒤)에 추가한다.
 
@@ -1180,12 +1299,15 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 - **BEGIN/END 안의 직접 수정:** 다음 build.py 실행 때 사라진다. 공통 CSS는 `report-base.css`에서, 연결 코드는 `report-charts.js`에서 수정한다.
 ```
 
+Run: `grep -c "연결 코드는 .report-charts.js.에서 수정한다" SKILL.md`
+Expected: `1`
+
 - [ ] **Step 6: `보고서-규격.md` 갱신**
 
 구성 요소 규칙 표의 세 행을 아래로 바꾼다.
 
 ```markdown
-| 도표 | 제목, 단위·기간, 본체, 출처 줄(`figure`). 차트는 ECharts 규격 테마(`RC.chart`)로 그린다 | 도표를 감싼 카드, 둥근 막대 |
+| 도표 | 제목, 단위·기간, 본체, 출처 줄(`figure`). 차트·도식·동작 예시가 모두 이 구성을 따르고, 차트는 ECharts 규격 테마(`RC.chart`)로 그린다 | 도표를 감싼 카드, 둥근 막대 |
 | 도식(SVG) | Mermaid 규격 테마(직각 노드) 또는 직접 그린 SVG. 1px 선, 흰 바탕, 모서리 직각 | 파스텔 채움 상자, 둥근 상자(rx 3 이상), 둥근 Mermaid 노드 |
 | 움직임 | 없음. 차트에서 값을 보여 주는 마우스오버 설명은 기능이므로 둔다. 동작 예시(`RC.demo`)의 단계 재생만 허용하고, 조작 버튼을 반드시 둔다 | 스크롤하면 떠오르는 효과, 장식용 hover 효과, 자동 반복 애니메이션, 차트 진입 애니메이션 |
 ```
@@ -1202,6 +1324,9 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 같은 폴더 `금지어.md`의 한국어 금지어도 검출하며, 대상에는 문서 스크립트의 문자열이 포함된다.
 ```
 
+Run: `grep -c "RC.chart" 보고서-규격.md; grep -c "RC.demo" 보고서-규격.md; grep -c "GSAP 직접 호출" 보고서-규격.md`
+Expected: 세 값 모두 `1` 이상
+
 - [ ] **Step 7: 금지어 검사와 커밋**
 
 Run: `python -B -c "import sys,re;sys.path.insert(0,'.');import check;[print(f,dict(check.banned_hits(re.sub(r'\`[^\`]*\`','',open(f,encoding='utf-8').read()),check.banned_rules()))) for f in ['SKILL.md','보고서-규격.md']]"`
@@ -1214,45 +1339,64 @@ git commit -m "SKILL.md와 보고서-규격.md에 시각화 규칙을 추가한�
 
 ---
 
-### Task 7: 스킬 동작 시험
+### Task 7: 스킬 동작 시험과 병합
 
 **Files:**
 - 없음(산출물은 세션 scratchpad에 둔다)
 
 **Interfaces:**
-- Consumes: Task 2~6의 완성된 스킬
-- Produces: 통과 또는 실패 판정과 근거
+- Consumes: Task 2~6의 완성된 스킬(`$W`)
+- Produces: 통과 또는 실패 판정과 근거, 통과 시 `$S`에 병합된 `viz` 브랜치
 
 - [ ] **Step 1: 서브에이전트 실행**
 
-`general-purpose` 서브에이전트 하나에 아래 프롬프트를 준다(`<OUT>`은 scratchpad 절대 경로).
+`general-purpose` 서브에이전트 하나에 아래 프롬프트를 준다. `<W>`는 worktree 절대 경로, `<OUT>`은 scratchpad 절대 경로다. 시각화 지시와 문서 형식(단일·페이지형) 지시는 주지 않는다.
 
 ```
-C:/Users/CHSHIN/.claude/skills/writing-html-reports/SKILL.md 를 읽고 그 지시대로 작업하라. 글쓰기 전에 같은 폴더의 글쓰기-규칙.md 도 읽어라.
-요청: 월별 거래대금 12개월 자료와 주문 처리 흐름(접수→검증→체결→정산)을 정리한 검토 자료를 페이지형 HTML로 만들어라.
+<W>/SKILL.md 를 읽고 그 지시대로 작업하라. 이 파일 안의 $S 는 <W> 로 읽는다. 글쓰기 전에 같은 폴더의 글쓰기-규칙.md 도 읽어라.
+요청: 월별 거래대금 12개월 자료와 주문 처리 흐름(접수→검증→체결→정산)을 정리한 검토 자료를 HTML로 만들어라.
 거래대금 자료는 아래 값을 쓴다(단위 조원, 2025년 10월~2026년 9월): 22.1, 20.4, 23.8, 21.4, 23.1, 19.8, 25.6, 27.2, 24.9, 26.3, 28.0, 25.5
 결과 파일은 <OUT>/skill-test.html 로 저장하고, SKILL.md 완료 기준의 build.py 와 check.py 를 실행해 출력 원문을 보고하라.
 ```
 
 - [ ] **Step 2: 판정**
 
-Run: `python -B check.py "<OUT>/skill-test.html"`
-Expected: `위반 0건`.
+Run: `python -B check.py "$OUT/skill-test.html"`
+Expected: `위반 0건`
 
-결과 파일을 열어 네 조건을 확인한다.
-- 시계열 차트와 `RC.ma` 이동평균선이 있다.
-- 주문 처리 흐름이 플로우 차트나 동작 예시로 그려져 있다.
-- 기준표에 해당하지 않는 표를 시각화로 바꾸지 않았다.
-- check.py 위반이 0건이다.
+`$OUT`을 기준으로 서버를 켠다(Bash 도구 `run_in_background`): `cd "$OUT" && python -B -m http.server 8766`. 이어서 캡처한다.
 
-헤드리스 Edge로 캡처해 차트가 그려졌는지도 확인한다. 서버는 이 파일이 있는 폴더를 기준으로 따로 실행한다.
+```bash
+"$E" --headless=new --disable-gpu --hide-scrollbars --window-size=1280,3200 --virtual-time-budget=8000 \
+  --screenshot="$(cygpath -w "$OUT")\\skill-test.png" "http://localhost:8766/skill-test.html"
+```
+
+결과 파일과 PNG를 열어 네 조건을 확인한다.
+- **시계열:** 시계열 차트와 `RC.ma` 이동평균선이 있고 PNG에 그려져 있다.
+- **흐름:** 주문 처리 흐름이 흐름도나 동작 예시로 그려져 있다.
+- **과시각화 없음:** 기준표에 해당하지 않는 표를 시각화로 바꾸지 않았다.
+- **검사기:** check.py 위반이 0건이다.
+
+페이지형 문서라 첫 페이지만 캡처되면 `#p2`, `#p3`처럼 페이지 주소를 바꿔 다시 캡처한다. 서버 백그라운드 작업을 종료한다.
 
 - [ ] **Step 3: 실패 시 처리**
 
-조건을 하나라도 충족하지 못하면 원인에 해당하는 `SKILL.md` 문안을 고치고 커밋한 뒤 Step 1부터 다시 실행한다. 두 번 실패하면 멈추고 사용자에게 두 결과와 원인을 보고한다.
+조건을 하나라도 충족하지 못하면 원인에 해당하는 `SKILL.md` 문안을 `$W`에서 고치고 커밋한 뒤 Step 1부터 다시 실행한다. 두 번 실패하면 멈추고 사용자에게 두 결과와 원인을 보고한다. 병합은 하지 않는다.
 
-- [ ] **Step 4: 서버 종료와 결과 보고**
+- [ ] **Step 4: 병합과 결과 보고**
 
-`http.server` 백그라운드 작업을 종료한다. 사용자에게 판정과 check.py 출력 원문을 보고하고, GitHub 저장소 push 여부를 묻는다.
+통과하면 설치된 스킬에 병합하고 worktree를 지운다.
+
+```bash
+git -C "$S" status --short
+git -C "$S" merge --ff-only viz
+git -C "$S" worktree remove "$W"
+git -C "$S" branch -d viz
+git -C "$S" log --oneline -3
+```
+
+Expected: `status`가 아무것도 출력하지 않고, 병합이 fast-forward로 끝나며, 마지막 로그의 첫 줄이 `viz` 브랜치의 마지막 커밋이다. `status`에 변경이 있으면 병합하지 않고 사용자에게 알린다.
+
+사용자에게 판정과 check.py 출력 원문을 보고하고, GitHub 저장소 push 여부를 묻는다.
 
 <!-- spec-review: passed -->
