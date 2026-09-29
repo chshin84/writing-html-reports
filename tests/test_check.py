@@ -138,13 +138,81 @@ class DemoCount(unittest.TestCase):
             f.write_text(page(body="<p>가</p>", script="RC.demo(a,[]);" * n), encoding="utf-8")
             return run_check(f)
 
-    def test_four_demos_note_only(self):
+    def test_four_demos_violation(self):
         r = self.run_page(4)
-        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("참고: 동작 예시 4개", r.stdout)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("동작 예시 4개", r.stdout)
 
-    def test_three_demos_silent(self):
-        self.assertNotIn("참고: 동작 예시", self.run_page(3).stdout)
+    def test_three_demos_ok(self):
+        self.assertEqual(self.run_page(3).returncode, 0)
+
+
+def toc(*classes):
+    links = " · ".join(f'<a href="#p{i}" class="{c}">{i}. 절</a>' for i, c in enumerate(classes, 1))
+    return page(body=f'<p class="toc">{links}</p>')
+
+
+def paged(gist, marks, titles=("요약", "구조 A", "구조 B", "구조 C")):
+    toc = " · ".join(f'<a href="#p{i}" class="{marks.get(i, "")}">{i}. {t}</a>' for i, t in enumerate(titles, 1))
+    secs = [f'<section class="page" id="p1"><h2>{titles[0]}</h2><div class="gist"><ul>{gist}</ul></div></section>']
+    secs += [f'<section class="page" id="p{i}"><h2>{t}</h2><table><tr><td>가</td></tr></table></section>'
+             for i, t in enumerate(titles[1:], 2)]
+    return page(body=f'<p class="toc">{toc}</p>' + "".join(secs))
+
+
+class Scores(unittest.TestCase):
+    GIST = '<li data-src="p2">가</li><li data-src="p2 p3">나</li><li data-src="p3">다</li><li data-src="p3 p4">라</li>'
+
+    def test_expected_marks(self):
+        rows = {x["id"]: x for x in check.page_scores(paged(self.GIST, {}))}
+        self.assertTrue(rows["p1"]["excluded"])
+        self.assertEqual((rows["p2"]["N"], rows["p2"]["R"], rows["p2"]["expect"]), (1, 2, "key"))
+        self.assertEqual((rows["p3"]["N"], rows["p3"]["R"], rows["p3"]["expect"]), (1, 3, "core"))
+        self.assertEqual((rows["p4"]["N"], rows["p4"]["expect"]), (0, ""))
+
+    def test_matching_marks_ok(self):
+        self.assertEqual(check.score_violations(paged(self.GIST, {2: "key", 3: "core"})), [])
+
+    def test_mismatch_violation(self):
+        fails = check.score_violations(paged(self.GIST, {2: "core"}))
+        self.assertTrue(any(f.startswith("p2 표시 ★") for f in fails))
+        self.assertTrue(any(f.startswith("p3 표시 -") for f in fails))
+
+    def test_missing_data_src(self):
+        fails = check.score_violations(paged('<li>근거 없음</li>', {}))
+        self.assertTrue(any("data-src" in f for f in fails))
+
+    def test_branch_breaks_tie(self):
+        html = paged('<li data-src="p2">가</li><li data-src="p3">나</li>', {}).replace(
+            '<section class="page" id="p3"><h2>구조 B</h2>', '<section class="page" id="p3"><h2>구조 B</h2><svg><polygon points="0,0 1,1"/></svg>')
+        rows = {x["id"]: x for x in check.page_scores(html)}
+        self.assertEqual((rows["p3"]["B"], rows["p3"]["expect"], rows["p2"]["expect"]), (1, "core", "key"))
+
+    def test_key_needs_half_of_core(self):
+        gist = '<li data-src="p2">가</li>' + '<li data-src="p3">나</li>' * 3
+        rows = {x["id"]: x for x in check.page_scores(paged(gist, {}))}
+        self.assertEqual((rows["p3"]["expect"], rows["p2"]["expect"]), ("core", ""))
+
+    def test_conclusion_and_appendix_excluded(self):
+        rows = check.page_scores(paged('<li data-src="p2">가</li><li data-src="p3">나</li>', {},
+                                       ("요약", "결론", "부록 A", "구조")))
+        self.assertTrue(all(x["expect"] == "" for x in rows))
+
+
+class Stars(unittest.TestCase):
+    def test_one_core_two_key_ok(self):
+        self.assertEqual(check.star_violations(toc("core", "key", "key", "")), [])
+
+    def test_two_core(self):
+        self.assertTrue(any("★ 핵심 페이지 2개" in f for f in check.star_violations(toc("core", "core"))))
+
+    def test_three_key(self):
+        fails = check.star_violations(toc("core", "key", "key", "key"))
+        self.assertTrue(any("☆ 중요 페이지 3개" in f for f in fails))
+        self.assertTrue(any("별 표시 페이지 4개" in f for f in fails))
+
+    def test_key_without_core(self):
+        self.assertTrue(any("★이 없다" in f for f in check.star_violations(toc("key"))))
 
 
 class Original(unittest.TestCase):

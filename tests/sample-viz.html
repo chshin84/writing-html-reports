@@ -144,7 +144,9 @@ pre.mermaid rect{rx:0;ry:0}
 .toc{font-size:13px;line-height:1.9;color:var(--ink-3);margin:0 0 8px}
 .toc a{color:var(--ink-2);text-decoration:none}
 .toc a.on{color:var(--accent);font-weight:600;text-decoration:underline}
-.toc a.core::before{content:"\2605";display:inline-block;margin-right:3px;color:var(--accent)} /* 핵심 페이지 표시(★) */
+.toc a.core::before,.toc a.key::before{display:inline-block;margin-right:3px;color:var(--accent)}
+.toc a.core::before{content:"\2605"} /* 최고 핵심 페이지(★, 1개) */
+.toc a.key::before{content:"\2606"} /* 뚜렷이 중요한 페이지(☆, 최대 2개) */
 .page{margin-top:32px}
 .js .page{display:none}
 .js .page.on{display:block}
@@ -701,7 +703,7 @@ addEventListener('DOMContentLoaded',function(){
 <body>
 <main class="doc paged">
 <nav class="pager"><button id="prev" type="button">이전</button><span class="cnt" id="cnt"></span><button id="next" type="button">다음</button><span>화살표 키로도 넘깁니다</span></nav>
-<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 거래대금 추이</a> · <a href="#p3">3. 시장별 구성</a> · <a href="#p4" class="core">4. 주문 처리 구조</a> · <a href="#p5" class="core">5. 정산 과정</a></p>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 거래대금 추이</a> · <a href="#p3">3. 시장별 구성</a> · <a href="#p4" class="core">4. 주문 처리 구조</a> · <a href="#p5" class="key">5. 정산 과정</a></p>
 
 <section class="page" id="p1"><p class="pno">1 / 5</p>
 <header class="doc-head">
@@ -713,6 +715,15 @@ addEventListener('DOMContentLoaded',function(){
     <div><span class="k">시각화</span><span class="v">6</span><span class="d">차트 2, 도식 2, 동작 예시 2</span></div>
   </div>
 </header>
+<div class="gist">
+  <h2>요약</h2>
+  <ul>
+    <li data-src="p4">주문은 한도 검증을 통과해야 체결되고, 한도를 넘는 주문은 거부됩니다.</li>
+    <li data-src="p4 p5">한도 이내 주문은 체결 뒤 T+2 결제일에 정산됩니다.</li>
+    <li data-src="p5">체결 대금은 결제일에 주식과 교환됩니다.</li>
+    <li data-src="p2 p3">6월 거래대금은 3개월 이동평균을 하회했고, 유가증권시장 비중은 58%입니다.</li>
+  </ul>
+</div>
 </section>
 
 <section class="page" id="p2"><p class="pno">2 / 5</p>
@@ -797,7 +808,7 @@ addEventListener('DOMContentLoaded',function(){
 </figure>
 </section>
 
-<section class="page core" id="p5"><p class="pno">5 / 5</p>
+<section class="page key" id="p5"><p class="pno">5 / 5</p>
 <h2>정산 과정</h2>
 <ul class="pts"><li>체결된 주문은 대금 계산을 거쳐 결제로 정산됩니다.</li></ul>
 <p class="blk"><b>근거</b></p>

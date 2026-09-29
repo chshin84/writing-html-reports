@@ -144,7 +144,9 @@ pre.mermaid rect{rx:0;ry:0}
 .toc{font-size:13px;line-height:1.9;color:var(--ink-3);margin:0 0 8px}
 .toc a{color:var(--ink-2);text-decoration:none}
 .toc a.on{color:var(--accent);font-weight:600;text-decoration:underline}
-.toc a.core::before{content:"\2605";display:inline-block;margin-right:3px;color:var(--accent)} /* 핵심 페이지 표시(★) */
+.toc a.core::before,.toc a.key::before{display:inline-block;margin-right:3px;color:var(--accent)}
+.toc a.core::before{content:"\2605"} /* 최고 핵심 페이지(★, 1개) */
+.toc a.key::before{content:"\2606"} /* 뚜렷이 중요한 페이지(☆, 최대 2개) */
 .page{margin-top:32px}
 .js .page{display:none}
 .js .page.on{display:block}
@@ -715,7 +717,7 @@ addEventListener('DOMContentLoaded',function(){
 </header>
 <div class="gist">
   <h2>요약</h2>
-  <ul><li><b>항목 이름:</b> 결론을 문장으로 적습니다.</li></ul>
+  <ul><li data-src="p2"><b>항목 이름:</b> 결론을 문장으로 적습니다. data-src에는 이 결론의 근거 페이지를 적습니다.</li></ul>
 </div>
 </section>
 
