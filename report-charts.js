@@ -206,11 +206,12 @@
 
   /* 동작 예시 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
      at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
-     글 규칙(RC.demo가 강제한다): 한 단계의 글 등장(타이핑과 카운트업)은 1초 안에 끝나고, 끝난 뒤 읽을 시간으로
-     2초 + 글자 수 ÷ 10초(최대 5초)를 기다린다. 설명 상자 하나의 글은 30자 이하다. 글자 수는 공백을 빼고 세며 숫자 하나는 1자다 */
+     글 규칙(RC.demo가 강제한다): 글이 한 번 나타날 때(타이핑과 카운트업이 이어진 한 덩어리)마다 1초 안에 끝나고,
+     단계의 마지막 글이 나타나기 시작한 때부터 min(1초 + 글자 수 ÷ 10초, 4초) 동안 보여 준 뒤 다음 단계로 넘어간다.
+     설명 상자 하나의 글은 30자 이하다. 글자 수는 공백을 빼고 세며 숫자 하나는 1자다 */
   var TEXT_MAX = 1, CHAR_MAX = 30;
   function chars(s) { return String(s).replace(/\d[\d,.]*/g, '#').replace(/\s/g, '').length; }
-  function holdFor(n) { return Math.min(5, 2 + n / 10); }
+  function holdFor(n) { return Math.min(4, 1 + n / 10); }
   var stepLog = null; // RC.demo가 단계마다 글 등장 구간과 글자 수를 모은다
   RC.issues = []; // 글 규칙 위반. 겹침 판정 도구가 함께 읽는다
   function issue(msg) { RC.issues.push(msg); console.error('RC.demo: ' + msg); }
@@ -222,10 +223,9 @@
     var tw = gsap.to(p, { v: 1, duration: Math.min(dur, TEXT_MAX), ease: 'none',
       onUpdate: function () { e.textContent = p.v === 0 ? prev : render(p.v); } });
     tl.add(tw, at);
-    if (stepLog && full) {
-      stepLog.start = Math.min(stepLog.start, tw.startTime());
-      stepLog.end = Math.max(stepLog.end, tw.startTime() + tw.duration());
-      stepLog.chars += chars(full);
+    if (stepLog) {
+      if (full) stepLog.beats.push([tw.startTime(), tw.startTime() + tw.duration()]);
+      stepLog.fin.set(e, full); // 같은 칸을 다시 쓰면 마지막 글만 센다
     }
     return tl;
   }
@@ -281,6 +281,10 @@
     think: function (tl, person, question, at) { // 고개를 갸웃하고 물음표가 깜빡인다(약 0.8초)
       tl.to(person, { rotation: -8, transformOrigin: '50% 100%', duration: 0.2, yoyo: true, repeat: 3 }, at);
       return tl.to(question, { y: -4, duration: 0.2, yoyo: true, repeat: 3 }, '<');
+    },
+    swap: function (tl, from, to, at) { // 한 아이콘을 다른 아이콘으로 바꾼다(물음표 → 판정)
+      tl.to(from, { opacity: 0, scale: 0.6, transformOrigin: '50% 50%', duration: 0.15 }, at);
+      return RC.fx.pop(tl, to); // 앞 아이콘이 사라진 뒤 나타나 두 아이콘이 겹치지 않는다
     },
     shake: function (tl, e, at) { return tl.to(e, { x: 5, duration: 0.06, yoyo: true, repeat: 5 }, at); },
     type: function (tl, e, text, dur, at) { // 문장이 타이핑되듯 나타난다. dur 0이면 바로 바뀐다
@@ -341,14 +345,24 @@
       var tl = gsap.timeline({ paused: true }), ends = [], holds = [];
       try {
         steps.forEach(function (s, i) {
-          stepLog = { start: Infinity, end: 0, chars: 0 };
+          stepLog = { beats: [], fin: new Map() };
           s.play(tl, $);
           var L = stepLog; stepLog = null;
-          if (L.end > 0) { // 글이 다 나온 뒤 읽을 시간을 두고 다음 단계로 넘어간다
-            if (L.end - L.start > TEXT_MAX + 0.001) issue('"' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (L.end - L.start).toFixed(2) + '초)');
-            if (L.chars > CHAR_MAX) issue('"' + s.name + '" 단계의 설명이 30자를 넘는다(' + L.chars + '자)');
-            holds[i] = holdFor(L.chars);
-            var need = L.end + holds[i];
+          if (L.beats.length) { // 글이 다 나온 뒤 읽을 시간을 두고 다음 단계로 넘어간다
+            L.beats.sort(function (a, b) { return a[0] - b[0]; });
+            var merged = [L.beats[0].slice()];
+            L.beats.slice(1).forEach(function (b) { // 이어지거나 겹치는 글 등장은 한 덩어리로 본다
+              var m = merged[merged.length - 1];
+              if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
+            });
+            merged.forEach(function (m) {
+              if (m[1] - m[0] > TEXT_MAX + 0.001) issue('"' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
+            });
+            var n = 0; L.fin.forEach(function (v) { n += chars(v); });
+            if (n > CHAR_MAX) issue('"' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
+            holds[i] = holdFor(n);
+            var lastBeat = merged[merged.length - 1];
+            var need = Math.max(lastBeat[1], lastBeat[0] + holds[i]);
             if (tl.duration() < need) tl.to({}, { duration: need - tl.duration() });
           }
           tl.addLabel('e' + i); ends.push(tl.duration());
