@@ -98,6 +98,10 @@ class Scripts(unittest.TestCase):
         body2 = '<pre class="mermaid">flowchart LR\n  A[가] --> B[나]\n  classDef hot stroke-width:2px</pre>'
         self.assertTrue(has(check.script_violations(page(body=body2)), "스크립트·도식 색 리터럴"))
 
+    def test_mermaid_class_attr_order(self):
+        body = '<pre id="m1" class="mermaid">flowchart LR\n  A[가]\n  style A fill:#f9f</pre>'
+        self.assertTrue(has(check.script_violations(page(body=body)), "스크립트·도식 색 리터럴"))
+
     def test_plain_page_without_scripts_ok(self):
         self.assertEqual(check.script_violations(page(body="<p>가</p>")), [])
 

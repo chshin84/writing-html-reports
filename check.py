@@ -108,7 +108,7 @@ def doc_scripts(html):
 
 
 def mermaid_sources(html):
-    return "\n".join(re.findall(r'<pre class="mermaid[^"]*"[^>]*>(.*?)</pre>', html, re.S))
+    return "\n".join(re.findall(r'<pre\b[^>]*\bclass="[^"]*\bmermaid\b[^"]*"[^>]*>(.*?)</pre>', html, re.S))
 
 
 def script_urls(html):

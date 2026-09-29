@@ -80,7 +80,7 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 
 템플릿에는 스크립트가 세 층으로 들어 있다. `<head>`의 CDN 태그 세 줄과 연결 코드 `<script>`(BEGIN/END report-charts 표시)는 그대로 둔다. 연결 코드는 build.py가 `report-charts.js`에서 채워 넣는 `RC` 함수 모음이다. 문서마다 쓰는 문서 스크립트는 `</main>` 바로 뒤의 `<script>`에 둔다.
 
-시각화가 하나도 없는 문서는 CDN 태그 세 줄과 연결 코드 `<script>`와 `</main>` 뒤 문서 스크립트를 모두 지운다. build.py는 문서 스크립트가 `RC` 함수를 호출하는데 연결 코드 표시가 없으면 멈춘다.
+시각화가 하나도 없는 문서는 CDN 태그 세 줄과 연결 코드 `<script>`와 `</main>` 뒤 문서 스크립트를 모두 지운다. build.py는 문서 스크립트가 `RC` 함수를 호출하는데 연결 코드 표시가 없으면 멈춘다. 페이지형 템플릿의 페이지 넘김 `<script>`는 지우지 않는다.
 
 문서 스크립트가 쓰는 함수는 다음과 같다.
 
@@ -89,7 +89,7 @@ description: HTML 보고서·검토 자료·제안서 페이지를 새로 만들
 | `RC.chart(상자, 옵션)` | `<div class="viz" id="…">` 상자에 ECharts 옵션으로 차트를 그린다. 높이는 기본 320px이고 문서 전용 CSS로 바꾼다 |
 | `RC.ma(값 배열, n)` | n개 이동평균 배열을 돌려준다. 앞의 n−1개는 `null`이다 |
 | `RC.color(이름)` | 토큰 색 값을 돌려준다. 이름은 `s1`·`s2`·`s3`·`s4`·`accent`·`accent-2`·`neg`·`ink`·`ink-2`·`ink-3`·`hair`·`rule`·`paper`·`tint` 중 하나다 |
-| `RC.demo(figure, 단계 배열)` | 단계 항목 `{name, text, play}`로 동작 예시를 만든다. `play(tl, $)`의 `$('이름')`은 figure 안에서 id가 `이름`인 요소나 Mermaid 노드 `이름`을 돌려준다 |
+| `RC.demo(figure, 단계 배열)` | 단계 항목 `{name, text, play}`로 동작 예시를 만든다. `play(tl, $)`의 `$('이름')`은 figure 안에서 id가 `이름`인 요소를 돌려주거나, Mermaid 노드 `이름`이면 그 노드의 모양 요소(직각 상자는 `rect`, 판단 마름모는 `polygon`)를 돌려주므로 `stroke`를 바로 애니메이션할 수 있다 |
 
 도식은 `<pre class="mermaid">` 안에 Mermaid 텍스트를 적으면 연결 코드가 그린다. 쓰는 방법은 `$S/template.html`의 견본 세 개(차트, 흐름도, 동작 예시)를 따른다.
 

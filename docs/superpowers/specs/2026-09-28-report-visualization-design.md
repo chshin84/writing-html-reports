@@ -215,5 +215,6 @@ Mermaid의 `mermaid.render()`는 측정용 임시 요소를 `body`에 따로 만
 - **용어:** SKILL.md에서는 Mermaid `flowchart`로 그린 흐름을 '흐름도'라고 부른다.
 - **추가 파일과 문구:** `tests/test_build.py`, `.gitignore` 임시 파일 규칙, SKILL.md description의 시각화 대상 문구를 추가한다.
 - **스킬 동작 시험:** 프롬프트에 거래대금 값과 저장 경로와 완료 기준 실행 지시를 주고, 문서 형식은 지정하지 않는다.
+- **차트 인쇄 크기:** ECharts SVG에는 viewBox가 없어 CSS만으로는 줄지 않으므로, 차트의 인쇄 크기는 `beforeprint` 크기 조정에 맡긴다. 헤드리스 Edge와 주요 브라우저의 인쇄에서 이 이벤트가 발생함을 확인했다.
 
 <!-- spec-review: passed -->

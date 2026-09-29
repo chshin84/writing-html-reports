@@ -126,6 +126,8 @@
 
   /* 동작 예시 */
   RC.demo = function (fig, steps) {
+    if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
+    if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
     fig.classList.add('demo');
     var ctl = el('div', 'demo-ctl'), cap = el('p', 'demo-cap'), list = el('ol', 'demo-steps');
     var bPrev = el('button', null, '이전'), bPlay = el('button', null, '재생'),
@@ -144,7 +146,14 @@
 
     RC.ready.then(function () {
       var $ = function (name) {
-        return fig.querySelector('[id="' + name + '"]') || fig.querySelector('g.node[id*="-' + name + '-"]');
+        var hit = fig.querySelector('[id="' + name + '"]');
+        if (hit) return hit;
+        var re = new RegExp('-flowchart-' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-\\d+$');
+        var nodes = fig.querySelectorAll('g.node');
+        for (var i = 0; i < nodes.length; i++) {
+          if (re.test(nodes[i].id)) return nodes[i].querySelector('rect, polygon, path') || nodes[i];
+        }
+        return null;
       };
       var tl = gsap.timeline({ paused: true }), ends = [];
       try {
