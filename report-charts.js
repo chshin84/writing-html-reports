@@ -230,11 +230,20 @@
       return textTween(tl, e, '', function (v) { return text.slice(0, Math.ceil(text.length * v)); },
         dur == null ? Math.min(1, text.length * 0.03) : dur, at);
     },
-    say: function (tl, note, x, y, text, dur, at) { // 설명 상자를 (x, y)로 옮기고 문장을 타이핑한다. 숫자 칸은 비운다
-      tl.set(note.g, { x: x, y: y, opacity: 1 }, at);
+    clear: function (tl, note, icons, at) { // 직전 단계의 쌍(설명 상자와 아이콘)을 함께 지운다. 단계의 맨 처음에 둔다
+      var els = [note.g].concat(icons || []);
+      tl.to(els, { opacity: 0, duration: 0.15 }, at);
+      return tl.set(icons || [], { scale: 0.3, transformOrigin: '50% 50%' });
+    },
+    pair: function (tl, note, icons, x, y, text, dur, at) { // 아이콘과 설명 상자를 같은 순간에 함께 띄우고 문장을 타이핑한다
+      icons = [].concat(icons || []);
+      tl.set(note.g, { x: x, y: y }, at); // 보이지 않는 동안 자리를 옮긴다
       RC.fx.type(tl, note.n, '', 0, '<');
+      tl.to(note.g, { opacity: 1, duration: 0.25 }, '<');
+      icons.forEach(function (e) { RC.fx.pop(tl, e, '<'); });
       return RC.fx.type(tl, note.t, text, dur, '<');
     },
+    say: function (tl, note, x, y, text, dur, at) { return RC.fx.pair(tl, note, [], x, y, text, dur, at); },
     count: function (tl, e, from, to, suffix, dur, at) { // 숫자가 올라가며 표시된다
       return textTween(tl, e, '', function (v) { return Math.round(from + (to - from) * v).toLocaleString('ko-KR') + (suffix || ''); },
         dur == null ? 0.7 : dur, at);
