@@ -131,6 +131,22 @@ class Templates(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
+class DemoCount(unittest.TestCase):
+    def run_page(self, n):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "doc.html"
+            f.write_text(page(body="<p>가</p>", script="RC.demo(a,[]);" * n), encoding="utf-8")
+            return run_check(f)
+
+    def test_three_demos_note_only(self):
+        r = self.run_page(3)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("참고: 동작 예시 3개", r.stdout)
+
+    def test_two_demos_silent(self):
+        self.assertNotIn("참고: 동작 예시", self.run_page(2).stdout)
+
+
 class Original(unittest.TestCase):
     def test_script_violation_already_in_original_is_note_only(self):
         with tempfile.TemporaryDirectory() as d:

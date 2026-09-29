@@ -282,6 +282,9 @@ def main():
         if kept:
             print(f"참고: 원본에 있던 스크립트 위반(원본 스크립트는 고치지 않는다) — {kept}")
         scripts = [f for f in scripts if f not in kept]
+    demos = len(re.findall(r"\bRC\.demo\s*\(", doc_scripts(new)))
+    if demos > 2:  # 위반이 아니다. 사용자가 더 요청했으면 그 요구가 우선한다
+        print(f"참고: 동작 예시 {demos}개 — 문서당 가장 중요한 페이지에 1개, 많아도 2개를 권한다(사용자가 요청했으면 무시한다)")
     fails = (style_violations(new) + scripts + label_violations(new)
              + page_violations(new) + banned_violations(new, old))
     if old is not None:

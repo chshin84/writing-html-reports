@@ -199,7 +199,8 @@ footer p{margin:0 0 4px}
 /* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
    보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
    함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열),
-   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음). 규칙은 SKILL.md '시각화' 절에 있다. */
+   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음), RC.check(figure id: 완료 전 판정 도구).
+   규칙은 SKILL.md '시각화' 절과 '동작 예시' 절에 있다. */
 (function () {
   var root = document.documentElement;
   var FAIL = '시각화를 불러오지 못했습니다';
@@ -624,6 +625,54 @@ footer p{margin:0 0 4px}
     });
     return null;
   };
+
+  /* 완료 전 판정 도구: 동작 예시를 처음부터 연속 재생하며 매 프레임 겹침을 판정하고 글 규칙 위반(RC.issues)을 함께 돌려준다.
+     브라우저에서 RC.check('figure id')를 실행한다. 판정 대상: 아이콘·설명 상자와 무대의 모든 요소(글자·도형·연결선·초점 틀),
+     초점 틀과 무대 글자, 무대 글자끼리. class="rc-token"인 이동 표식은 뺀다 */
+  RC.check = function (id) {
+    var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
+    if (!st) return Promise.resolve({ error: '동작 예시 figure가 없다: ' + id });
+    var b = fig.querySelectorAll('.demo-ctl button');
+    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo가 실패했거나 GSAP이 없다)' });
+    var op = function (e) { return +getComputedStyle(e).opacity; };
+    var box = function (e) {
+      var r = e.getBoundingClientRect(), k = /^(path|line)$/.test(e.tagName) ? 1.5 : 0; // 선은 두께만큼 넓혀 본다
+      return { l: r.left - k, r: r.right + k, t: r.top - k, b: r.bottom + k };
+    };
+    var hit = function (a, c) { return Math.max(0, Math.min(a.r, c.r) - Math.max(a.l, c.l)) * Math.max(0, Math.min(a.b, c.b) - Math.max(a.t, c.t)) > 1; };
+    var nm = function (e) {
+      var g = e.closest('.rc-icon, .rc-note, .rc-focus');
+      return g ? g.getAttribute('class') : (e.id || e.tagName + (e.textContent ? ':' + e.textContent.trim().slice(0, 8) : ''));
+    };
+    var fixed = [].filter.call(st.children, function (e) {
+      return /^(text|rect|polygon|circle|path|line)$/.test(e.tagName) && !/\brc-/.test(e.getAttribute('class') || '');
+    });
+    var texts = fixed.filter(function (e) { return e.tagName === 'text'; });
+    function frame() {
+      var dyn = [].filter.call(st.querySelectorAll('.rc-icon, .rc-note'), function (e) { return op(e) > 0.05; });
+      var f = st.querySelector('.rc-focus'), fc = f && op(f) > 0.05 ? [].slice.call(f.children) : [];
+      var bad = [], pair = function (a, c) { if (hit(box(a), box(c))) bad.push(nm(a) + ' × ' + nm(c)); };
+      dyn.forEach(function (a, i) { dyn.slice(i + 1).concat(fixed, fc).forEach(function (c) { pair(a, c); }); });
+      fc.forEach(function (a) { texts.forEach(function (c) { pair(a, c); }); }); // 초점 틀은 이동 중 가는 선을 스칠 수 있어 글자만 본다
+      texts.forEach(function (a, i) { texts.slice(i + 1).forEach(function (c) { pair(a, c); }); });
+      return bad;
+    }
+    return RC.ready.then(function () {
+      return new Promise(function (done) {
+        var frames = 0, overlapFrames = 0, samples = [], t0 = performance.now();
+        b[3].click(); b[1].click();
+        (function loop() {
+          var bad = frame(); frames++;
+          if (bad.length) { overlapFrames++; if (samples.length < 5) samples.push(fig.querySelector('.cnt').textContent + ' ' + bad.join('; ')); }
+          if (performance.now() - t0 > 500 && b[1].textContent === '재생') {
+            b[3].click();
+            done({ pass: overlapFrames === 0 && !RC.issues.length, frames: frames, overlapFrames: overlapFrames, overlapSamples: samples,
+              issues: RC.issues.slice(), seconds: +((performance.now() - t0) / 1000).toFixed(1) });
+          } else requestAnimationFrame(loop);
+        })();
+      });
+    });
+  };
 })();
 /* END report-charts */
 </script>
@@ -703,7 +752,10 @@ addEventListener('DOMContentLoaded',function(){
 <figure id="d-order">
   <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
   <svg class="stage" id="st-order" viewBox="0 85 820 275" width="100%" role="img" aria-label="주문 처리 과정">
-    <path d="M140 230H195M345 230H420M540 230H640M270 270V300" fill="none" stroke="currentColor"/>
+    <path d="M140 230H195" fill="none" stroke="currentColor"/>
+    <path d="M345 230H420" fill="none" stroke="currentColor"/>
+    <path d="M540 230H640" fill="none" stroke="currentColor"/>
+    <path d="M270 270V300" fill="none" stroke="currentColor"/>
     <path id="o-a" d="M140 230H195" fill="none" style="stroke:var(--accent);stroke-width:2"/>
     <path id="o-b" d="M345 230H420" fill="none" style="stroke:var(--accent);stroke-width:2"/>
     <path id="o-c" d="M540 230H640" fill="none" style="stroke:var(--accent);stroke-width:2"/>
@@ -720,7 +772,7 @@ addEventListener('DOMContentLoaded',function(){
     <text x="270" y="325" text-anchor="middle" font-size="14">거부</text>
     <text id="l-pass" x="382" y="224" text-anchor="middle" font-size="12">통과</text>
     <text id="l-over" x="280" y="291" font-size="12">초과</text>
-    <circle id="tok" cx="140" cy="230" r="5" fill="currentColor" opacity="0"/>
+    <circle id="tok" class="rc-token" cx="140" cy="230" r="5" fill="currentColor" opacity="0"/>
   </svg>
   <p class="src">자료: 시험용 가상 자료</p>
 </figure>

@@ -199,7 +199,8 @@ footer p{margin:0 0 4px}
 /* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
    보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
    함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열),
-   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음). 규칙은 SKILL.md '시각화' 절에 있다. */
+   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음), RC.check(figure id: 완료 전 판정 도구).
+   규칙은 SKILL.md '시각화' 절과 '동작 예시' 절에 있다. */
 (function () {
   var root = document.documentElement;
   var FAIL = '시각화를 불러오지 못했습니다';
@@ -624,6 +625,54 @@ footer p{margin:0 0 4px}
     });
     return null;
   };
+
+  /* 완료 전 판정 도구: 동작 예시를 처음부터 연속 재생하며 매 프레임 겹침을 판정하고 글 규칙 위반(RC.issues)을 함께 돌려준다.
+     브라우저에서 RC.check('figure id')를 실행한다. 판정 대상: 아이콘·설명 상자와 무대의 모든 요소(글자·도형·연결선·초점 틀),
+     초점 틀과 무대 글자, 무대 글자끼리. class="rc-token"인 이동 표식은 뺀다 */
+  RC.check = function (id) {
+    var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
+    if (!st) return Promise.resolve({ error: '동작 예시 figure가 없다: ' + id });
+    var b = fig.querySelectorAll('.demo-ctl button');
+    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo가 실패했거나 GSAP이 없다)' });
+    var op = function (e) { return +getComputedStyle(e).opacity; };
+    var box = function (e) {
+      var r = e.getBoundingClientRect(), k = /^(path|line)$/.test(e.tagName) ? 1.5 : 0; // 선은 두께만큼 넓혀 본다
+      return { l: r.left - k, r: r.right + k, t: r.top - k, b: r.bottom + k };
+    };
+    var hit = function (a, c) { return Math.max(0, Math.min(a.r, c.r) - Math.max(a.l, c.l)) * Math.max(0, Math.min(a.b, c.b) - Math.max(a.t, c.t)) > 1; };
+    var nm = function (e) {
+      var g = e.closest('.rc-icon, .rc-note, .rc-focus');
+      return g ? g.getAttribute('class') : (e.id || e.tagName + (e.textContent ? ':' + e.textContent.trim().slice(0, 8) : ''));
+    };
+    var fixed = [].filter.call(st.children, function (e) {
+      return /^(text|rect|polygon|circle|path|line)$/.test(e.tagName) && !/\brc-/.test(e.getAttribute('class') || '');
+    });
+    var texts = fixed.filter(function (e) { return e.tagName === 'text'; });
+    function frame() {
+      var dyn = [].filter.call(st.querySelectorAll('.rc-icon, .rc-note'), function (e) { return op(e) > 0.05; });
+      var f = st.querySelector('.rc-focus'), fc = f && op(f) > 0.05 ? [].slice.call(f.children) : [];
+      var bad = [], pair = function (a, c) { if (hit(box(a), box(c))) bad.push(nm(a) + ' × ' + nm(c)); };
+      dyn.forEach(function (a, i) { dyn.slice(i + 1).concat(fixed, fc).forEach(function (c) { pair(a, c); }); });
+      fc.forEach(function (a) { texts.forEach(function (c) { pair(a, c); }); }); // 초점 틀은 이동 중 가는 선을 스칠 수 있어 글자만 본다
+      texts.forEach(function (a, i) { texts.slice(i + 1).forEach(function (c) { pair(a, c); }); });
+      return bad;
+    }
+    return RC.ready.then(function () {
+      return new Promise(function (done) {
+        var frames = 0, overlapFrames = 0, samples = [], t0 = performance.now();
+        b[3].click(); b[1].click();
+        (function loop() {
+          var bad = frame(); frames++;
+          if (bad.length) { overlapFrames++; if (samples.length < 5) samples.push(fig.querySelector('.cnt').textContent + ' ' + bad.join('; ')); }
+          if (performance.now() - t0 > 500 && b[1].textContent === '재생') {
+            b[3].click();
+            done({ pass: overlapFrames === 0 && !RC.issues.length, frames: frames, overlapFrames: overlapFrames, overlapSamples: samples,
+              issues: RC.issues.slice(), seconds: +((performance.now() - t0) / 1000).toFixed(1) });
+          } else requestAnimationFrame(loop);
+        })();
+      });
+    });
+  };
 })();
 /* END report-charts */
 </script>
@@ -680,17 +729,19 @@ footer p{margin:0 0 4px}
     <p class="src">자료: 출처를 적습니다.</p>
   </figure>
   <figure id="d-flow">
-    <figcaption><span class="t">주문 검증 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
-    <svg class="stage" viewBox="0 0 640 110" width="100%" role="img" aria-label="주문 검증 과정">
-      <line x1="190" y1="55" x2="230" y2="55" stroke="currentColor"/>
-      <line x1="410" y1="55" x2="450" y2="55" stroke="currentColor"/>
-      <rect id="v1" x="10" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-      <rect id="v2" x="230" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-      <rect id="v3" x="450" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-      <text x="100" y="60" text-anchor="middle" font-size="14">주문 접수</text>
-      <text x="320" y="60" text-anchor="middle" font-size="14">한도 검증</text>
-      <text x="540" y="60" text-anchor="middle" font-size="14">체결 전송</text>
-      <circle id="dot" cx="100" cy="95" r="5" fill="currentColor" opacity="0"/>
+    <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
+    <svg class="stage" id="st-flow" viewBox="0 70 640 150" width="100%" role="img" aria-label="주문 처리 과정">
+      <path d="M160 180H240" fill="none" stroke="currentColor"/>
+      <path d="M380 180H460" fill="none" stroke="currentColor"/>
+      <path id="o-1" d="M160 180H240" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+      <path id="o-2" d="M380 180H460" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+      <rect id="n-1" x="20" y="160" width="140" height="40" fill="none" stroke="currentColor"/>
+      <rect id="n-2" x="240" y="160" width="140" height="40" fill="none" stroke="currentColor"/>
+      <rect id="n-3" x="460" y="160" width="140" height="40" fill="none" stroke="currentColor"/>
+      <text x="90" y="185" text-anchor="middle" font-size="14">주문 접수</text>
+      <text x="310" y="185" text-anchor="middle" font-size="14">한도 검증</text>
+      <text x="530" y="185" text-anchor="middle" font-size="14">체결</text>
+      <circle id="tok" class="rc-token" cx="160" cy="180" r="5" fill="currentColor" opacity="0"/>
     </svg>
     <p class="src">자료: 출처를 적습니다.</p>
   </figure>
@@ -713,14 +764,22 @@ RC.chart(document.getElementById('c-trend'), {
     { name: '3개월 이동평균', type: 'line', data: RC.ma(vol, 3) }
   ]
 });
-function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
+// 동작 예시: 단계마다 직전 쌍 지우기 → 도형에 초점 → 아이콘과 설명 상자 → (나가는 엣지가 있으면) 엣지와 이동
+var fx = RC.fx, st = document.getElementById('st-flow');
+var ic = { doc: RC.icon(st, 'doc', 30, 118), ok: RC.icon(st, 'check', 252, 118), won: RC.icon(st, 'coin', 472, 118) };
+var nt = RC.note(st, 150, 64), fr = RC.focus(st), all = [ic.doc, ic.ok, ic.won];
 RC.demo(document.getElementById('d-flow'), [
-  { name: '주문 접수', text: '고객 주문이 접수 단계에 들어옵니다.',
-    play: function (tl, $) { tl.set($('dot'), { opacity: 1, attr: { cx: 100 } }); mark(tl, $('v1')); } },
-  { name: '한도 검증', text: '주문 금액을 고객 한도와 비교합니다.',
-    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 320 }, duration: 0.8 }); mark(tl, $('v2')); } },
-  { name: '체결 전송', text: '검증을 통과한 주문을 거래소로 보냅니다.',
-    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 540 }, duration: 0.8 }); mark(tl, $('v3')); } }
+  { name: '주문 접수', text: '고객 주문을 접수해 한도 검증으로 넘깁니다.', play: function (tl, $) {
+    fx.clear(tl, nt, all); tl.set($('tok'), { opacity: 1 }); fx.spot(tl, fr, $('n-1'));
+    fx.pair(tl, nt, ic.doc, 48, 84, '주문: 삼성전자 10주 × 72,000원 =', 0.5); fx.count(tl, nt.n, 0, 720000, '원', 0.4);
+    fx.draw(tl, $('o-1'), 0.4); fx.follow(tl, $('tok'), $('o-1'), 0.4, '<'); } },
+  { name: '한도 검증', text: '주문 금액이 한도 이내라 체결로 넘깁니다.', play: function (tl, $) {
+    fx.clear(tl, nt, all); fx.spot(tl, fr, $('n-2'));
+    fx.pair(tl, nt, ic.ok, 268, 84, '한도 1,000,000원 이내 → 통과', 0.6);
+    tl.set($('tok'), { attr: { cx: 380, cy: 180 } }); fx.draw(tl, $('o-2'), 0.4); fx.follow(tl, $('tok'), $('o-2'), 0.4, '<'); } },
+  { name: '체결', text: '거래소에서 주문이 체결됩니다.', play: function (tl, $) {
+    fx.clear(tl, nt, all); fx.spot(tl, fr, $('n-3'));
+    fx.pair(tl, nt, ic.won, 488, 84, '체결 72,000원 × 10주 =', 0.4); fx.count(tl, nt.n, 0, 720000, '원', 0.4); } }
 ]);
 </script>
 </body>
