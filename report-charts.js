@@ -357,10 +357,10 @@
               if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
             });
             merged.forEach(function (m) {
-              if (m[1] - m[0] > TEXT_MAX + 0.001) issue('"' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
+              if (m[1] - m[0] > TEXT_MAX + 0.001) issue('[' + fig.id + '] "' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
             });
             var n = 0; L.fin.forEach(function (v) { n += chars(v); });
-            if (n > CHAR_MAX) issue('"' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
+            if (n > CHAR_MAX) issue('[' + fig.id + '] "' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
             holds[i] = holdFor(n);
             var lastBeat = merged[merged.length - 1];
             var need = Math.max(lastBeat[1], lastBeat[0] + holds[i]);
@@ -393,7 +393,7 @@
       }
       function go(i, animate) {
         stop();
-        if (animate && !reduce) { // 직전 단계로 바로 옮긴 뒤 한 단계만 연출한다(빠르게 여러 번 눌러도 2초 안팎)
+        if (animate && !reduce) { // 직전 단계로 바로 옮긴 뒤 한 단계만 연출한다(빠르게 여러 번 눌러도 한 단계 분량만 재생한다)
           if (i > 0) tl.seek('e' + (i - 1), false);
           tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
         }
@@ -424,6 +424,7 @@
       addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last, false); });
       addEventListener('afterprint', function () { go(saved, false); });
       go(0, false);
+      fig._rcTl = tl; fig.dataset.rcReady = '1'; // RC.check가 빌드 성공을 확인하고 처음부터 재생할 때 쓴다
     });
     return null;
   };
@@ -435,7 +436,7 @@
     var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
     if (!st) return Promise.resolve({ error: '동작 예시 figure가 없다: ' + id });
     var b = fig.querySelectorAll('.demo-ctl button');
-    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo가 실패했거나 GSAP이 없다)' });
+    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
     var op = function (e) { return +getComputedStyle(e).opacity; };
     var box = function (e) {
       var r = e.getBoundingClientRect(), k = /^(path|line)$/.test(e.tagName) ? 1.5 : 0; // 선은 두께만큼 넓혀 본다
@@ -460,16 +461,21 @@
       return bad;
     }
     return RC.ready.then(function () {
+      if (fig.dataset.rcReady !== '1' || fig.classList.contains('demo-static'))
+        return { pass: false, error: '동작 예시가 만들어지지 않았다(GSAP이 없거나 단계 코드 오류). 콘솔의 RC.demo 오류를 확인한다' };
+      if (!st.getBoundingClientRect().width)
+        return { pass: false, error: '동작 예시가 화면에 보이지 않는다. 페이지형 문서는 그 페이지로 이동한 뒤 실행한다' };
+      var mine = function () { return RC.issues.filter(function (m) { return m.indexOf('[' + id + ']') === 0; }); };
       return new Promise(function (done) {
         var frames = 0, overlapFrames = 0, samples = [], t0 = performance.now();
-        b[3].click(); b[1].click();
+        b[3].click(); fig._rcTl.seek(0, false); b[1].click(); // 1단계 연출부터 판정한다
         (function loop() {
           var bad = frame(); frames++;
           if (bad.length) { overlapFrames++; if (samples.length < 5) samples.push(fig.querySelector('.cnt').textContent + ' ' + bad.join('; ')); }
           if (performance.now() - t0 > 500 && b[1].textContent === '재생') {
             b[3].click();
-            done({ pass: overlapFrames === 0 && !RC.issues.length, frames: frames, overlapFrames: overlapFrames, overlapSamples: samples,
-              issues: RC.issues.slice(), seconds: +((performance.now() - t0) / 1000).toFixed(1) });
+            done({ pass: overlapFrames === 0 && !mine().length, frames: frames, overlapFrames: overlapFrames, overlapSamples: samples,
+              issues: mine(), seconds: +((performance.now() - t0) / 1000).toFixed(1) });
           } else requestAnimationFrame(loop);
         })();
       });
