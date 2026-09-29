@@ -1,0 +1,143 @@
+"""check.py 규칙 시험. 실행: python -B -m unittest discover -s tests -v (스킬 폴더에서)"""
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(ROOT))
+import check  # noqa: E402
+
+PINNED = {"echarts": "6.1.0", "mermaid": "11.17.2", "gsap": "3.15.0"}
+
+
+def cdn(lib, ver=None):
+    return f'<script src="https://cdn.jsdelivr.net/npm/{lib}@{ver or PINNED[lib]}/dist/{lib}.min.js"></script>'
+
+
+def page(style="", head="", body="", script=""):
+    return ('<!doctype html><html lang="ko"><head><title>시험 문서</title>'
+            f"<style>{style}</style>{head}</head><body><main class=\"doc\">{body}</main>"
+            f"<script>{script}</script></body></html>")
+
+
+def has(fails, name):
+    return any(f.startswith(name) for f in fails)
+
+
+class Movement(unittest.TestCase):
+    def test_animation_false_in_script_is_not_movement(self):
+        self.assertFalse(has(check.style_violations(page(script="RC.chart(b,{animation:false})")), "움직임"))
+
+    def test_css_transition_is_movement(self):
+        self.assertTrue(has(check.style_violations(page(style="a{transition:opacity 1s}")), "움직임"))
+
+    def test_inline_style_animation_is_movement(self):
+        self.assertTrue(has(check.style_violations(page(body='<p style="animation:x 1s">가</p>')), "움직임"))
+
+    def test_intersection_observer_is_movement(self):
+        self.assertTrue(has(check.style_violations(page(script="new IntersectionObserver(f)")), "움직임"))
+
+
+class Scripts(unittest.TestCase):
+    def test_managed_block_is_excluded(self):
+        block = ("<script>/* BEGIN report-charts echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0 */\n"
+                 "gsap.to(x,{repeat:-1}); var c='#123456';\n/* END report-charts */</script>")
+        self.assertEqual(check.script_violations(page(head=block)), [])
+
+    def test_chart_animation_true(self):
+        self.assertTrue(has(check.script_violations(page(script="RC.chart(b,{animation: true})")), "차트 애니메이션"))
+
+    def test_chart_animation_false_ok(self):
+        self.assertEqual(check.script_violations(page(script="RC.chart(b,{animation: false})")), [])
+
+    def test_disallowed_src(self):
+        html = page(head='<script src="https://unpkg.com/echarts@6.1.0/dist/echarts.min.js"></script>')
+        self.assertTrue(has(check.script_violations(html), "허용 밖 스크립트"))
+
+    def test_unpinned_src(self):
+        self.assertTrue(has(check.script_violations(page(head=cdn("echarts", "6"))), "버전 미고정"))
+
+    def test_pinned_src_ok(self):
+        head = cdn("echarts") + cdn("mermaid") + cdn("gsap")
+        self.assertEqual(check.script_violations(page(head=head)), [])
+
+    def test_unpinned_module_import(self):
+        html = page(head="<script type=\"module\">import mermaid from "
+                         "'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'</script>")
+        self.assertTrue(has(check.script_violations(html), "버전 미고정"))
+
+    def test_gsap_direct_call(self):
+        self.assertTrue(has(check.script_violations(page(script="gsap.to(a,{x:1})")), "GSAP 직접 호출"))
+
+    def test_repeat_with_spaces(self):
+        self.assertTrue(has(check.script_violations(page(script="tl.to(a,{repeat : -1})")), "GSAP 직접 호출"))
+
+    def test_timeline_calls_ok(self):
+        self.assertEqual(check.script_violations(page(script="tl.to(a,{x:1}).set(b,{y:0})")), [])
+
+    def test_chart_decoration(self):
+        for js in ("{shadowBlur:4}", "{borderRadius:4}", "{borderRadius:[0,4,4,0]}"):
+            self.assertTrue(has(check.script_violations(page(script=js)), "차트 장식"), js)
+        self.assertEqual(check.script_violations(page(script="{borderRadius:2}")), [])
+        self.assertEqual(check.script_violations(page(script="{shadowBlur: 0}")), [])
+
+    def test_script_color_literal(self):
+        for js in ("{color:'#1F3A5F'}", "{border:'1px solid #123456'}", "var c=`#abcdef`;"):
+            self.assertTrue(has(check.script_violations(page(script=js)), "스크립트·도식 색 리터럴"), js)
+
+    def test_query_selector_id_is_not_color(self):
+        self.assertEqual(check.script_violations(page(script="document.querySelector('#abc')")), [])
+
+    def test_mermaid_style_and_hex(self):
+        body = '<pre class="mermaid">flowchart LR\n  A[가] --> B[나]\n  style A fill:#f9f</pre>'
+        self.assertTrue(has(check.script_violations(page(body=body)), "스크립트·도식 색 리터럴"))
+        body2 = '<pre class="mermaid">flowchart LR\n  A[가] --> B[나]\n  classDef hot stroke-width:2px</pre>'
+        self.assertTrue(has(check.script_violations(page(body=body2)), "스크립트·도식 색 리터럴"))
+
+    def test_plain_page_without_scripts_ok(self):
+        self.assertEqual(check.script_violations(page(body="<p>가</p>")), [])
+
+
+class Banned(unittest.TestCase):
+    def test_banned_word_in_script_string(self):
+        fails = check.banned_violations(page(script="var s={name:'부분 합계'};"))
+        self.assertTrue(any("'부분'" in f for f in fails))
+
+    def test_banned_word_in_managed_block_is_ignored(self):
+        block = "<script>/* BEGIN report-charts x */\nvar s='부분';\n/* END report-charts */</script>"
+        self.assertEqual(check.banned_violations(page(head=block)), [])
+
+
+ENV = dict(os.environ, PYTHONIOENCODING="utf-8")
+
+
+def run_check(*paths):
+    return subprocess.run([sys.executable, "-B", str(ROOT / "check.py"), *map(str, paths)],
+                          capture_output=True, text=True, encoding="utf-8", env=ENV)
+
+
+class Templates(unittest.TestCase):
+    def test_templates_pass(self):
+        for name in ("template.html", "template-paged.html"):
+            r = run_check(ROOT / name)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class Original(unittest.TestCase):
+    def test_script_violation_already_in_original_is_note_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            html = page(body="<p>가</p>", script="gsap.to(a,{x:1})")
+            new, old = Path(d) / "new.html", Path(d) / "old.html"
+            new.write_text(html, encoding="utf-8")
+            old.write_text(html, encoding="utf-8")
+            r = run_check(new, old)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("참고: 원본에 있던 스크립트 위반", r.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

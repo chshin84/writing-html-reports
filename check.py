@@ -1,7 +1,7 @@
 """보고서 규격 검사기.
 
 사용법: python check.py <개선본.html> [원본.html]
-규격 위반(만듦새)과 페이지형 문서의 근거 없는 페이지와 라벨(제목·표 머리·도표 제목)의 명사구 여부와 한국어 금지어를 검사하고, 원본이 있으면 내용 보존(본문 문장·숫자)도 검사한다.
+규격 위반(만듦새)과 페이지형 문서의 근거 없는 페이지와 라벨(제목·표 머리·도표 제목)의 명사구 여부와 한국어 금지어와 시각화 스크립트·Mermaid 원문의 규격 위반을 검사하고, 원본이 있으면 내용 보존(본문 문장·숫자)도 검사한다.
 원본이 있으면 원본에 이미 있던 금지어는 위반으로 세지 않고 참고로만 출력한다(본문은 고치지 않으므로).
 위반이 하나라도 있으면 종료 코드 1을 돌려준다.
 """
@@ -15,6 +15,8 @@ from pathlib import Path
 ALLOWED_FONT_HOSTS = ("cdn.jsdelivr.net/gh/orioncactus/pretendard",)
 BANNED_FILE = Path(__file__).parent / "금지어.md"  # disciplined-coder 금지어 표의 사본
 EMOJI = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
+CHARTS_BLOCK = re.compile(r"/\* BEGIN report-charts[^*]*\*/.*?/\* END report-charts \*/", re.S)
+LIB_URL = re.compile(r"^https://cdn\.jsdelivr\.net/npm/(?:echarts|mermaid|gsap)@([^/]+)/")
 
 
 class TextOnly(HTMLParser):
@@ -84,7 +86,8 @@ def style_violations(html):
     rule("svg 둥근 모서리(rx 3 이상)", [m for m in re.findall(r'\brx="([\d.]+)"', html) if float(m) >= 3])
     rule("그림자", [m for m in re.findall(r"box-shadow\s*:\s*([^;}\"]+)", css) if m.strip() != "none"])
     rule("그라데이션", re.findall(r"(?:linear|radial|conic)-gradient\([^)]*", css))
-    rule("움직임", re.findall(r"(?:@keyframes\s+\w+|transition\s*:[^;}]+|animation\s*:[^;}]+|IntersectionObserver)", html))
+    rule("움직임", re.findall(r"(?:@keyframes\s+\w+|transition\s*:[^;}]+|animation\s*:[^;}]+)", css)
+         + re.findall(r"IntersectionObserver", html))
     rule("왼쪽 색 띠(3px 이상)", re.findall(r"border-left\s*:\s*(?:[3-9]|\d\d)px[^;}\"]*", css))
     rule("대문자 변환·자간 확대", re.findall(r"(?:text-transform\s*:\s*uppercase|letter-spacing\s*:\s*\.?0?\.[1-9]\d*em)", css))
     rule("허용 밖 웹폰트", [u for u in re.findall(r'<link[^>]+href="([^"]+)"', html)
@@ -96,6 +99,55 @@ def style_violations(html):
     body_css = re.sub(r":root[^{]*\{[^}]*\}", "", css)
     rule("토큰 밖 색 리터럴", re.findall(r"#[0-9a-fA-F]{3,8}\b", body_css)
          + re.findall(r'(?:fill|stroke)="(#[0-9a-fA-F]{3,8})"', html))
+    return out
+
+
+def doc_scripts(html):
+    """문서 스크립트: report-charts 표시 밖 <script>의 내용. 연결 코드는 build.py가 관리하므로 보지 않는다."""
+    return "\n".join(re.findall(r"<script\b[^>]*>(.*?)</script>", CHARTS_BLOCK.sub("", html), re.S))
+
+
+def mermaid_sources(html):
+    return "\n".join(re.findall(r'<pre class="mermaid[^"]*"[^>]*>(.*?)</pre>', html, re.S))
+
+
+def script_urls(html):
+    """<script src>와 문서 스크립트의 import 주소."""
+    js = doc_scripts(html)
+    return (re.findall(r'<script\b[^>]*\bsrc="([^"]+)"', html)
+            + re.findall(r"""\bimport\b[^'"()]*?\bfrom\s*['"]([^'"]+)['"]""", js)
+            + re.findall(r"""\bimport\s*\(\s*['"]([^'"]+)['"]""", js)
+            + re.findall(r"""\bimport\s+['"]([^'"]+)['"]""", js))
+
+
+def script_strings(html):
+    """문서 스크립트의 따옴표 문자열. 금지어 검사에 넣는다."""
+    found = re.findall(r"""'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`([^`]*)`""", doc_scripts(html))
+    return " ".join(a or b or c for a, b, c in found)
+
+
+def script_violations(html):
+    """시각화 스크립트와 Mermaid 원문의 규격 위반."""
+    js, mmd, out = doc_scripts(html), mermaid_sources(html), []
+
+    def rule(name, hits):
+        if hits:
+            out.append(f"{name}: {len(hits)}건 — 예: {hits[0][:80]}")
+
+    urls = script_urls(html)
+    rule("차트 애니메이션", re.findall(r"animation\s*:\s*true", js))
+    rule("허용 밖 스크립트", [u for u in urls if not LIB_URL.match(u)])
+    rule("버전 미고정", [u for u in urls if LIB_URL.match(u) and not re.fullmatch(r"\d+\.\d+\.\d+", LIB_URL.match(u).group(1))])
+    rule("GSAP 직접 호출(play(tl, $) 안에서는 tl.to·tl.set을 쓴다)",
+         re.findall(r"\bgsap\.\w+", js) + re.findall(r"\b(?:repeat\s*:\s*-?\s*[1-9]|yoyo\s*:\s*true)", js))
+    rule("차트 장식", re.findall(r"shadowBlur\s*:\s*(?!0+(?:\.0+)?(?![\d.]))[^,}\s]+", js)
+         + [m for m in re.findall(r"borderRadius\s*:\s*(\[[^\]]*\]|[\d.]+)", js)
+            if any(float(n) >= 3 for n in re.findall(r"\d+(?:\.\d+)?", m))])
+    js_no_ids = re.sub(r"""(?:querySelector(?:All)?|getElementById)\(\s*['"`][^'"`]*['"`]""", "", js)
+    rule("스크립트·도식 색 리터럴",
+         re.findall(r"""['"`][^'"`\n]*?(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3}))\b""", js_no_ids)
+         + re.findall(r"#[0-9a-fA-F]{3,8}\b", mmd)
+         + re.findall(r"(?m)^\s*(?:style|classDef)\b.*$", mmd))
     return out
 
 
@@ -128,7 +180,7 @@ def banned_hits(text, rules):
 
 
 def all_text(html):
-    return visible_text(html) + " " + visible_text(html, SvgText)
+    return visible_text(html) + " " + visible_text(html, SvgText) + " " + script_strings(html)
 
 
 def banned_violations(new_html, old_html=None):
@@ -223,7 +275,15 @@ def preservation(new_html, old_html):
 def main():
     new = Path(sys.argv[1]).read_text(encoding="utf-8")
     old = Path(sys.argv[2]).read_text(encoding="utf-8") if len(sys.argv) > 2 else None
-    fails = style_violations(new) + label_violations(new) + page_violations(new) + banned_violations(new, old)
+    scripts = script_violations(new)
+    if old is not None:
+        old_rules = {f.split(":")[0] for f in script_violations(old)}
+        kept = [f for f in scripts if f.split(":")[0] in old_rules]
+        if kept:
+            print(f"참고: 원본에 있던 스크립트 위반(원본 스크립트는 고치지 않는다) — {kept}")
+        scripts = [f for f in scripts if f not in kept]
+    fails = (style_violations(new) + scripts + label_violations(new)
+             + page_violations(new) + banned_violations(new, old))
     if old is not None:
         ratio, lost = preservation(new, old)
         fails += lost
