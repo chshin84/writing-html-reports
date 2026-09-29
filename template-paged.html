@@ -144,6 +144,7 @@ pre.mermaid rect{rx:0;ry:0}
 .toc{font-size:13px;line-height:1.9;color:var(--ink-3);margin:0 0 8px}
 .toc a{color:var(--ink-2);text-decoration:none}
 .toc a.on{color:var(--accent);font-weight:600;text-decoration:underline}
+.toc a.core::before{content:"\2605";display:inline-block;margin-right:3px;color:var(--accent)} /* 핵심 페이지 표시(★) */
 .page{margin-top:32px}
 .js .page{display:none}
 .js .page.on{display:block}
@@ -700,7 +701,7 @@ addEventListener('DOMContentLoaded',function(){
 <body>
 <main class="doc paged">
 <nav class="pager"><button id="prev" type="button">이전</button><span class="cnt" id="cnt"></span><button id="next" type="button">다음</button><span>화살표 키로도 넘깁니다</span></nav>
-<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 절 이름</a></p>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2" class="core">2. 절 이름</a></p>
 
 <section class="page" id="p1"><p class="pno">1 / 2</p>
 <header class="doc-head">
@@ -718,7 +719,7 @@ addEventListener('DOMContentLoaded',function(){
 </div>
 </section>
 
-<section class="page" id="p2"><p class="pno">2 / 2</p>
+<section class="page core" id="p2"><p class="pno">2 / 2</p>
 <h2>절 이름</h2>
 <ul class="pts">
   <li>이 페이지의 결론을 수치와 함께 문장으로 적습니다.</li>
