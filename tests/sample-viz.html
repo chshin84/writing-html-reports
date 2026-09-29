@@ -198,7 +198,8 @@ footer p{margin:0 0 4px}
 /* BEGIN report-charts echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0 (build.py가 채운다. 손으로 고치지 않는다) */
 /* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
    보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
-   함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열). 규칙은 SKILL.md '시각화' 절에 있다. */
+   함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열),
+   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.fx(동작 예시 효과 묶음). 규칙은 SKILL.md '시각화' 절에 있다. */
 (function () {
   var root = document.documentElement;
   var FAIL = '시각화를 불러오지 못했습니다';
@@ -322,6 +323,122 @@ footer p{margin:0 0 4px}
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', res); else res();
   }).then(function () { return document.fonts ? document.fonts.ready : null; }).then(renderMermaid);
 
+  /* 동작 예시 아이콘: 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function glyph(g, x, y, ch, size) {
+    var t = sv('text', { x: x, y: y + size * 0.35, 'text-anchor': 'middle', 'font-size': size, 'font-weight': 600, stroke: 'none' }, g);
+    t.textContent = ch;
+  }
+  var ICONS = {
+    person: function (g, x, y) { // 졸라맨: 높이 40, 폭 18
+      sv('circle', { cx: x, cy: y - 14, r: 6 }, g);
+      sv('path', { d: 'M' + x + ' ' + (y - 8) + 'V' + (y + 8) + 'M' + (x - 9) + ' ' + (y - 2) + 'H' + (x + 9) +
+        'M' + (x - 7) + ' ' + (y + 20) + 'L' + x + ' ' + (y + 8) + 'L' + (x + 7) + ' ' + (y + 20) }, g);
+    },
+    question: function (g, x, y) { glyph(g, x, y, '?', 20); },
+    check: function (g, x, y) {
+      sv('circle', { cx: x, cy: y, r: 11 }, g);
+      sv('path', { d: 'M' + (x - 5) + ' ' + y + 'L' + (x - 1) + ' ' + (y + 4) + 'L' + (x + 6) + ' ' + (y - 4) }, g);
+    },
+    cross: function (g, x, y) {
+      sv('circle', { cx: x, cy: y, r: 11 }, g);
+      sv('path', { d: 'M' + (x - 4) + ' ' + (y - 4) + 'L' + (x + 4) + ' ' + (y + 4) + 'M' + (x + 4) + ' ' + (y - 4) + 'L' + (x - 4) + ' ' + (y + 4) }, g);
+    },
+    doc: function (g, x, y) {
+      sv('rect', { x: x - 8, y: y - 11, width: 16, height: 22 }, g);
+      sv('path', { d: 'M' + (x - 4) + ' ' + (y - 5) + 'H' + (x + 4) + 'M' + (x - 4) + ' ' + y + 'H' + (x + 4) + 'M' + (x - 4) + ' ' + (y + 5) + 'H' + (x + 1) }, g);
+    },
+    coin: function (g, x, y) { sv('circle', { cx: x, cy: y, r: 10 }, g); glyph(g, x, y, '₩', 11); }
+  };
+  var ICON_COLOR = { question: 'accent', check: 'accent', cross: 'neg' };
+  RC.icon = function (svg, name, x, y) {
+    if (!svg || !ICONS[name]) { console.error('RC.icon: 무대가 없거나 없는 아이콘 이름 ' + name); return null; }
+    var c = tok(ICON_COLOR[name] || 'ink');
+    var g = sv('g', { 'class': 'rc-icon', fill: 'none', stroke: c, 'stroke-width': 1, opacity: 0 }, svg);
+    ICONS[name](g, x, y);
+    [].forEach.call(g.querySelectorAll('text'), function (t) { t.style.fill = c; }); // svg text의 기본 글자색 규칙보다 앞서게 한다
+    return g;
+  };
+
+  /* 동작 예시 설명 상자: 발췌 문장을 연출 중인 도형 옆에 두어 시선이 무대 안에 머물게 한다.
+     돌려주는 값 { g: 상자, t: 문장 칸, n: 숫자 칸 }. 위치는 RC.fx.say가 단계마다 옮긴다 */
+  RC.note = function (svg, w, h) {
+    if (!svg) { console.error('RC.note: 무대가 없다'); return null; }
+    var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
+    sv('rect', { x: 0, y: 0, width: w, height: h, fill: tok('paper'), stroke: tok('hair') }, g);
+    var fo = sv('foreignObject', { x: 0, y: 0, width: w, height: h }, g);
+    var div = document.createElement('div');
+    div.style.cssText = 'padding:6px 8px;font:12.5px/1.45 var(--sans);color:var(--ink);word-break:keep-all';
+    var t = document.createElement('span'), n = document.createElement('b');
+    n.style.cssText = 'color:var(--accent);font-weight:600';
+    div.appendChild(t); div.appendChild(document.createTextNode(' ')); div.appendChild(n);
+    fo.appendChild(div);
+    return { g: g, t: t, n: n };
+  };
+
+  /* 동작 예시 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
+     at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다 */
+  function len(e) { return e && e.getTotalLength ? e.getTotalLength() : 0; }
+  var shown = typeof WeakMap === 'function' ? new WeakMap() : null; // 글자 요소마다 직전 단계에서 보인 문장
+  function textTween(tl, e, from, render, dur, at) { // 되감을 때 직전 단계의 문장으로 돌아가게 한다
+    var prev = shown && shown.has(e) ? shown.get(e) : e.textContent, p = { v: 0 };
+    if (shown) shown.set(e, render(1));
+    return tl.to(p, { v: 1, duration: dur, ease: 'none',
+      onUpdate: function () { e.textContent = p.v === 0 ? prev : render(p.v); } }, at);
+  }
+  RC.fx = {
+    mark: function (tl, e, color, at) {
+      return tl.to(e, { stroke: tok(color || 'accent'), strokeWidth: 2, duration: 0.3 }, at);
+    },
+    unmark: function (tl, els, at) { return tl.set(els, { stroke: tok('ink'), strokeWidth: 1 }, at); },
+    draw: function (tl, line, dur, at) { // 선이 그려지며 나타난다
+      var L = len(line);
+      gsap.set(line, { strokeDasharray: L, strokeDashoffset: L });
+      return tl.to(line, { strokeDashoffset: 0, duration: dur || 0.5, ease: 'none' }, at);
+    },
+    undraw: function (tl, lines, at) {
+      [].concat(lines).forEach(function (l) { tl.set(l, { strokeDashoffset: len(l) }, at); });
+      return tl;
+    },
+    follow: function (tl, dot, path, dur, at) { // 표식이 선을 따라 이동한다
+      var L = len(path), n = 12, frames = [];
+      for (var i = 1; i <= n; i++) {
+        var pt = path.getPointAtLength(L * i / n);
+        frames.push({ attr: { cx: pt.x, cy: pt.y } });
+      }
+      return tl.to(dot, { keyframes: frames, duration: dur || 0.6, ease: 'power1.inOut' }, at);
+    },
+    pop: function (tl, e, at) { // 살짝 튀어나오며 등장한다
+      gsap.set(e, { opacity: 0, scale: 0.3, transformOrigin: '50% 50%' });
+      return tl.to(e, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)' }, at);
+    },
+    hide: function (tl, els, at) { return tl.set(els, { opacity: 0, scale: 0.3, transformOrigin: '50% 50%' }, at); },
+    think: function (tl, person, question, at) { // 고개를 갸웃하고 물음표가 깜빡인다(약 0.8초)
+      tl.to(person, { rotation: -8, transformOrigin: '50% 100%', duration: 0.2, yoyo: true, repeat: 3 }, at);
+      return tl.to(question, { y: -4, duration: 0.2, yoyo: true, repeat: 3 }, '<');
+    },
+    shake: function (tl, e, at) { return tl.to(e, { x: 5, duration: 0.06, yoyo: true, repeat: 5 }, at); },
+    type: function (tl, e, text, dur, at) { // 문장이 타이핑되듯 나타난다. dur 0이면 바로 바뀐다
+      return textTween(tl, e, '', function (v) { return text.slice(0, Math.ceil(text.length * v)); },
+        dur == null ? Math.min(1, text.length * 0.03) : dur, at);
+    },
+    say: function (tl, note, x, y, text, dur, at) { // 설명 상자를 (x, y)로 옮기고 문장을 타이핑한다. 숫자 칸은 비운다
+      tl.set(note.g, { x: x, y: y, opacity: 1 }, at);
+      RC.fx.type(tl, note.n, '', 0, '<');
+      return RC.fx.type(tl, note.t, text, dur, '<');
+    },
+    count: function (tl, e, from, to, suffix, dur, at) { // 숫자가 올라가며 표시된다
+      return textTween(tl, e, '', function (v) { return Math.round(from + (to - from) * v).toLocaleString('ko-KR') + (suffix || ''); },
+        dur == null ? 0.7 : dur, at);
+    }
+  };
+
   /* 동작 예시 */
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
@@ -380,18 +497,22 @@ footer p{margin:0 0 4px}
       }
       function go(i, animate) {
         stop();
-        if (animate && !reduce) tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
-        else tl.seek('e' + i);
+        if (animate && !reduce) { // 직전 단계로 바로 옮긴 뒤 한 단계만 연출한다(빠르게 여러 번 눌러도 2초 안팎)
+          if (i > 0) tl.seek('e' + (i - 1), false);
+          tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
+        }
+        else tl.seek('e' + i, false);
         show(i);
       }
       function tick() {
-        if (cur < last) { tl.seek('e' + (cur + 1)); show(cur + 1); timer = gsap.delayedCall(1.2, tick); } else stop();
+        if (cur < last) { tl.seek('e' + (cur + 1), false); show(cur + 1); timer = gsap.delayedCall(1.2, tick); } else stop();
       }
       function play() {
         if (cur === last) go(0, false);
         bPlay.textContent = '일시정지';
         if (reduce) timer = gsap.delayedCall(1.2, tick); else tl.play();
       }
+      // seek의 두 번째 인자 false: 바로 이동할 때도 글자 효과(onUpdate)가 끝 상태를 그리게 한다
       tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
         if (tw) return;
         var t = tl.time(), i = 0;
@@ -404,7 +525,7 @@ footer p{margin:0 0 4px}
       bReset.onclick = function () { go(0, false); };
       bPlay.onclick = function () { if (tl.isActive() || tw || timer) stop(); else play(); };
       new ResizeObserver(function () { if (fig.clientWidth === 0) stop(); }).observe(fig); // 다른 페이지로 넘기면 멈춘다
-      addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last); });
+      addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last, false); });
       addEventListener('afterprint', function () { go(saved, false); });
       go(0, false);
     });
@@ -431,7 +552,7 @@ addEventListener('DOMContentLoaded',function(){
 <body>
 <main class="doc paged">
 <nav class="pager"><button id="prev" type="button">이전</button><span class="cnt" id="cnt"></span><button id="next" type="button">다음</button><span>화살표 키로도 넘깁니다</span></nav>
-<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 거래대금 추이</a> · <a href="#p3">3. 시장별 구성</a> · <a href="#p4">4. 주문 처리 구조</a> · <a href="#p5">5. 주문 검증 과정</a></p>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 거래대금 추이</a> · <a href="#p3">3. 시장별 구성</a> · <a href="#p4">4. 주문 처리 구조</a> · <a href="#p5">5. 정산 과정</a></p>
 
 <section class="page" id="p1"><p class="pno">1 / 5</p>
 <header class="doc-head">
@@ -486,13 +607,28 @@ addEventListener('DOMContentLoaded',function(){
   <li>검증 단계는 주문 금액이 한도보다 작을 때만 주문을 체결로 넘깁니다.</li>
 </ul>
 <p class="blk"><b>근거</b></p>
-<figure>
-  <figcaption><span class="t">주문 처리 흐름</span><span class="u">접수에서 정산까지</span></figcaption>
-  <pre class="mermaid">flowchart LR
-  A[주문 접수] --> B{금액 &lt; 한도}
-  B -->|통과| C[체결]
-  B -->|초과| X[거부]
-  C --> D[정산]</pre>
+<figure id="d-order">
+  <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
+  <svg class="stage" id="st-order" viewBox="0 0 740 270" width="100%" role="img" aria-label="주문 처리 과정">
+    <path d="M140 150H185M335 150H400M520 150H600M260 190V215" fill="none" stroke="currentColor"/>
+    <path id="o-a" d="M140 150H185" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-b" d="M335 150H400" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-c" d="M520 150H600" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-r" d="M260 190V215" fill="none" style="stroke:var(--neg);stroke-width:2"/>
+    <rect id="s-acc" x="20" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
+    <polygon id="s-chk" points="260,110 335,150 260,190 185,150" fill="none" stroke="currentColor"/>
+    <rect id="s-exe" x="400" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
+    <rect id="s-set" x="600" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
+    <rect id="s-rej" x="200" y="215" width="120" height="40" fill="none" stroke="currentColor"/>
+    <text x="80" y="155" text-anchor="middle" font-size="14">주문 접수</text>
+    <text x="260" y="155" text-anchor="middle" font-size="13">금액 &lt; 한도</text>
+    <text x="460" y="155" text-anchor="middle" font-size="14">체결</text>
+    <text x="660" y="155" text-anchor="middle" font-size="14">정산</text>
+    <text x="260" y="240" text-anchor="middle" font-size="14">거부</text>
+    <text id="l-pass" x="367" y="172" text-anchor="middle" font-size="12">통과</text>
+    <text id="l-over" x="270" y="208" font-size="12">초과</text>
+    <circle id="tok" cx="140" cy="150" r="5" fill="currentColor" opacity="0"/>
+  </svg>
   <p class="src">자료: 시험용 가상 자료</p>
 </figure>
 <figure>
@@ -510,24 +646,9 @@ addEventListener('DOMContentLoaded',function(){
 </section>
 
 <section class="page" id="p5"><p class="pno">5 / 5</p>
-<h2>주문 검증 과정</h2>
-<ul class="pts"><li>주문은 접수 뒤 한도 검증을 통과해야 거래소로 전송됩니다.</li></ul>
+<h2>정산 과정</h2>
+<ul class="pts"><li>체결된 주문은 대금 계산을 거쳐 결제로 정산됩니다.</li></ul>
 <p class="blk"><b>근거</b></p>
-<figure id="d-flow">
-  <figcaption><span class="t">주문 검증 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
-  <svg class="stage" viewBox="0 0 640 110" width="100%" role="img" aria-label="주문 검증 과정">
-    <line x1="190" y1="55" x2="230" y2="55" stroke="currentColor"/>
-    <line x1="410" y1="55" x2="450" y2="55" stroke="currentColor"/>
-    <rect id="v1" x="10" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-    <rect id="v2" x="230" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-    <rect id="v3" x="450" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
-    <text x="100" y="60" text-anchor="middle" font-size="14">주문 접수</text>
-    <text x="320" y="60" text-anchor="middle" font-size="14">한도 검증</text>
-    <text x="540" y="60" text-anchor="middle" font-size="14">체결 전송</text>
-    <circle id="dot" cx="100" cy="95" r="5" fill="currentColor" opacity="0"/>
-  </svg>
-  <p class="src">자료: 시험용 가상 자료</p>
-</figure>
 <figure id="d-mmd">
   <figcaption><span class="t">정산 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
   <pre class="mermaid">flowchart LR
@@ -554,15 +675,50 @@ RC.chart(document.getElementById('c-share'), {
   series: [{ name: '시장별 비중', type: 'pie', radius: ['45%', '70%'], label: { formatter: '{b} {d}%' },
     data: [{ name: '유가증권시장', value: 58 }, { name: '코스닥시장', value: 35 }, { name: '코넥스시장', value: 7 }] }]
 });
-function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
-RC.demo(document.getElementById('d-flow'), [
-  { name: '주문 접수', text: '고객 주문이 접수 단계에 들어옵니다.',
-    play: function (tl, $) { tl.set($('dot'), { opacity: 1, attr: { cx: 100 } }); mark(tl, $('v1')); } },
-  { name: '한도 검증', text: '주문 금액을 고객 한도와 비교합니다.',
-    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 320 }, duration: 0.8 }); mark(tl, $('v2')); } },
-  { name: '체결 전송', text: '검증을 통과한 주문을 거래소로 보냅니다.',
-    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 540 }, duration: 0.8 }); mark(tl, $('v3')); } }
+var fx = RC.fx, st = document.getElementById('st-order');
+var ic = {
+  doc: RC.icon(st, 'doc', 80, 95), who: RC.icon(st, 'person', 260, 72), ask: RC.icon(st, 'question', 260, 32),
+  ok: RC.icon(st, 'check', 318, 72), no: RC.icon(st, 'cross', 318, 72),
+  won: RC.icon(st, 'coin', 460, 100), done: RC.icon(st, 'check', 660, 100)
+};
+var nt = RC.note(st, 170, 64); // 설명 상자: 단계마다 연출 중인 도형 옆으로 옮긴다
+RC.demo(document.getElementById('d-order'), [
+  { name: '시나리오 A · 주문 접수', text: '고객 주문을 접수합니다.', play: function (tl, $) {
+    fx.pop(tl, ic.doc); fx.mark(tl, $('s-acc'), 'accent', '<'); tl.set($('tok'), { opacity: 1 }, '<');
+    fx.say(tl, nt, 20, 195, '주문 A · 삼성전자 10주 × 지정가 72,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 720000, '원'); } },
+  { name: '시나리오 A · 한도 검증', text: '주문 금액을 고객 한도와 비교합니다.', play: function (tl, $) {
+    fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
+    fx.pop(tl, ic.who, '<'); fx.pop(tl, ic.ask); fx.think(tl, ic.who, ic.ask);
+    fx.say(tl, nt, 340, 185, '주문 금액 720,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
+  { name: '시나리오 A · 통과', text: '한도 이내라 거래소에 체결을 요청합니다.', play: function (tl, $) {
+    fx.pop(tl, ic.ok); tl.set($('tok'), { attr: { cx: 335, cy: 150 } });
+    fx.draw(tl, $('o-b')); fx.follow(tl, $('tok'), $('o-b'), 0.5, '<');
+    tl.to($('l-pass'), { fill: RC.color('accent'), duration: 0.3 }, '<');
+    fx.say(tl, nt, 340, 185, '한도 이내이므로 통과시켜 거래소에 체결을 요청합니다', 0.9, '<'); } },
+  { name: '시나리오 A · 체결', text: '거래소에서 주문이 체결됩니다.', play: function (tl, $) {
+    fx.mark(tl, $('s-exe')); fx.pop(tl, ic.won, '<');
+    fx.say(tl, nt, 400, 185, '체결 · 72,000원 × 10주 =', 0.6); fx.count(tl, nt.n, 0, 720000, '원', 0.8); } },
+  { name: '시나리오 A · 정산', text: '결제일에 대금과 주식을 주고받습니다.', play: function (tl, $) {
+    tl.set($('tok'), { attr: { cx: 520, cy: 150 } }); fx.draw(tl, $('o-c')); fx.follow(tl, $('tok'), $('o-c'), 0.5, '<');
+    fx.mark(tl, $('s-set')); fx.pop(tl, ic.done, '<');
+    fx.say(tl, nt, 570, 185, 'T+2 결제일에 대금 720,000원과 주식 10주를 주고받습니다', 0.9); } },
+  { name: '시나리오 B · 주문 접수', text: '한도보다 큰 주문을 접수합니다.', play: function (tl, $) {
+    fx.hide(tl, [ic.doc, ic.who, ic.ask, ic.ok, ic.won, ic.done]);
+    fx.unmark(tl, [$('s-acc'), $('s-chk'), $('s-exe'), $('s-set')]); fx.undraw(tl, [$('o-a'), $('o-b'), $('o-c')]);
+    tl.set($('l-pass'), { fill: RC.color('ink') }); tl.set($('tok'), { attr: { cx: 140, cy: 150 } });
+    fx.pop(tl, ic.doc); fx.mark(tl, $('s-acc'), 'accent', '<');
+    fx.say(tl, nt, 20, 195, '주문 B · 삼성전자 25주 × 지정가 60,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 1500000, '원'); } },
+  { name: '시나리오 B · 한도 검증', text: '주문 금액을 고객 한도와 비교합니다.', play: function (tl, $) {
+    fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
+    fx.pop(tl, ic.who, '<'); fx.pop(tl, ic.ask); fx.think(tl, ic.who, ic.ask);
+    fx.say(tl, nt, 340, 185, '주문 금액 1,500,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
+  { name: '시나리오 B · 거부', text: '한도를 넘어 주문을 거부합니다.', play: function (tl, $) {
+    fx.pop(tl, ic.no); fx.shake(tl, ic.no); tl.set($('tok'), { attr: { cx: 260, cy: 190 } });
+    fx.draw(tl, $('o-r'), 0.4); fx.follow(tl, $('tok'), $('o-r'), 0.4, '<');
+    fx.mark(tl, $('s-rej'), 'neg'); tl.to($('l-over'), { fill: RC.color('neg'), duration: 0.3 }, '<');
+    fx.say(tl, nt, 340, 195, '한도를 넘어 주문을 거부하고 고객에게 한도 부족을 안내합니다', 0.9, '<'); } }
 ]);
+function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
 RC.demo(document.getElementById('d-mmd'), [
   { name: '체결 확정', text: '체결 내역을 확정합니다.', play: function (tl, $) { mark(tl, $('P')); } },
   { name: '대금 계산', text: '결제할 대금을 계산합니다.', play: function (tl, $) { mark(tl, $('Q')); } },
