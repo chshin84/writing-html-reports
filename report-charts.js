@@ -252,8 +252,9 @@
       return tl;
     },
     unspot: function (tl, frame, els, at) { // 시나리오를 다시 시작할 때 도형과 초점 틀을 처음 상태로 돌린다
-      tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0 }, at);
-      tl.set(frame.g, { opacity: 0 }, '<');
+      els = [].concat(els || []);
+      if (els.length) { tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0 }, at); at = '<'; }
+      tl.set(frame.g, { opacity: 0 }, at); // 도형 없이 부르면 초점 틀만 숨겨, 다음 spot이 틀을 끌고 가지 않고 새로 나타난다
       frame.cur = null;
       return tl;
     },
