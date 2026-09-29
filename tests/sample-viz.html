@@ -472,7 +472,10 @@ footer p{margin:0 0 4px}
       };
       var tl = gsap.timeline({ paused: true }), ends = [];
       try {
-        steps.forEach(function (s, i) { s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration()); });
+        steps.forEach(function (s, i) {
+          s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration());
+          tl.to({}, { duration: 0.02 }); // 다음 단계의 즉시 설정이 이 단계의 끝 시각과 겹쳐 미리 실행되지 않게 띄운다
+        });
       } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
         console.error('RC.demo', e);
         tl.kill();
@@ -609,25 +612,25 @@ addEventListener('DOMContentLoaded',function(){
 <p class="blk"><b>근거</b></p>
 <figure id="d-order">
   <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
-  <svg class="stage" id="st-order" viewBox="0 0 740 270" width="100%" role="img" aria-label="주문 처리 과정">
-    <path d="M140 150H185M335 150H400M520 150H600M260 190V215" fill="none" stroke="currentColor"/>
-    <path id="o-a" d="M140 150H185" fill="none" style="stroke:var(--accent);stroke-width:2"/>
-    <path id="o-b" d="M335 150H400" fill="none" style="stroke:var(--accent);stroke-width:2"/>
-    <path id="o-c" d="M520 150H600" fill="none" style="stroke:var(--accent);stroke-width:2"/>
-    <path id="o-r" d="M260 190V215" fill="none" style="stroke:var(--neg);stroke-width:2"/>
-    <rect id="s-acc" x="20" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
-    <polygon id="s-chk" points="260,110 335,150 260,190 185,150" fill="none" stroke="currentColor"/>
-    <rect id="s-exe" x="400" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
-    <rect id="s-set" x="600" y="130" width="120" height="40" fill="none" stroke="currentColor"/>
-    <rect id="s-rej" x="200" y="215" width="120" height="40" fill="none" stroke="currentColor"/>
-    <text x="80" y="155" text-anchor="middle" font-size="14">주문 접수</text>
-    <text x="260" y="155" text-anchor="middle" font-size="13">금액 &lt; 한도</text>
-    <text x="460" y="155" text-anchor="middle" font-size="14">체결</text>
-    <text x="660" y="155" text-anchor="middle" font-size="14">정산</text>
-    <text x="260" y="240" text-anchor="middle" font-size="14">거부</text>
-    <text id="l-pass" x="367" y="172" text-anchor="middle" font-size="12">통과</text>
-    <text id="l-over" x="270" y="208" font-size="12">초과</text>
-    <circle id="tok" cx="140" cy="150" r="5" fill="currentColor" opacity="0"/>
+  <svg class="stage" id="st-order" viewBox="0 85 820 275" width="100%" role="img" aria-label="주문 처리 과정">
+    <path d="M140 230H195M345 230H420M540 230H640M270 270V300" fill="none" stroke="currentColor"/>
+    <path id="o-a" d="M140 230H195" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-b" d="M345 230H420" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-c" d="M540 230H640" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    <path id="o-r" d="M270 270V300" fill="none" style="stroke:var(--neg);stroke-width:2"/>
+    <rect id="s-acc" x="20" y="210" width="120" height="40" fill="none" stroke="currentColor"/>
+    <polygon id="s-chk" points="270,190 345,230 270,270 195,230" fill="none" stroke="currentColor"/>
+    <rect id="s-exe" x="420" y="210" width="120" height="40" fill="none" stroke="currentColor"/>
+    <rect id="s-set" x="640" y="210" width="120" height="40" fill="none" stroke="currentColor"/>
+    <rect id="s-rej" x="210" y="300" width="120" height="40" fill="none" stroke="currentColor"/>
+    <text x="80" y="235" text-anchor="middle" font-size="14">주문 접수</text>
+    <text x="270" y="235" text-anchor="middle" font-size="13">금액 &lt; 한도</text>
+    <text x="480" y="235" text-anchor="middle" font-size="14">체결</text>
+    <text x="700" y="235" text-anchor="middle" font-size="14">정산</text>
+    <text x="270" y="325" text-anchor="middle" font-size="14">거부</text>
+    <text id="l-pass" x="382" y="252" text-anchor="middle" font-size="12">통과</text>
+    <text id="l-over" x="280" y="291" font-size="12">초과</text>
+    <circle id="tok" cx="140" cy="230" r="5" fill="currentColor" opacity="0"/>
   </svg>
   <p class="src">자료: 시험용 가상 자료</p>
 </figure>
@@ -676,47 +679,48 @@ RC.chart(document.getElementById('c-share'), {
     data: [{ name: '유가증권시장', value: 58 }, { name: '코스닥시장', value: 35 }, { name: '코넥스시장', value: 7 }] }]
 });
 var fx = RC.fx, st = document.getElementById('st-order');
+// 아이콘과 설명 상자는 한 쌍으로 붙여, 연출 중인 도형 바로 위(거부는 오른쪽)에 둔다. 지난 단계의 아이콘은 숨긴다
 var ic = {
-  doc: RC.icon(st, 'doc', 80, 95), who: RC.icon(st, 'person', 260, 72), ask: RC.icon(st, 'question', 260, 32),
-  ok: RC.icon(st, 'check', 318, 72), no: RC.icon(st, 'cross', 318, 72),
-  won: RC.icon(st, 'coin', 460, 100), done: RC.icon(st, 'check', 660, 100)
+  doc: RC.icon(st, 'doc', 30, 142), who: RC.icon(st, 'person', 190, 150), ask: RC.icon(st, 'question', 190, 110),
+  ok: RC.icon(st, 'check', 396, 142), won: RC.icon(st, 'coin', 432, 142), done: RC.icon(st, 'check', 606, 142),
+  no: RC.icon(st, 'cross', 356, 320)
 };
-var nt = RC.note(st, 170, 64); // 설명 상자: 단계마다 연출 중인 도형 옆으로 옮긴다
+var nt = RC.note(st, 190, 64), all = [ic.doc, ic.who, ic.ask, ic.ok, ic.won, ic.done, ic.no];
+function only(tl, keep) { fx.hide(tl, all.filter(function (e) { return keep.indexOf(e) < 0; })); }
 RC.demo(document.getElementById('d-order'), [
   { name: '시나리오 A · 주문 접수', text: '고객 주문을 접수합니다.', play: function (tl, $) {
-    fx.pop(tl, ic.doc); fx.mark(tl, $('s-acc'), 'accent', '<'); tl.set($('tok'), { opacity: 1 }, '<');
-    fx.say(tl, nt, 20, 195, '주문 A · 삼성전자 10주 × 지정가 72,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 720000, '원'); } },
+    only(tl, [ic.doc]); fx.pop(tl, ic.doc); fx.mark(tl, $('s-acc'), 'accent', '<'); tl.set($('tok'), { opacity: 1 }, '<');
+    fx.say(tl, nt, 48, 110, '주문 A · 삼성전자 10주 × 지정가 72,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 720000, '원'); } },
   { name: '시나리오 A · 한도 검증', text: '주문 금액을 고객 한도와 비교합니다.', play: function (tl, $) {
-    fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
+    only(tl, []); fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
     fx.pop(tl, ic.who, '<'); fx.pop(tl, ic.ask); fx.think(tl, ic.who, ic.ask);
-    fx.say(tl, nt, 340, 185, '주문 금액 720,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
+    fx.say(tl, nt, 210, 110, '주문 금액 720,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
   { name: '시나리오 A · 통과', text: '한도 이내라 거래소에 체결을 요청합니다.', play: function (tl, $) {
-    fx.pop(tl, ic.ok); tl.set($('tok'), { attr: { cx: 335, cy: 150 } });
+    only(tl, []); fx.pop(tl, ic.ok); tl.set($('tok'), { attr: { cx: 345, cy: 230 } });
     fx.draw(tl, $('o-b')); fx.follow(tl, $('tok'), $('o-b'), 0.5, '<');
     tl.to($('l-pass'), { fill: RC.color('accent'), duration: 0.3 }, '<');
-    fx.say(tl, nt, 340, 185, '한도 이내이므로 통과시켜 거래소에 체결을 요청합니다', 0.9, '<'); } },
+    fx.say(tl, nt, 414, 110, '한도 이내이므로 통과시켜 거래소에 체결을 요청합니다', 0.9, '<'); } },
   { name: '시나리오 A · 체결', text: '거래소에서 주문이 체결됩니다.', play: function (tl, $) {
-    fx.mark(tl, $('s-exe')); fx.pop(tl, ic.won, '<');
-    fx.say(tl, nt, 400, 185, '체결 · 72,000원 × 10주 =', 0.6); fx.count(tl, nt.n, 0, 720000, '원', 0.8); } },
+    only(tl, []); fx.mark(tl, $('s-exe')); fx.pop(tl, ic.won, '<');
+    fx.say(tl, nt, 450, 110, '체결 · 72,000원 × 10주 =', 0.6); fx.count(tl, nt.n, 0, 720000, '원', 0.8); } },
   { name: '시나리오 A · 정산', text: '결제일에 대금과 주식을 주고받습니다.', play: function (tl, $) {
-    tl.set($('tok'), { attr: { cx: 520, cy: 150 } }); fx.draw(tl, $('o-c')); fx.follow(tl, $('tok'), $('o-c'), 0.5, '<');
+    only(tl, []); tl.set($('tok'), { attr: { cx: 540, cy: 230 } }); fx.draw(tl, $('o-c')); fx.follow(tl, $('tok'), $('o-c'), 0.5, '<');
     fx.mark(tl, $('s-set')); fx.pop(tl, ic.done, '<');
-    fx.say(tl, nt, 570, 185, 'T+2 결제일에 대금 720,000원과 주식 10주를 주고받습니다', 0.9); } },
+    fx.say(tl, nt, 624, 110, 'T+2 결제일에 대금 720,000원과 주식 10주를 주고받습니다', 0.9); } },
   { name: '시나리오 B · 주문 접수', text: '한도보다 큰 주문을 접수합니다.', play: function (tl, $) {
-    fx.hide(tl, [ic.doc, ic.who, ic.ask, ic.ok, ic.won, ic.done]);
-    fx.unmark(tl, [$('s-acc'), $('s-chk'), $('s-exe'), $('s-set')]); fx.undraw(tl, [$('o-a'), $('o-b'), $('o-c')]);
-    tl.set($('l-pass'), { fill: RC.color('ink') }); tl.set($('tok'), { attr: { cx: 140, cy: 150 } });
+    only(tl, []); fx.unmark(tl, [$('s-acc'), $('s-chk'), $('s-exe'), $('s-set')]); fx.undraw(tl, [$('o-a'), $('o-b'), $('o-c')]);
+    tl.set($('l-pass'), { fill: RC.color('ink') }); tl.set($('tok'), { attr: { cx: 140, cy: 230 } });
     fx.pop(tl, ic.doc); fx.mark(tl, $('s-acc'), 'accent', '<');
-    fx.say(tl, nt, 20, 195, '주문 B · 삼성전자 25주 × 지정가 60,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 1500000, '원'); } },
+    fx.say(tl, nt, 48, 110, '주문 B · 삼성전자 25주 × 지정가 60,000원 = 주문 금액'); fx.count(tl, nt.n, 0, 1500000, '원'); } },
   { name: '시나리오 B · 한도 검증', text: '주문 금액을 고객 한도와 비교합니다.', play: function (tl, $) {
-    fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
+    only(tl, []); fx.draw(tl, $('o-a')); fx.follow(tl, $('tok'), $('o-a'), 0.5, '<'); fx.mark(tl, $('s-chk'));
     fx.pop(tl, ic.who, '<'); fx.pop(tl, ic.ask); fx.think(tl, ic.who, ic.ask);
-    fx.say(tl, nt, 340, 185, '주문 금액 1,500,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
+    fx.say(tl, nt, 210, 110, '주문 금액 1,500,000원과 비교할 고객 한도 =', 0.5, '<'); fx.count(tl, nt.n, 0, 1000000, '원', 0.6, '<'); } },
   { name: '시나리오 B · 거부', text: '한도를 넘어 주문을 거부합니다.', play: function (tl, $) {
-    fx.pop(tl, ic.no); fx.shake(tl, ic.no); tl.set($('tok'), { attr: { cx: 260, cy: 190 } });
+    only(tl, []); fx.pop(tl, ic.no); fx.shake(tl, ic.no); tl.set($('tok'), { attr: { cx: 270, cy: 270 } });
     fx.draw(tl, $('o-r'), 0.4); fx.follow(tl, $('tok'), $('o-r'), 0.4, '<');
     fx.mark(tl, $('s-rej'), 'neg'); tl.to($('l-over'), { fill: RC.color('neg'), duration: 0.3 }, '<');
-    fx.say(tl, nt, 340, 195, '한도를 넘어 주문을 거부하고 고객에게 한도 부족을 안내합니다', 0.9, '<'); } }
+    fx.say(tl, nt, 374, 288, '한도를 넘어 주문을 거부하고 고객에게 한도 부족을 안내합니다', 0.9, '<'); } }
 ]);
 function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
 RC.demo(document.getElementById('d-mmd'), [

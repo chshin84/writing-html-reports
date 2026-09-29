@@ -274,7 +274,10 @@
       };
       var tl = gsap.timeline({ paused: true }), ends = [];
       try {
-        steps.forEach(function (s, i) { s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration()); });
+        steps.forEach(function (s, i) {
+          s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration());
+          tl.to({}, { duration: 0.02 }); // 다음 단계의 즉시 설정이 이 단계의 끝 시각과 겹쳐 미리 실행되지 않게 띄운다
+        });
       } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
         console.error('RC.demo', e);
         tl.kill();
