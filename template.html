@@ -199,7 +199,7 @@ footer p{margin:0 0 4px}
 /* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
    보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
    함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열),
-   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.fx(동작 예시 효과 묶음). 규칙은 SKILL.md '시각화' 절에 있다. */
+   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음). 규칙은 SKILL.md '시각화' 절에 있다. */
 (function () {
   var root = document.documentElement;
   var FAIL = '시각화를 불러오지 못했습니다';
@@ -382,6 +382,26 @@ footer p{margin:0 0 4px}
     return { g: g, t: t, n: n };
   };
 
+  function geom(e) { // 숨은 페이지에서는 getBBox가 0이므로 도형 속성에서 위치를 읽는다
+    var a = function (k) { return parseFloat(e.getAttribute(k)) || 0; };
+    if (e.tagName === 'rect') return { x: a('x'), y: a('y'), width: a('width'), height: a('height') };
+    if (e.tagName === 'polygon' || e.tagName === 'polyline') {
+      var v = e.getAttribute('points').trim().split(/[\s,]+/).map(Number), xs = [], ys = [];
+      for (var i = 0; i + 1 < v.length; i += 2) { xs.push(v[i]); ys.push(v[i + 1]); }
+      var x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+      return { x: x0, y: y0, width: Math.max.apply(null, xs) - x0, height: Math.max.apply(null, ys) - y0 };
+    }
+    if (e.tagName === 'circle') return { x: a('cx') - a('r'), y: a('cy') - a('r'), width: 2 * a('r'), height: 2 * a('r') };
+    return e.getBBox();
+  }
+  /* 동작 예시 초점 틀: 현재 도형의 네 모서리에 붙는 괄호. RC.fx.spot이 도형에서 도형으로 미끄러지듯 옮긴다 */
+  RC.focus = function (svg) {
+    if (!svg) { console.error('RC.focus: 무대가 없다'); return null; }
+    var A = 9, g = sv('g', { 'class': 'rc-focus', fill: 'none', stroke: tok('accent'), 'stroke-width': 1.5, opacity: 0 }, svg);
+    var d = ['M0 ' + A + 'V0H' + A, 'M-' + A + ' 0H0V' + A, 'M0 -' + A + 'V0H-' + A, 'M' + A + ' 0H0V-' + A]; // 왼위, 오른위, 오른아래, 왼아래
+    return { g: g, c: d.map(function (p) { return sv('path', { d: p }, g); }), cur: null };
+  };
+
   /* 동작 예시 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
      at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
      글 규칙(RC.demo가 강제한다): 한 단계의 글 등장(타이핑과 카운트업)은 1초 안에 끝나고, 끝난 뒤 읽을 시간으로
@@ -412,6 +432,28 @@ footer p{margin:0 0 4px}
       return tl.to(e, { stroke: tok(color || 'accent'), strokeWidth: 2, duration: 0.3 }, at);
     },
     unmark: function (tl, els, at) { return tl.set(els, { stroke: tok('ink'), strokeWidth: 1 }, at); },
+    spot: function (tl, frame, e, color, at) { // 초점 틀을 도형 e로 옮기고, e는 현재 도형, 직전 도형은 지나온 도형으로 바꾼다
+      var c = tok(color || 'accent'), b = geom(e), P = 6;
+      var pts = [[b.x - P, b.y - P], [b.x + b.width + P, b.y - P], [b.x + b.width + P, b.y + b.height + P], [b.x - P, b.y + b.height + P]];
+      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3 }, at);
+      else tl.to({}, { duration: 0 }, at);
+      if (!frame.cur) { // 처음에는 크게 나타났다가 조여진다
+        pts.forEach(function (p, i) { var o = [[-1, -1], [1, -1], [1, 1], [-1, 1]][i]; tl.set(frame.c[i], { x: p[0] + o[0] * 14, y: p[1] + o[1] * 14 }, '<'); });
+        tl.set(frame.g, { opacity: 0 }, '<');
+      }
+      tl.to(frame.g, { opacity: 1, stroke: c, duration: 0.3 }, '<');
+      pts.forEach(function (p, i) { tl.to(frame.c[i], { x: p[0], y: p[1], duration: 0.45, ease: 'power3.inOut' }, '<'); });
+      tl.set(e, { fill: c, fillOpacity: 0 }, '<');
+      tl.to(e, { stroke: c, strokeWidth: 2, fillOpacity: 0.08, duration: 0.35 }, '<0.1');
+      frame.cur = e;
+      return tl;
+    },
+    unspot: function (tl, frame, els, at) { // 시나리오를 다시 시작할 때 도형과 초점 틀을 처음 상태로 돌린다
+      tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0 }, at);
+      tl.set(frame.g, { opacity: 0 }, '<');
+      frame.cur = null;
+      return tl;
+    },
     draw: function (tl, line, dur, at) { // 선이 그려지며 나타난다
       var L = len(line);
       gsap.set(line, { strokeDasharray: L, strokeDashoffset: L });
