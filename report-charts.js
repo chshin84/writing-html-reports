@@ -91,11 +91,11 @@
     });
   });
 
-  /* 도식 */
-  function renderMermaid() {
-    var pres = [].slice.call(document.querySelectorAll('pre.mermaid'));
-    if (!pres.length) return null;
-    if (typeof mermaid === 'undefined') { pres.forEach(fail); return null; }
+  /* 도식. mermaid는 스크립트가 실행되자마자(DOMContentLoaded 전에) startOnLoad를 꺼야 한다.
+     그러지 않으면 mermaid.min.js 자신의 기본 자동 실행이 .mermaid 요소를 먼저 렌더링해
+     pre.textContent를 SVG로 바꿔버리고, 이어지는 renderMermaid()가 그 SVG 텍스트를 다시
+     mermaid에 넣어 파싱에 실패한다. */
+  if (typeof mermaid !== 'undefined') {
     mermaid.initialize({
       startOnLoad: false, theme: 'base', securityLevel: 'strict', fontFamily: tok('sans'),
       flowchart: { curve: 'linear' },
@@ -109,6 +109,11 @@
         noteBkgColor: tok('tint'), noteBorderColor: tok('hair'), noteTextColor: tok('ink')
       }
     });
+  }
+  function renderMermaid() {
+    var pres = [].slice.call(document.querySelectorAll('pre.mermaid'));
+    if (!pres.length) return null;
+    if (typeof mermaid === 'undefined') { pres.forEach(fail); return null; }
     return pres.reduce(function (p, pre, i) {
       var src = pre.textContent;
       return p.then(function () { return mermaid.render('rc-mermaid-' + i, src); })

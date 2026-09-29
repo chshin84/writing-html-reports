@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>문서 제목</title>
+<title>시각화 시험 견본</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 /* BEGIN report-base (build.py가 채운다. 손으로 고치지 않는다) */
@@ -422,36 +422,61 @@ addEventListener('DOMContentLoaded',function(){
 <body>
 <main class="doc paged">
 <nav class="pager"><button id="prev" type="button">이전</button><span class="cnt" id="cnt"></span><button id="next" type="button">다음</button><span>화살표 키로도 넘깁니다</span></nav>
-<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 절 이름</a></p>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 거래대금 추이</a> · <a href="#p3">3. 시장별 구성</a> · <a href="#p4">4. 주문 처리 구조</a> · <a href="#p5">5. 주문 검증 과정</a></p>
 
-<section class="page" id="p1"><p class="pno">1 / 2</p>
+<section class="page" id="p1"><p class="pno">1 / 5</p>
 <header class="doc-head">
-  <p class="doc-meta">소속 · 2026년 9월</p>
-  <h1>문서 제목</h1>
-  <p class="lede">문서 전체의 결론을 수치를 넣은 단정문으로 적습니다.</p>
+  <p class="doc-meta">시험 견본 · 2026년 9월</p>
+  <h1>시각화 시험 견본</h1>
+  <p class="lede">이 문서는 연결 코드의 렌더링과 동작과 인쇄를 시험합니다.</p>
   <div class="keyfig">
-    <div><span class="k">수치 이름</span><span class="v">0.85 → 1.11</span><span class="d">단위나 설명</span></div>
-    <div><span class="k">수치 이름</span><span class="v">0.62</span><span class="d">단위나 설명</span></div>
+    <div><span class="k">페이지 수</span><span class="v">5</span><span class="d">요약 포함</span></div>
+    <div><span class="k">시각화</span><span class="v">6</span><span class="d">차트 2, 도식 2, 동작 예시 2</span></div>
   </div>
 </header>
-<div class="gist">
-  <h2>요약</h2>
-  <ul><li><b>항목 이름:</b> 결론을 문장으로 적습니다.</li></ul>
-</div>
 </section>
 
-<section class="page" id="p2"><p class="pno">2 / 2</p>
-<h2>절 이름</h2>
-<ul class="pts">
-  <li>이 페이지의 결론을 수치와 함께 문장으로 적습니다.</li>
-  <li>결론이 여럿이면 줄을 나눠 적습니다.</li>
-</ul>
+<section class="page" id="p2"><p class="pno">2 / 5</p>
+<h2>거래대금 추이</h2>
+<ul class="pts"><li>6월 거래대금은 24.9조원으로 3개월 이동평균 25.9조원을 하회했습니다.</li></ul>
 <p class="blk"><b>근거</b></p>
 <figure>
   <figcaption><span class="t">월별 거래대금 (2026년 1~6월)</span><span class="u">단위: 조원, 선은 3개월 이동평균</span></figcaption>
   <div class="viz" id="c-trend"></div>
-  <p class="src">자료: 출처를 적습니다.</p>
+  <p class="src">자료: 시험용 가상 자료</p>
 </figure>
+<div class="tbl"><table>
+  <caption>월별 거래대금 (조원)</caption>
+  <thead><tr><th>월</th><th class="n">거래대금</th><th class="n">3개월 이동평균</th></tr></thead>
+  <tbody>
+    <tr><td>1월</td><td class="n">21.4</td><td class="n">–</td></tr>
+    <tr><td>2월</td><td class="n">23.1</td><td class="n">–</td></tr>
+    <tr><td>3월</td><td class="n">19.8</td><td class="n">21.43</td></tr>
+    <tr><td>4월</td><td class="n">25.6</td><td class="n">22.83</td></tr>
+    <tr><td>5월</td><td class="n">27.2</td><td class="n">24.20</td></tr>
+    <tr><td>6월</td><td class="n">24.9</td><td class="n">25.90</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<section class="page" id="p3"><p class="pno">3 / 5</p>
+<h2>시장별 구성</h2>
+<ul class="pts"><li>6월 거래대금의 58%가 유가증권시장에서 발생했습니다.</li></ul>
+<p class="blk"><b>근거</b></p>
+<figure>
+  <figcaption><span class="t">시장별 거래대금 비중 (2026년 6월)</span><span class="u">단위: %</span></figcaption>
+  <div class="viz" id="c-share"></div>
+  <p class="src">자료: 시험용 가상 자료</p>
+</figure>
+</section>
+
+<section class="page" id="p4"><p class="pno">4 / 5</p>
+<h2>주문 처리 구조</h2>
+<ul class="pts">
+  <li>주문은 접수·검증·체결·정산의 네 단계를 거칩니다.</li>
+  <li>검증 단계는 주문 금액이 한도보다 작을 때만 주문을 체결로 넘깁니다.</li>
+</ul>
+<p class="blk"><b>근거</b></p>
 <figure>
   <figcaption><span class="t">주문 처리 흐름</span><span class="u">접수에서 정산까지</span></figcaption>
   <pre class="mermaid">flowchart LR
@@ -459,8 +484,26 @@ addEventListener('DOMContentLoaded',function(){
   B -->|통과| C[체결]
   B -->|초과| X[거부]
   C --> D[정산]</pre>
-  <p class="src">자료: 출처를 적습니다.</p>
+  <p class="src">자료: 시험용 가상 자료</p>
 </figure>
+<figure>
+  <figcaption><span class="t">주문 호출 순서</span><span class="u">고객, 주문 시스템, 거래소</span></figcaption>
+  <pre class="mermaid">sequenceDiagram
+  participant 고객
+  participant 주문 as 주문 시스템
+  participant 거래소
+  고객->>주문: 매수 주문
+  주문->>거래소: 체결 요청
+  거래소-->>주문: 체결 통보
+  주문-->>고객: 체결 안내</pre>
+  <p class="src">자료: 시험용 가상 자료</p>
+</figure>
+</section>
+
+<section class="page" id="p5"><p class="pno">5 / 5</p>
+<h2>주문 검증 과정</h2>
+<ul class="pts"><li>주문은 접수 뒤 한도 검증을 통과해야 거래소로 전송됩니다.</li></ul>
+<p class="blk"><b>근거</b></p>
 <figure id="d-flow">
   <figcaption><span class="t">주문 검증 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
   <svg class="stage" viewBox="0 0 640 110" width="100%" role="img" aria-label="주문 검증 과정">
@@ -474,19 +517,14 @@ addEventListener('DOMContentLoaded',function(){
     <text x="540" y="60" text-anchor="middle" font-size="14">체결 전송</text>
     <circle id="dot" cx="100" cy="95" r="5" fill="currentColor" opacity="0"/>
   </svg>
-  <p class="src">자료: 출처를 적습니다.</p>
+  <p class="src">자료: 시험용 가상 자료</p>
 </figure>
-<div class="tbl"><table>
-  <caption>표 제목</caption>
-  <thead><tr><th>항목</th><th class="n">값</th></tr></thead>
-  <tbody><tr><td>항목 설명</td><td class="n">1.00</td></tr></tbody>
-</table></div>
-<p class="blk"><b>중요 포인트</b></p>
-<ul class="pts"><li><b>항목 이름:</b> 근거에서 읽어야 할 사항을 적습니다.</li></ul>
-<p class="blk warn"><b>유의사항</b></p>
-<ul class="pts"><li><b>항목 이름:</b> 가정과 관리 방안을 적습니다.</li></ul>
-<p class="blk"><b>출처</b></p>
-<ul class="pts src-list"><li><b>자료 이름</b> — 파일 경로나 주소</li></ul>
+<figure id="d-mmd">
+  <figcaption><span class="t">정산 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
+  <pre class="mermaid">flowchart LR
+  P[체결 확정] --> Q[대금 계산] --> R[결제]</pre>
+  <p class="src">자료: 시험용 가상 자료</p>
+</figure>
 </section>
 
 </main>
@@ -502,6 +540,11 @@ RC.chart(document.getElementById('c-trend'), {
     { name: '3개월 이동평균', type: 'line', data: RC.ma(vol, 3) }
   ]
 });
+RC.chart(document.getElementById('c-share'), {
+  legend: { top: 0, left: 0 },
+  series: [{ name: '시장별 비중', type: 'pie', radius: ['45%', '70%'], label: { formatter: '{b} {d}%' },
+    data: [{ name: '유가증권시장', value: 58 }, { name: '코스닥시장', value: 35 }, { name: '코넥스시장', value: 7 }] }]
+});
 function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
 RC.demo(document.getElementById('d-flow'), [
   { name: '주문 접수', text: '고객 주문이 접수 단계에 들어옵니다.',
@@ -510,6 +553,11 @@ RC.demo(document.getElementById('d-flow'), [
     play: function (tl, $) { tl.to($('dot'), { attr: { cx: 320 }, duration: 0.8 }); mark(tl, $('v2')); } },
   { name: '체결 전송', text: '검증을 통과한 주문을 거래소로 보냅니다.',
     play: function (tl, $) { tl.to($('dot'), { attr: { cx: 540 }, duration: 0.8 }); mark(tl, $('v3')); } }
+]);
+RC.demo(document.getElementById('d-mmd'), [
+  { name: '체결 확정', text: '체결 내역을 확정합니다.', play: function (tl, $) { mark(tl, $('P').querySelector('rect')); } },
+  { name: '대금 계산', text: '결제할 대금을 계산합니다.', play: function (tl, $) { mark(tl, $('Q').querySelector('rect')); } },
+  { name: '결제', text: '대금과 증권을 주고받습니다.', play: function (tl, $) { mark(tl, $('R').querySelector('rect')); } }
 ]);
 </script>
 </body>

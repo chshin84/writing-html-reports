@@ -176,6 +176,6 @@ footer p{margin:0 0 4px}
   .demo-ctl,.demo-cap{display:none}
   .demo-steps{display:block}
   .viz{height:auto}
-  .viz>div{width:100%!important;height:auto!important}
-  .viz svg,pre.mermaid svg{width:100%;max-width:100%;height:auto}
+  .viz>div{width:100%!important}
+  pre.mermaid svg{width:100%;max-width:100%;height:auto}
 }

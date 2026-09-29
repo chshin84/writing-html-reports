@@ -110,6 +110,21 @@ svg text{font-family:var(--sans);fill:var(--ink)}
 .ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
 .brow .n{text-align:right;font-weight:600}
 
+/* 시각화: 차트 상자, Mermaid 도식, 동작 예시. 규칙은 SKILL.md '시각화' 절에 있다 */
+.viz{height:320px;margin-top:12px}
+.viz-fail{display:flex;align-items:center;font-size:13px;color:var(--ink-3);border:1px solid var(--hair);padding:0 12px;min-height:48px}
+pre.mermaid{margin:12px 0 0;font:inherit;font-size:13px;white-space:pre;overflow-x:auto;color:var(--ink-3)}
+pre.mermaid.rendered{white-space:normal;text-align:center;color:var(--ink)}
+pre.mermaid rect{rx:0;ry:0}
+.demo-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-3)}
+.demo-ctl button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.demo-ctl button:disabled{color:var(--ink-3);cursor:default}
+.demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
+.demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
+.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-static .demo-steps{display:block}
+
 /* 번호 목록 형태의 단계 */
 .steps{list-style:none;margin:0;padding:0;counter-reset:st}
 .steps>li{counter-increment:st;display:grid;grid-template-columns:2.2em 1fr;gap:0 8px;padding:14px 0;border-bottom:1px solid var(--hair)}
@@ -167,10 +182,228 @@ footer p{margin:0 0 4px}
   section,figure,table,.gist{break-inside:avoid}
   h2,h3{break-after:avoid}
   a{color:inherit;text-decoration:none}
+  .demo-ctl,.demo-cap{display:none}
+  .demo-steps{display:block}
+  .viz{height:auto}
+  .viz>div{width:100%!important}
+  pre.mermaid svg{width:100%;max-width:100%;height:auto}
 }
 /* END report-base */
 /* 이 문서 전용: 토큰(var(--…))만 쓴다 */
 </style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script>
+/* BEGIN report-charts echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0 (build.py가 채운다. 손으로 고치지 않는다) */
+/* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
+   보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
+   함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열). 규칙은 SKILL.md '시각화' 절에 있다. */
+(function () {
+  var root = document.documentElement;
+  var FAIL = '시각화를 불러오지 못했습니다';
+  var PRINT_W = 688; // A4 본문 폭(210mm - 좌우 여백 28mm)의 px 값
+  var RC = window.RC = {};
+
+  function tok(name) { return getComputedStyle(root).getPropertyValue('--' + name).trim(); }
+  function fail(box) { box.textContent = FAIL; box.classList.add('viz-fail'); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  RC.color = function (name) {
+    var v = tok(name);
+    if (!v) console.error('RC.color: 없는 토큰 이름 ' + name);
+    return v;
+  };
+
+  RC.ma = function (values, n) {
+    var out = [], sum = 0;
+    for (var i = 0; i < values.length; i++) {
+      sum += values[i];
+      if (i >= n) sum -= values[i - n];
+      out.push(i >= n - 1 ? Math.round(sum / n * 1e8) / 1e8 : null);
+    }
+    return out;
+  };
+
+  /* 차트 */
+  var themed = false, charts = [];
+  function registerTheme() {
+    if (themed) return;
+    themed = true;
+    var ink = tok('ink'), ink3 = tok('ink-3'), hair = tok('hair'), rule = tok('rule');
+    var axis = { axisLine: { lineStyle: { color: rule } }, axisTick: { lineStyle: { color: rule } },
+      axisLabel: { color: ink3 }, splitLine: { show: false } };
+    echarts.registerTheme('report', {
+      color: [tok('s1'), tok('s2'), tok('s3'), tok('s4'), tok('accent-2')],
+      backgroundColor: 'transparent',
+      textStyle: { fontFamily: tok('sans'), color: ink },
+      categoryAxis: axis, timeAxis: axis,
+      valueAxis: { axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: ink3 },
+        splitLine: { lineStyle: { color: hair } } },
+      legend: { textStyle: { color: ink3 }, icon: 'rect', itemWidth: 12, itemHeight: 8 },
+      tooltip: { backgroundColor: tok('paper'), borderColor: hair, borderWidth: 1, textStyle: { color: ink },
+        extraCssText: 'box-shadow:none;border-radius:0' },
+      line: { symbol: 'none', lineStyle: { width: 1.5 } },
+      bar: { itemStyle: { borderRadius: 0 } },
+      pie: { itemStyle: { borderColor: tok('paper'), borderWidth: 1 } },
+      candlestick: { itemStyle: { color: tok('neg'), color0: tok('s1'), borderColor: tok('neg'), borderColor0: tok('s1') } }
+    });
+  }
+  RC.chart = function (box, option) {
+    if (!box) { console.error('RC.chart: 차트 상자가 없다'); return null; }
+    if (typeof echarts === 'undefined') { fail(box); return null; }
+    try {
+      registerTheme();
+      var w = box.clientWidth || document.querySelector('main.doc').clientWidth; // 숨은 페이지는 폭이 0이다
+      var h = box.clientHeight || parseFloat(getComputedStyle(box).height) || 320;
+      var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
+      option.animation = false;
+      if (!option.tooltip) {
+        var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
+        option.tooltip = { trigger: pie ? 'item' : 'axis' };
+      }
+      chart.setOption(option);
+    } catch (e) { // 차트 하나의 오류가 뒤의 시각화를 막지 않게 한다
+      console.error('RC.chart', e);
+      if (chart) chart.dispose();
+      fail(box);
+      return null;
+    }
+    charts.push({ chart: chart, box: box, h: h });
+    new ResizeObserver(function () {
+      if (box.clientWidth > 0 && box.clientWidth !== chart.getWidth()) chart.resize({ width: box.clientWidth, height: h });
+    }).observe(box);
+    return chart;
+  };
+  addEventListener('beforeprint', function () {
+    charts.forEach(function (it) { it.chart.resize({ width: PRINT_W, height: it.h }); });
+  });
+  addEventListener('afterprint', function () {
+    charts.forEach(function (it) {
+      if (it.box.clientWidth > 0) it.chart.resize({ width: it.box.clientWidth, height: it.h });
+    });
+  });
+
+  /* 도식. mermaid는 스크립트가 실행되자마자(DOMContentLoaded 전에) startOnLoad를 꺼야 한다.
+     그러지 않으면 mermaid.min.js 자신의 기본 자동 실행이 .mermaid 요소를 먼저 렌더링해
+     pre.textContent를 SVG로 바꿔버리고, 이어지는 renderMermaid()가 그 SVG 텍스트를 다시
+     mermaid에 넣어 파싱에 실패한다. */
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({
+      startOnLoad: false, theme: 'base', securityLevel: 'strict', fontFamily: tok('sans'),
+      flowchart: { curve: 'linear' },
+      themeVariables: {
+        fontFamily: tok('sans'), fontSize: '14px', background: tok('paper'), textColor: tok('ink'),
+        primaryColor: tok('paper'), primaryTextColor: tok('ink'), primaryBorderColor: tok('ink'),
+        secondaryColor: tok('tint'), tertiaryColor: tok('paper'), lineColor: tok('ink-2'),
+        clusterBkg: tok('paper'), clusterBorder: tok('hair'), edgeLabelBackground: tok('paper'),
+        actorBkg: tok('paper'), actorBorder: tok('ink'), actorTextColor: tok('ink'), actorLineColor: tok('hair'),
+        signalColor: tok('ink'), signalTextColor: tok('ink'),
+        noteBkgColor: tok('tint'), noteBorderColor: tok('hair'), noteTextColor: tok('ink')
+      }
+    });
+  }
+  function renderMermaid() {
+    var pres = [].slice.call(document.querySelectorAll('pre.mermaid'));
+    if (!pres.length) return null;
+    if (typeof mermaid === 'undefined') { pres.forEach(fail); return null; }
+    return pres.reduce(function (p, pre, i) {
+      var src = pre.textContent;
+      return p.then(function () { return mermaid.render('rc-mermaid-' + i, src); })
+        .then(function (r) { pre.innerHTML = r.svg; pre.classList.add('rendered'); }, function () { fail(pre); });
+    }, Promise.resolve());
+  }
+  RC.ready = new Promise(function (res) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', res); else res();
+  }).then(function () { return document.fonts ? document.fonts.ready : null; }).then(renderMermaid);
+
+  /* 동작 예시 */
+  RC.demo = function (fig, steps) {
+    fig.classList.add('demo');
+    var ctl = el('div', 'demo-ctl'), cap = el('p', 'demo-cap'), list = el('ol', 'demo-steps');
+    var bPrev = el('button', null, '이전'), bPlay = el('button', null, '재생'),
+        bNext = el('button', null, '다음'), bReset = el('button', null, '처음부터'), cnt = el('span', 'cnt');
+    [bPrev, bPlay, bNext, bReset].forEach(function (b) { b.type = 'button'; ctl.appendChild(b); });
+    ctl.appendChild(cnt);
+    steps.forEach(function (s) {
+      var li = el('li');
+      li.appendChild(el('b', null, s.name));
+      li.appendChild(document.createTextNode(' ' + s.text));
+      list.appendChild(li);
+    });
+    var src = fig.querySelector('.src');
+    [ctl, cap, list].forEach(function (n) { fig.insertBefore(n, src); });
+    if (typeof gsap === 'undefined') { fig.classList.add('demo-static'); return null; }
+
+    RC.ready.then(function () {
+      var $ = function (name) {
+        return fig.querySelector('[id="' + name + '"]') || fig.querySelector('g.node[id*="-' + name + '-"]');
+      };
+      var tl = gsap.timeline({ paused: true }), ends = [];
+      try {
+        steps.forEach(function (s, i) { s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration()); });
+      } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
+        console.error('RC.demo', e);
+        tl.kill();
+        fig.classList.add('demo-static');
+        return;
+      }
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var cur = 0, tw = null, timer = null, saved = 0, last = steps.length - 1;
+
+      function show(i) {
+        cur = i;
+        cnt.textContent = (i + 1) + '/' + steps.length;
+        cap.textContent = steps[i].name + ': ' + steps[i].text;
+        bPrev.disabled = i === 0;
+        bNext.disabled = i === last;
+      }
+      function stop() {
+        tl.pause();
+        if (tw) { tw.kill(); tw = null; }
+        if (timer) { timer.kill(); timer = null; }
+        bPlay.textContent = '재생';
+      }
+      function go(i, animate) {
+        stop();
+        if (animate && !reduce) tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
+        else tl.seek('e' + i);
+        show(i);
+      }
+      function tick() {
+        if (cur < last) { tl.seek('e' + (cur + 1)); show(cur + 1); timer = gsap.delayedCall(1.2, tick); } else stop();
+      }
+      function play() {
+        if (cur === last) go(0, false);
+        bPlay.textContent = '일시정지';
+        if (reduce) timer = gsap.delayedCall(1.2, tick); else tl.play();
+      }
+      tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
+        if (tw) return;
+        var t = tl.time(), i = 0;
+        while (i < last && ends[i] < t - 1e-6) i++;
+        if (i !== cur) show(i);
+      });
+      tl.eventCallback('onComplete', function () { bPlay.textContent = '재생'; });
+      bPrev.onclick = function () { go(Math.max(0, cur - 1), false); };
+      bNext.onclick = function () { go(Math.min(last, cur + 1), true); };
+      bReset.onclick = function () { go(0, false); };
+      bPlay.onclick = function () { if (tl.isActive() || tw || timer) stop(); else play(); };
+      new ResizeObserver(function () { if (fig.clientWidth === 0) stop(); }).observe(fig); // 다른 페이지로 넘기면 멈춘다
+      addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last); });
+      addEventListener('afterprint', function () { go(saved, false); });
+      go(0, false);
+    });
+    return null;
+  };
+})();
+/* END report-charts */
+</script>
 </head>
 <body>
 <main class="doc">
@@ -209,6 +442,35 @@ footer p{margin:0 0 4px}
     <tbody><tr><td>항목 설명</td><td class="n">1.00</td></tr></tbody>
   </table></div>
   <p class="aside"><b>주의사항.</b> 경고 문단은 굵은 머리말로 시작합니다.</p>
+  <figure>
+    <figcaption><span class="t">월별 거래대금 (2026년 1~6월)</span><span class="u">단위: 조원, 선은 3개월 이동평균</span></figcaption>
+    <div class="viz" id="c-trend"></div>
+    <p class="src">자료: 출처를 적습니다.</p>
+  </figure>
+  <figure>
+    <figcaption><span class="t">주문 처리 흐름</span><span class="u">접수에서 정산까지</span></figcaption>
+    <pre class="mermaid">flowchart LR
+  A[주문 접수] --> B{금액 &lt; 한도}
+  B -->|통과| C[체결]
+  B -->|초과| X[거부]
+  C --> D[정산]</pre>
+    <p class="src">자료: 출처를 적습니다.</p>
+  </figure>
+  <figure id="d-flow">
+    <figcaption><span class="t">주문 검증 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
+    <svg class="stage" viewBox="0 0 640 110" width="100%" role="img" aria-label="주문 검증 과정">
+      <line x1="190" y1="55" x2="230" y2="55" stroke="currentColor"/>
+      <line x1="410" y1="55" x2="450" y2="55" stroke="currentColor"/>
+      <rect id="v1" x="10" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
+      <rect id="v2" x="230" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
+      <rect id="v3" x="450" y="33" width="180" height="44" fill="none" stroke="currentColor"/>
+      <text x="100" y="60" text-anchor="middle" font-size="14">주문 접수</text>
+      <text x="320" y="60" text-anchor="middle" font-size="14">한도 검증</text>
+      <text x="540" y="60" text-anchor="middle" font-size="14">체결 전송</text>
+      <circle id="dot" cx="100" cy="95" r="5" fill="currentColor" opacity="0"/>
+    </svg>
+    <p class="src">자료: 출처를 적습니다.</p>
+  </figure>
 </section>
 
 <footer>
@@ -216,5 +478,27 @@ footer p{margin:0 0 4px}
 </footer>
 
 </main>
+<script>
+var vol = [21.4, 23.1, 19.8, 25.6, 27.2, 24.9];
+RC.chart(document.getElementById('c-trend'), {
+  grid: { left: 40, right: 16, top: 32, bottom: 28 },
+  legend: { top: 0, left: 0 },
+  xAxis: { type: 'category', data: ['1월', '2월', '3월', '4월', '5월', '6월'] },
+  yAxis: { type: 'value' },
+  series: [
+    { name: '거래대금', type: 'bar', barWidth: '50%', data: vol },
+    { name: '3개월 이동평균', type: 'line', data: RC.ma(vol, 3) }
+  ]
+});
+function mark(tl, target) { tl.to(target, { stroke: RC.color('accent'), strokeWidth: 2, duration: 0.4 }); }
+RC.demo(document.getElementById('d-flow'), [
+  { name: '주문 접수', text: '고객 주문이 접수 단계에 들어옵니다.',
+    play: function (tl, $) { tl.set($('dot'), { opacity: 1, attr: { cx: 100 } }); mark(tl, $('v1')); } },
+  { name: '한도 검증', text: '주문 금액을 고객 한도와 비교합니다.',
+    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 320 }, duration: 0.8 }); mark(tl, $('v2')); } },
+  { name: '체결 전송', text: '검증을 통과한 주문을 거래소로 보냅니다.',
+    play: function (tl, $) { tl.to($('dot'), { attr: { cx: 540 }, duration: 0.8 }); mark(tl, $('v3')); } }
+]);
+</script>
 </body>
 </html>
