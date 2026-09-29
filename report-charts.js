@@ -185,14 +185,29 @@
   };
 
   /* 동작 예시 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
-     at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다 */
+     at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
+     글 규칙(RC.demo가 강제한다): 한 단계의 글 등장(타이핑과 카운트업)은 1초 안에 끝나고, 끝난 뒤 읽을 시간으로
+     2초 + 글자 수 ÷ 10초(최대 5초)를 기다린다. 설명 상자 하나의 글은 30자 이하다. 글자 수는 공백을 빼고 세며 숫자 하나는 1자다 */
+  var TEXT_MAX = 1, CHAR_MAX = 30;
+  function chars(s) { return String(s).replace(/\d[\d,.]*/g, '#').replace(/\s/g, '').length; }
+  function holdFor(n) { return Math.min(5, 2 + n / 10); }
+  var stepLog = null; // RC.demo가 단계마다 글 등장 구간과 글자 수를 모은다
+  RC.issues = []; // 글 규칙 위반. 겹침 판정 도구가 함께 읽는다
+  function issue(msg) { RC.issues.push(msg); console.error('RC.demo: ' + msg); }
   function len(e) { return e && e.getTotalLength ? e.getTotalLength() : 0; }
   var shown = typeof WeakMap === 'function' ? new WeakMap() : null; // 글자 요소마다 직전 단계에서 보인 문장
   function textTween(tl, e, from, render, dur, at) { // 되감을 때 직전 단계의 문장으로 돌아가게 한다
-    var prev = shown && shown.has(e) ? shown.get(e) : e.textContent, p = { v: 0 };
-    if (shown) shown.set(e, render(1));
-    return tl.to(p, { v: 1, duration: dur, ease: 'none',
-      onUpdate: function () { e.textContent = p.v === 0 ? prev : render(p.v); } }, at);
+    var prev = shown && shown.has(e) ? shown.get(e) : e.textContent, p = { v: 0 }, full = render(1);
+    if (shown) shown.set(e, full);
+    var tw = gsap.to(p, { v: 1, duration: Math.min(dur, TEXT_MAX), ease: 'none',
+      onUpdate: function () { e.textContent = p.v === 0 ? prev : render(p.v); } });
+    tl.add(tw, at);
+    if (stepLog && full) {
+      stepLog.start = Math.min(stepLog.start, tw.startTime());
+      stepLog.end = Math.max(stepLog.end, tw.startTime() + tw.duration());
+      stepLog.chars += chars(full);
+    }
+    return tl;
   }
   RC.fx = {
     mark: function (tl, e, color, at) {
@@ -228,7 +243,7 @@
     shake: function (tl, e, at) { return tl.to(e, { x: 5, duration: 0.06, yoyo: true, repeat: 5 }, at); },
     type: function (tl, e, text, dur, at) { // 문장이 타이핑되듯 나타난다. dur 0이면 바로 바뀐다
       return textTween(tl, e, '', function (v) { return text.slice(0, Math.ceil(text.length * v)); },
-        dur == null ? Math.min(1, text.length * 0.03) : dur, at);
+        dur == null ? Math.min(0.6, text.length * 0.03) : dur, at);
     },
     clear: function (tl, note, icons, at) { // 직전 단계의 쌍(설명 상자와 아이콘)을 함께 지운다. 단계의 맨 처음에 둔다
       var els = [note.g].concat(icons || []);
@@ -246,7 +261,7 @@
     say: function (tl, note, x, y, text, dur, at) { return RC.fx.pair(tl, note, [], x, y, text, dur, at); },
     count: function (tl, e, from, to, suffix, dur, at) { // 숫자가 올라가며 표시된다
       return textTween(tl, e, '', function (v) { return Math.round(from + (to - from) * v).toLocaleString('ko-KR') + (suffix || ''); },
-        dur == null ? 0.7 : dur, at);
+        dur == null ? 0.4 : dur, at);
     }
   };
 
@@ -281,10 +296,20 @@
         }
         return null;
       };
-      var tl = gsap.timeline({ paused: true }), ends = [];
+      var tl = gsap.timeline({ paused: true }), ends = [], holds = [];
       try {
         steps.forEach(function (s, i) {
-          s.play(tl, $); tl.addLabel('e' + i); ends.push(tl.duration());
+          stepLog = { start: Infinity, end: 0, chars: 0 };
+          s.play(tl, $);
+          var L = stepLog; stepLog = null;
+          if (L.end > 0) { // 글이 다 나온 뒤 읽을 시간을 두고 다음 단계로 넘어간다
+            if (L.end - L.start > TEXT_MAX + 0.001) issue('"' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (L.end - L.start).toFixed(2) + '초)');
+            if (L.chars > CHAR_MAX) issue('"' + s.name + '" 단계의 설명이 30자를 넘는다(' + L.chars + '자)');
+            holds[i] = holdFor(L.chars);
+            var need = L.end + holds[i];
+            if (tl.duration() < need) tl.to({}, { duration: need - tl.duration() });
+          }
+          tl.addLabel('e' + i); ends.push(tl.duration());
           tl.to({}, { duration: 0.02 }); // 다음 단계의 즉시 설정이 이 단계의 끝 시각과 겹쳐 미리 실행되지 않게 띄운다
         });
       } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
@@ -319,12 +344,12 @@
         show(i);
       }
       function tick() {
-        if (cur < last) { tl.seek('e' + (cur + 1), false); show(cur + 1); timer = gsap.delayedCall(1.2, tick); } else stop();
+        if (cur < last) { tl.seek('e' + (cur + 1), false); show(cur + 1); timer = gsap.delayedCall(holds[cur] || 2, tick); } else stop();
       }
       function play() {
         if (cur === last) go(0, false);
         bPlay.textContent = '일시정지';
-        if (reduce) timer = gsap.delayedCall(1.2, tick); else tl.play();
+        if (reduce) timer = gsap.delayedCall(holds[cur] || 2, tick); else tl.play();
       }
       // seek의 두 번째 인자 false: 바로 이동할 때도 글자 효과(onUpdate)가 끝 상태를 그리게 한다
       tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
