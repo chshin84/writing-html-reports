@@ -776,7 +776,7 @@ addEventListener('DOMContentLoaded',function(){
 <p class="blk"><b>근거</b></p>
 <figure id="d-order">
   <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
-  <svg class="stage" id="st-order" viewBox="0 85 820 275" width="100%" role="img" aria-label="주문 처리 과정">
+  <svg class="stage" id="st-order" viewBox="0 40 820 320" width="100%" role="img" aria-label="주문 처리 과정">
     <path d="M140 230H195" fill="none" stroke="currentColor"/>
     <path d="M345 230H420" fill="none" stroke="currentColor"/>
     <path d="M540 230H640" fill="none" stroke="currentColor"/>
@@ -846,42 +846,45 @@ RC.chart(document.getElementById('c-share'), {
     data: [{ name: '유가증권시장', value: 58 }, { name: '코스닥시장', value: 35 }, { name: '코넥스시장', value: 7 }] }]
 });
 var fx = RC.fx, st = document.getElementById('st-order');
-// 아이콘과 설명 상자는 한 쌍으로 붙여 연출 중인 도형 옆에 둔다. 판정 아이콘은 물음표 자리에서 바뀐다
+// 스틱맨(80×80)과 설명 상자는 한 쌍으로 도형 위에 둔다. 스틱맨 중심 = (상자 x − 48, 상자 y + 32), 물음표 = (스틱맨 x, 상자 y − 22)
 var ic = {
-  doc: RC.icon(st, 'doc', 30, 142), who: RC.icon(st, 'person', 190, 150), ask: RC.icon(st, 'question', 190, 110),
-  ok: RC.icon(st, 'check', 190, 108), nx: RC.icon(st, 'cross', 190, 108),
-  won: RC.icon(st, 'coin', 432, 142), done: RC.icon(st, 'check', 606, 142), no: RC.icon(st, 'cross', 356, 320)
+  guide: RC.icon(st, 'person-guide', 60, 110), who: RC.icon(st, 'person', 222, 110), ask: RC.icon(st, 'question', 222, 56),
+  ok: RC.icon(st, 'check', 222, 56), nx: RC.icon(st, 'cross', 222, 56),
+  pass: RC.icon(st, 'person-done', 222, 110), fail: RC.icon(st, 'person-fail', 222, 110),
+  won: RC.icon(st, 'coin', 450, 102), done: RC.icon(st, 'person-done', 570, 110), no: RC.icon(st, 'cross', 356, 320)
 };
-var nt = RC.note(st, 190, 64), fr = RC.focus(st), all = [ic.doc, ic.who, ic.ask, ic.ok, ic.nx, ic.won, ic.done, ic.no];
-// 단계 순서: 직전 쌍 지우기 → 도형에 초점 → 아이콘과 설명 상자 → (판단이면) 고민과 판정 → (나가는 엣지가 있으면) 엣지와 이동
+var nt = RC.note(st, 190, 64), fr = RC.focus(st), all = Object.keys(ic).map(function (k) { return ic[k]; });
+// 단계 순서: 직전 쌍 지우기 → 도형에 초점 → 스틱맨과 설명 상자 → (판단이면) 고민·판정·표정 교체 → (나가는 엣지가 있으면) 엣지와 이동
 RC.demo(document.getElementById('d-order'), [
   { name: '시나리오 A · 주문 접수', text: '고객 주문을 접수해 한도 검증으로 넘깁니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); tl.set($('tok'), { opacity: 1, attr: { cx: 140, cy: 230 } }); fx.spot(tl, fr, $('s-acc'));
-    fx.pair(tl, nt, ic.doc, 48, 110, '주문 A: 삼성전자 10주 × 72,000원 =', 0.5); fx.count(tl, nt.n, 0, 720000, '원', 0.4);
+    fx.pair(tl, nt, ic.guide, 108, 78, '주문 A: 삼성전자 10주 × 72,000원 =', 0.5); fx.count(tl, nt.n, 0, 720000, '원', 0.4);
     fx.draw(tl, $('o-a'), 0.4); fx.follow(tl, $('tok'), $('o-a'), 0.4, '<'); } },
   { name: '시나리오 A · 한도 검증', text: '주문 금액이 한도 이내라 통과시켜 체결로 넘깁니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); fx.spot(tl, fr, $('s-chk'));
-    fx.pair(tl, nt, [ic.who, ic.ask], 210, 110, '주문 720,000원 < 한도', 0.4); fx.count(tl, nt.n, 0, 1000000, '원 ?', 0.4);
-    fx.think(tl, ic.who, ic.ask); fx.swap(tl, ic.ask, ic.ok); fx.type(tl, nt.n, '1,000,000원 → 통과', 0.2, '<');
+    fx.pair(tl, nt, [ic.who, ic.ask], 270, 78, '주문 720,000원 < 한도', 0.4); fx.count(tl, nt.n, 0, 1000000, '원 ?', 0.4);
+    fx.think(tl, ic.who, ic.ask); fx.swap(tl, ic.ask, ic.ok); fx.swap(tl, ic.who, ic.pass);
+    fx.type(tl, nt.n, '1,000,000원 → 통과', 0.2, '<');
     tl.to($('l-pass'), { fill: RC.color('accent'), duration: 0.3 }, '<'); tl.set($('tok'), { attr: { cx: 345, cy: 230 } });
     fx.draw(tl, $('o-b'), 0.4); fx.follow(tl, $('tok'), $('o-b'), 0.4, '<'); } },
   { name: '시나리오 A · 체결', text: '거래소에서 체결된 주문을 정산으로 넘깁니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); fx.spot(tl, fr, $('s-exe'));
-    fx.pair(tl, nt, ic.won, 450, 110, '체결 72,000원 × 10주 =', 0.4); fx.count(tl, nt.n, 0, 720000, '원', 0.4);
+    fx.pair(tl, nt, ic.won, 468, 78, '체결 72,000원 × 10주 =', 0.4); fx.count(tl, nt.n, 0, 720000, '원', 0.4);
     tl.set($('tok'), { attr: { cx: 540, cy: 230 } }); fx.draw(tl, $('o-c'), 0.4); fx.follow(tl, $('tok'), $('o-c'), 0.4, '<'); } },
   { name: '시나리오 A · 정산', text: '결제일에 대금과 주식을 주고받습니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); fx.spot(tl, fr, $('s-set'));
-    fx.pair(tl, nt, ic.done, 624, 110, 'T+2 결제일에 대금과 주식 교환', 0.6); } },
+    fx.pair(tl, nt, ic.done, 618, 78, 'T+2 결제일에 대금과 주식 교환', 0.6); } },
   { name: '시나리오 B · 주문 접수', text: '한도보다 큰 주문을 접수해 한도 검증으로 넘깁니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); fx.unspot(tl, fr, [$('s-acc'), $('s-chk'), $('s-exe'), $('s-set')]);
     fx.undraw(tl, [$('o-a'), $('o-b'), $('o-c')]); tl.set($('l-pass'), { fill: RC.color('ink') });
     tl.set($('tok'), { attr: { cx: 140, cy: 230 } }); fx.spot(tl, fr, $('s-acc'));
-    fx.pair(tl, nt, ic.doc, 48, 110, '주문 B: 삼성전자 25주 × 60,000원 =', 0.5); fx.count(tl, nt.n, 0, 1500000, '원', 0.4);
+    fx.pair(tl, nt, ic.guide, 108, 78, '주문 B: 삼성전자 25주 × 60,000원 =', 0.5); fx.count(tl, nt.n, 0, 1500000, '원', 0.4);
     fx.draw(tl, $('o-a'), 0.4); fx.follow(tl, $('tok'), $('o-a'), 0.4, '<'); } },
   { name: '시나리오 B · 한도 검증', text: '주문 금액이 한도를 넘어 거부로 넘깁니다.', play: function (tl, $) {
     fx.clear(tl, nt, all); fx.spot(tl, fr, $('s-chk'));
-    fx.pair(tl, nt, [ic.who, ic.ask], 210, 110, '주문 1,500,000원 < 한도', 0.4); fx.count(tl, nt.n, 0, 1000000, '원 ?', 0.4);
-    fx.think(tl, ic.who, ic.ask); fx.swap(tl, ic.ask, ic.nx); fx.type(tl, nt.n, '1,000,000원 → 초과', 0.2, '<');
+    fx.pair(tl, nt, [ic.who, ic.ask], 270, 78, '주문 1,500,000원 < 한도', 0.4); fx.count(tl, nt.n, 0, 1000000, '원 ?', 0.4);
+    fx.think(tl, ic.who, ic.ask); fx.swap(tl, ic.ask, ic.nx); fx.swap(tl, ic.who, ic.fail); fx.shake(tl, ic.fail);
+    fx.type(tl, nt.n, '1,000,000원 → 초과', 0.2, '<');
     tl.to($('l-over'), { fill: RC.color('neg'), duration: 0.3 }, '<'); tl.set($('tok'), { attr: { cx: 270, cy: 270 } });
     fx.draw(tl, $('o-r'), 0.3); fx.follow(tl, $('tok'), $('o-r'), 0.3, '<'); } },
   { name: '시나리오 B · 거부', text: '주문을 거부하고 고객에게 한도 부족을 안내합니다.', play: function (tl, $) {
