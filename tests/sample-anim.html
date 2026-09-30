@@ -110,7 +110,7 @@ svg text{font-family:var(--sans);fill:var(--ink)}
 .ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
 .brow .n{text-align:right;font-weight:600}
 
-/* 시각화: 차트 상자, Mermaid 도식, 동작 예시. 규칙은 SKILL.md '시각화' 절에 있다 */
+/* 시각화: 차트 상자, Mermaid 도식, 애니메이션. 규칙은 SKILL.md '시각화' 절에 있다 */
 .viz{height:320px;margin-top:12px}
 .viz-fail{display:flex;align-items:center;font-size:13px;color:var(--ink-3);border:1px solid var(--hair);padding:0 12px;min-height:48px}
 pre.mermaid{margin:12px 0 0;font:inherit;font-size:13px;white-space:pre;overflow-x:auto;color:var(--ink-3)}
@@ -832,7 +832,7 @@ var fx = RC.fx;
 (function () {
   var st = document.getElementById('st-rule'), nt = RC.note(st, 190, 64);
   var ic = { guide: RC.icon(st, 'person-guide', 100, 40), fail: RC.icon(st, 'person-fail', 236, 40),
-    who: RC.icon(st, 'person', 348, 40), end: RC.icon(st, 'person-fail', 460, 40) };
+    wait: RC.icon(st, 'person-guide', 348, 40), end: RC.icon(st, 'person-fail', 460, 40) };
   var all = Object.keys(ic).map(function (k) { return ic[k]; });
   RC.demo(document.getElementById('d-rule'), [
     { name: '규칙 적용 재생 · 규칙 없음', text: '규칙 없이 보유했을 때의 누적 손익을 그립니다.', play: function (tl, $) {
@@ -842,7 +842,7 @@ var fx = RC.fx;
       fx.clear(tl, nt, all); fx.pair(tl, nt, ic.fail, 284, 8, '고점 15 → -2bp, 손절 발동', 0.5);
       fx.draw(tl, $('r-1'), 0.6, '<'); tl.to($('stop'), { opacity: 1, duration: 0.2 }); fx.shake(tl, ic.fail, '<'); } },
     { name: '규칙 적용 재생 · 재진입 대기', text: '2개월 기다린 뒤 다시 보유하지만 회복 구간을 놓칩니다.', play: function (tl, $) {
-      fx.clear(tl, nt, all); fx.pair(tl, nt, ic.who, 396, 8, '2개월 대기 뒤 재진입', 0.4); fx.draw(tl, $('r-2'), 0.8, '<'); } },
+      fx.clear(tl, nt, all); fx.pair(tl, nt, ic.wait, 396, 8, '2개월 대기 뒤 재진입', 0.4); fx.draw(tl, $('r-2'), 0.8, '<'); } },
     { name: '규칙 적용 재생 · 결과', text: '손절을 적용한 누적 손익이 규칙 없음보다 16bp 작습니다.', play: function (tl, $) {
       fx.clear(tl, nt, all); fx.pair(tl, nt, ic.end, 508, 8, '손절 적용 누적 22bp, 차이', 0.4);
       fx.count(tl, nt.n, 0, 16, 'bp 손해', 0.4); tl.to($('lb-rule'), { opacity: 1, duration: 0.3 }, '<'); } }

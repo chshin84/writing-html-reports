@@ -143,7 +143,7 @@ class DemoCount(unittest.TestCase):
     def test_four_demos_violation(self):
         r = self.run_page(4)
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
-        self.assertIn("동작 예시 4개", r.stdout)
+        self.assertIn("애니메이션 4개", r.stdout)
 
     def test_three_demos_ok(self):
         self.assertEqual(self.run_page(3).returncode, 0)

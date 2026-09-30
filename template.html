@@ -110,7 +110,7 @@ svg text{font-family:var(--sans);fill:var(--ink)}
 .ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
 .brow .n{text-align:right;font-weight:600}
 
-/* 시각화: 차트 상자, Mermaid 도식, 동작 예시. 규칙은 SKILL.md '시각화' 절에 있다 */
+/* 시각화: 차트 상자, Mermaid 도식, 애니메이션. 규칙은 SKILL.md '시각화' 절에 있다 */
 .viz{height:320px;margin-top:12px}
 .viz-fail{display:flex;align-items:center;font-size:13px;color:var(--ink-3);border:1px solid var(--hair);padding:0 12px;min-height:48px}
 pre.mermaid{margin:12px 0 0;font:inherit;font-size:13px;white-space:pre;overflow-x:auto;color:var(--ink-3)}
@@ -780,7 +780,7 @@ RC.chart(document.getElementById('c-trend'), {
     { name: '3개월 이동평균', type: 'line', data: RC.ma(vol, 3) }
   ]
 });
-// 동작 예시: 단계마다 직전 쌍 지우기 → 도형에 초점 → 아이콘과 설명 상자 → (나가는 엣지가 있으면) 엣지와 이동
+// 애니메이션: 단계마다 직전 쌍 지우기 → 도형에 초점 → 아이콘과 설명 상자 → (나가는 엣지가 있으면) 엣지와 이동
 var fx = RC.fx, st = document.getElementById('st-flow');
 var ic = { doc: RC.icon(st, 'doc', 30, 118), ok: RC.icon(st, 'check', 252, 118), won: RC.icon(st, 'coin', 472, 118) };
 var nt = RC.note(st, 150, 64), fr = RC.focus(st), all = [ic.doc, ic.ok, ic.won];

@@ -258,7 +258,7 @@ TOC = re.compile(r'<p class="toc">(.*?)</p>', re.S)
 
 
 def star_violations(html):
-    """핵심 페이지 표시와 동작 예시의 상한. ★(core)은 1개, ☆(key)는 2개 이하, 별 합계와 동작 예시는 3개 이하다."""
+    """핵심 페이지 표시와 애니메이션의 상한. ★(core)은 1개, ☆(key)는 2개 이하, 별 합계와 애니메이션은 3개 이하다."""
     toc = " ".join(TOC.findall(html))
     classes = [c.split() for c in re.findall(r'<a\b[^>]*\bclass="([^"]*)"', toc)]
     core, key = sum("core" in c for c in classes), sum("key" in c for c in classes)
@@ -273,7 +273,7 @@ def star_violations(html):
     if key and not core:
         out.append("☆만 있고 ★이 없다(가장 중요한 페이지 1개에 ★을 둔다)")
     if demos > 3:
-        out.append(f"동작 예시 {demos}개(3개 이하로 둔다)")
+        out.append(f"애니메이션 {demos}개(3개 이하로 둔다)")
     return out
 
 
