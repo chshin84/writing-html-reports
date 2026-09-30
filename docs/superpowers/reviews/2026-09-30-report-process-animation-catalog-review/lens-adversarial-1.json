@@ -1,0 +1,72 @@
+{
+  "lens": "lens-adversarial",
+  "read": [
+    "C:\\Users\\CHSHIN\\.claude\\disciplined-coder\\agent-principles.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\docs\\superpowers\\specs\\2026-09-30-report-process-animation-catalog-design.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\check.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\build.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\.gitignore",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\report-charts.js",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\SKILL.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\tests\\sample-viz.html"
+  ],
+  "issues": [
+    {
+      "where": "\"검사기 변경\" 절의 B 제외 문장(106행)과 \"시험과 완료 기준\" 4번 인수 시험(143행)",
+      "type": "failure-mode",
+      "claim": "B 제외 규칙은 페이지 본문 전체에서 <polygon>을 세는 현재 정규식 방식과 부딪힌다. 한 페이지에 data-anim figure와 일반 구조 도식이 함께 있으면 figure 경계를 구분하지 못해 정상 마름모까지 함께 빠지거나 반대로 제외 대상이 계속 잡힐 수 있다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "핵심 페이지 점수의 분기 수 B는 `data-anim`이 있는 figure 안의 마름모를 세지 않는다.",
+      "counterpart_file": "check.py",
+      "counterpart": "\"B\": len(re.findall(r\"<polygon\\b\", body)) + len(re.findall(r\"\\w\\{[^}\\n]*\\}\", mermaid)),",
+      "principle": "CHECKABLE",
+      "consequence": "지금 시험 목록은 `02-과정과-결론.skill-test.html`의 p9 한 사례(동작 예시 마름모만 있는 페이지)만 확인하고, 같은 페이지에 비-애니메이션 마름모 도식이 함께 있는 사례는 시험 대상에 없다."
+    },
+    {
+      "where": "\"견본과 문서\" 표의 tests/sample-viz.html 행(123행)과 \"시험과 완료 기준\" 3번 겹침 판정(142행)",
+      "type": "failure-mode",
+      "claim": "새 전후 전환·규칙 적용 재생 견본을 만들 때 막대와 선을 <g>로 묶으면, RC.check는 무대 svg 바로 아래 요소만 겹침을 판정하므로 실제 겹침이 있어도 pass: true를 돌려준다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "두 견본은 직접 그린 SVG와 `tl.to`로 막대 길이와 선을 움직이며 가상 자료를 쓴다",
+      "counterpart_file": "SKILL.md",
+      "counterpart": "도형·글자·연결선은 무대 `svg`의 바로 아래에 하나씩 따로 그린다. 연결선 여러 개를 한 `path`로 합치지 않고, 요소를 `<g>`로 묶지 않는다(`RC.check`는 `svg` 바로 아래 요소만 판정한다).",
+      "principle": "CHECKABLE",
+      "consequence": "지금 설계는 완료 기준을 RC.check의 pass: true 결과 하나에 맡기면서도, 새 SVG 견본에는 이 배치 제약을 다시 적지 않는다."
+    },
+    {
+      "where": "\"인물 그림\" 절 문서 삽입 행(100행)과 \"작업 과정\" 절 오프라인 열람 행(39행)",
+      "type": "failure-mode",
+      "claim": "오프라인 열람 문서는 GSAP을 포함한 CDN 도구를 쓰지 않으므로 report-charts.js 연결 코드 블록 자체가 없을 수 있다. build.py는 report-peeps.js를 그 연결 코드 블록 안에만 넣으므로, 이런 문서에는 인물 그림을 넣을 삽입 지점이 없다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "build.py가 `report-peeps.js`를 연결 코드 블록에 함께 넣는다. 인물 그림을 쓰지 않는 문서에도 넣으므로, 시각화가 있는 문서는 약 95KB 커진다. / 오프라인 열람: 4·6단계에서 CDN 도구(ECharts, Mermaid, GSAP)를 쓰지 않고 정지 SVG와 표만 쓴다.",
+      "counterpart_file": "build.py",
+      "counterpart": "- report-charts: <script> 안의 표시를 report-charts.js로 채운다. 표시가 있는 문서만 채운다.",
+      "principle": "NO-ASSUME",
+      "consequence": "지금 설계는 '시각화가 있는 모든 문서'라는 적용 범위와 '연결 코드 블록에 넣는다'는 삽입 방법을 오프라인 규칙과 대조하지 않고 나란히 적어 두었다."
+    },
+    {
+      "where": "\"검사기 변경\" 절 마지막 문장(115행)",
+      "type": "over-engineering",
+      "claim": "목록을 SKILL.md 표와 check.py 두 곳에 각각 손으로 유지하고 불일치를 사후에 잡는 시험을 추가하는 방식 대신, 한쪽을 원본으로 삼아 다른 쪽을 생성하면 애초에 상충할 수 없는 구조가 된다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "목록이 SKILL.md 표와 check.py 두 곳에 있으므로, 두 목록의 유형 이름과 상태가 같은지 확인하는 시험을 둔다. 이 시험이 두 목록의 불일치를 막는 장치다.",
+      "counterpart_file": "build.py",
+      "counterpart": "개선본 HTML의 BEGIN/END 표시 사이를 기준 파일로 다시 채운다.",
+      "principle": "MANAGED-BLOCK",
+      "consequence": "지금 설계는 check.py를 목록의 원본으로 선언하면서도 SKILL.md 표는 별도로 손 유지하게 두고, 불일치를 사후 시험으로만 잡는다."
+    },
+    {
+      "where": "\"인물 그림\" 절 원본 보관 행(101행)",
+      "type": "irreversible",
+      "claim": "report-peeps.js를 만드는 원본 zip이 이 PC에만 있고 저장소에는 재획득 경로(다운로드 주소·버전·체크섬)가 적히지 않는다. 이 PC를 잃거나 원본이 사라지면 생성물에 문제가 생겨도 원본을 고쳐 다시 만들 방법이 없다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "원본 묶음 네 개(약 55MB)는 `.gitignore`로 저장소에서 제외하고 이 PC에만 둔다. 저장소에는 가공한 `report-peeps.js`와 출처·라이선스를 적은 `assets/LICENSE-open-peeps.md`만 둔다.",
+      "counterpart_file": "agent-principles.md",
+      "counterpart": "**`EDIT-DISCIPLINE` (Follow a file's declared edit rule)** — 파일이 스스로 수정 방식을 선언하면(예: \"이 파일은 생성물이다\") 그대로 따르라. 생성물은 손으로 고치지 말고 원본을 고쳐라.",
+      "principle": "EDIT-DISCIPLINE",
+      "consequence": "지금 설계는 assets/LICENSE-open-peeps.md에 출처와 라이선스만 적기로 정했고, 원본을 다시 구할 수 있는 다운로드 주소·버전·체크섬까지 적을지는 정하지 않았다."
+    }
+  ],
+  "principles_applied": ["CHECKABLE", "NO-ASSUME", "MANAGED-BLOCK", "EDIT-DISCIPLINE", "YAGNI"],
+  "notes": "실패 모드 관점으로 여섯 항목을 하나씩 따로 검토했다. check.py: 정규식 기반 검사기가 새 위반 네 가지(유형 누락·허용 밖 유형·페이지당 초과·별 없는 페이지)와 B 제외 규칙을 구현할 때 figure 경계를 못 잡는 지점을 확인했다(발견 1). build.py: report-peeps.js 삽입 지점이 연결 코드 블록 하나뿐임을 확인하고 0단계 오프라인 규칙과 대조했다(발견 3). 아울러 report-base·report-charts를 '원본 하나 → 생성물 채움' 방식으로 이미 쓰고 있어, 목록 이중 유지의 대안이 이 레포에 이미 있음을 확인했다(발견 4). report-charts.js: RC.icon·RC.fx·RC.check의 실제 판정 범위(무대 svg 바로 아래 요소만)를 코드로 확인하고 새 SVG 견본 계획과 대조했다(발견 2). SKILL.md: '요소를 <g>로 묶지 않는다'는 기존 배치 규칙이 구조 견본에만 재확인되어 있고 신규 견본 유형에는 다시 언급되지 않음을 확인했다(발견 2의 상대편). tests/sample-viz.html: 기존 구조 견본이 실제로 무대 svg 바로 아래에 평평하게 그려져 있어 그 관행이 지금까지는 지켜졌음을 대조 확인했다(발견 2의 근거 보강). .gitignore: 원본 zip 제외 범위가 설계 문서의 서술과 일치함을 확인하고, 재획득 경로 부재를 별도 위험으로 짚었다(발견 5). 상대편을 대지 못한 원인은 없어 모든 발견에 counterpart를 붙였다. 사용자가 이미 확정한 결정(과정 순서·개수·목록 상태·인물 그림 선택·인물 그림 포함 범위)은 뒤집자고 제안하지 않았고, 그 결정을 구현할 때 실패하는 지점과 완화책만 짚었다."
+}

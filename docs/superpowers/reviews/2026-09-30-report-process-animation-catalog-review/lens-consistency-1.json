@@ -1,0 +1,83 @@
+{
+  "lens": "lens-consistency",
+  "read": [
+    "C:\\Users\\CHSHIN\\.claude\\disciplined-coder\\agent-principles.md",
+    "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+    "docs/superpowers/specs/2026-09-28-report-visualization-design.md",
+    "SKILL.md",
+    "check.py",
+    "보고서-규격.md",
+    "assets/open-peeps-src/Flat Assets.zip (파일 목록만 확인)",
+    ".gitignore"
+  ],
+  "issues": [
+    {
+      "where": "인물 그림 절 · 이름 호환",
+      "type": "drift",
+      "claim": "분기 그림의 기존 함수 호출 형태가 그대로 유지된다고 주장하지만, 인용한 호출문은 현재 선언된 함수 시그니처보다 인자가 하나 적다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "분기 그림에 기존 이름 `person`을 그대로 쓰므로 `RC.fx.think(tl, person, question)` 호출은 바뀌지 않는다.",
+      "counterpart_file": "SKILL.md",
+      "counterpart": "`RC.fx.think(tl, person, question, at)` | 졸라맨이 고개를 갸웃하고 물음표가 깜빡인다(약 0.8초)",
+      "principle": "이름과 타입의 드리프트(함수 시그니처 일치 여부)",
+      "consequence": "spec이 제시한 호출 형태에는 현재 선언에 있는 네 번째 위치 인자 `at`이 빠져 있어, 이 문장을 그대로 구현 근거로 삼으면 위치 인자 개수가 실제 선언과 다른 호출을 만들게 된다."
+    },
+    {
+      "where": "인물 그림 · 아이콘 이름 표 vs 주의 환기 규칙",
+      "type": "gap",
+      "claim": "아이콘 이름 표는 `person-guide`(안내)를 하나의 상태로 등록하지만, 이 상태를 언제 어떤 효과로 쓰는지는 문서 어디에도 없다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "| `person-guide` | 안내 | 손가락으로 가리킴(pointing_finger-1) | Explaining |",
+      "counterpart_file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "counterpart": "주의 환기: 기존 효과로 연출한다. 분기는 `think`(갸웃, 물음표 깜빡임), 완료는 `swap`과 `pop`, 실패는 `swap`과 `shake`다.",
+      "principle": "산출물 공백 — 규칙을 선언해 놓고 그것을 구현하거나 확인하는 곳이 없으면 공백이다",
+      "consequence": "\"안내\"라는 낱말은 이 아이콘 이름 표 한 줄에만 나오고(문서 전체 검색 결과 재출현 없음), 작업 과정·애니메이션 목록·검사기 변경·시험 및 완료 기준 어디에도 이 상태가 언제 나타나고 무슨 효과로 연출되는지가 없어, `person-guide`는 등록만 되고 쓰일 자리가 정해지지 않은 아이콘으로 남는다."
+    },
+    {
+      "where": "작업 과정 표 6단계(애니메이션) 확인 방법 vs 시험과 완료 기준",
+      "type": "gap",
+      "claim": "작업 과정 표는 6단계의 확인 방법으로 '선택 이유 보고'를 명시하지만, 이를 검증하는 절차나 형식이 시험·완료 기준 어디에도 없다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "| 6. 애니메이션 | 별 표시 페이지마다 1개 또는 없음 | `RC.check` 통과, 선택 이유 보고 | 새 유형 등록 때만 필요 |",
+      "counterpart_file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "counterpart": "구현은 단위 시험, 검사기, 겹침 판정, 실제 문서 적용의 네 가지로 확인한다.",
+      "principle": "커버리지 공백 — 정한 요구가 시험·완료 기준으로 이어지는가",
+      "consequence": "문서 전체에서 '선택 이유'라는 말은 이 표의 한 줄에만 나오고, 무엇을 어떤 형식으로 어디에 적어야 확인 조건을 채우는지, check.py나 인수 시험 어느 쪽도 이를 검증하지 않아 이 확인 방법은 사람이 알아서 판단해야 하는 채로 남는다."
+    },
+    {
+      "where": "검사기 변경 절의 원본 대조 예외 vs check.py의 실제 배선",
+      "type": "contradiction",
+      "claim": "새 애니메이션 위반 네 가지도 원본 HTML이 있는 수정 작업에서는 기존 규칙처럼 원본에 이미 있던 위반을 참고로만 처리한다고 명시하지만, 이 네 규칙이 들어갈 것으로 보이는 기존 함수(`star_violations`, '핵심 페이지 표시와 동작 예시의 상한'을 이미 다룸)는 지금 그런 원본 대조 예외를 받지 않는다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "원본 HTML을 함께 준 수정 작업에서는 기존 규칙과 같이 원본에 이미 있던 위반을 참고로만 알린다.",
+      "counterpart_file": "check.py",
+      "counterpart": "fails = (style_violations(new) + scripts + star_violations(new) + scores + label_violations(new) + page_violations(new) + banned_violations(new, old))",
+      "principle": "정합성 — 선언한 예외 처리 규칙이 실제 구현 지점과 맞물리는가",
+      "consequence": "현재 코드에서 원본 대조 예외는 `scripts`(옛 위반과 이름이 겹치는 것만 골라 뺀다)와 `scores`(원본이 있으면 통째로 비운다) 두 함수에만 서로 다른 방식으로 구현돼 있고, `star_violations(new)`는 `old` 인자를 받지 않은 채 그대로 합산된다. spec은 새 네 규칙이 이 두 방식 중 무엇을 따를지, `main()`의 배선을 어떻게 바꿀지 정하지 않아 원본 수정 작업에서 새 규칙이 실제로 '참고로만' 처리될지 불확실하다."
+    },
+    {
+      "where": "인물 그림 · 크기와 범위 vs 데이터 생성 단계",
+      "type": "gap",
+      "claim": "상반신(머리~허리) 80×80으로 자른다는 요구가 있지만, 이를 만드는 `tools/build-peeps.py`의 작업 목록에는 자르는 단계가 없다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "크기와 범위: 상반신(머리~허리)을 80×80에 둔다. 기존 졸라맨 높이 40의 2배이며, 전신을 80에 두면 얼굴 높이가 13 정도라 표정이 읽히지 않아 상반신을 택했다.",
+      "counterpart_file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "counterpart": "데이터 생성: `tools/build-peeps.py`가 로컬 원본(`assets/open-peeps-src/Flat Assets.zip`)에서 네 그림을 조합한다. 발밑 그림자를 지우고, 검은 채움을 선 색 토큰으로, 흰 채움을 바탕 토큰으로 바꾸며, 좌표를 반올림해 `report-peeps.js`로 쓴다.",
+      "principle": "산출물 공백 — 요구가 구현 단계 목록으로 이어지는가",
+      "consequence": "`assets/open-peeps-src/Flat Assets.zip` 내부 확인 결과 조합에 쓰는 네 조각(`pose/standing/crossed_arms-1`, `pointing_finger-1`, `robot_dance-1`, `resting-2`)은 모두 전신 서 있는 자세 원본이라, 그림자 제거·색 치환·좌표 반올림만으로는 상반신만 남길 수 없다. 무엇을 기준으로 얼마나 잘라내는지(뷰박스 크롭, 특정 y좌표 이하 절단 등)가 정해지지 않아 구현자가 임의로 정해야 한다."
+    },
+    {
+      "where": "설계 전체 범위 vs 병렬 오케스트레이션 원칙",
+      "type": "scope",
+      "claim": "이 설계 하나가 서로 다른 실패 모드를 가진 두 갈래 큰 작업 — (과정·애니메이션 목록·선택 규칙·검사기) 과 (Open Peeps 외부 자산에서 이미지를 뽑아내는 새 빌드 파이프라인·라이선스 문서) — 를 한 구성 요소 표와 한 시험·완료 기준으로 묶는다.",
+      "file": "docs/superpowers/specs/2026-09-30-report-process-animation-catalog-design.md",
+      "evidence": "`report-peeps.js` | 신규. 인물 그림 데이터(생성물) | `tools/build-peeps.py` | 신규. 원본 묶음에서 `report-peeps.js`를 만든다",
+      "counterpart_file": "C:\\Users\\CHSHIN\\.claude\\disciplined-coder\\agent-principles.md",
+      "counterpart": "서로 독립된 일이 둘 이상이고 각 일이 plan 문서를 따로 둘 만큼(작업 다섯 이상) 크면, 일마다 서브오케스트레이터를 두어 동시에 진행하라.",
+      "principle": "SUB-ORCHESTRATE — 독립된 큰 일은 한 plan에 몰지 않는다",
+      "consequence": "인물 그림 파이프라인은 55MB 외부 자산 처리·색 가정이 깨지면 멈추는 방어 로직·크롭 방식 미정(위 findings 참고)·라이선스 문서까지 갖춘 독자적인 실패 모드를 가진 작업인데, 애니메이션 카탈로그·선택 로직·검사기 변경과 한 plan·한 시험 기준으로 묶여 있어, 한쪽이 막히면(예: 색 가정 이탈로 build-peeps.py가 멈추면) 서로 무관한 다른 쪽(전후 전환·규칙 적용 재생 견본, check.py 네 규칙)까지 같은 plan 안에서 지연된다."
+    }
+  ],
+  "principles_applied": ["CHECKABLE", "NO-ASSUME", "SUB-ORCHESTRATE", "DOC-TYPE(spec은 설계 근거를 담아야 하고 요구→구성요소→시험으로 이어져야 한다)"],
+  "notes": "체크리스트 다섯 항목(모순·커버리지 공백·산출물 공백·드리프트·스코프)을 각각 별도로 검토했다. 모순은 검사기 변경 절이 선언한 원본 대조 예외가 실제 check.py 배선과 맞물리는지를 코드까지 읽어 확인했고(항목4), 드리프트는 RC.fx.think 호출 인자 수를 SKILL.md 선언과 대조해 확인했다(항목1). 커버리지 공백은 지시된 대로 '작업 과정 표의 확인 방법이 검사기 변경·시험 절에서 실제로 구현되는가'를 기준으로 6단계 '선택 이유 보고' 항목을 검토했다(항목3). 산출물 공백은 person-guide 아이콘의 사용처 부재(항목2)와 상반신 크롭 절차의 부재(항목5)를 찾았으며, 후자는 assets/open-peeps-src/Flat Assets.zip을 직접 열어 조합 대상 네 조각이 모두 전신 서 있는 자세 원본임을 측정으로 확인한 뒤 올렸다(추측이 아님). 스코프는 인물 그림 자산 파이프라인이 애니메이션 카탈로그 작업과 성격이 달라 한 plan에 묶기엔 크다고 보고 agent-principles의 SUB-ORCHESTRATE 조항을 상대편으로 삼았다(항목6). 지시된 나머지 대조 지점(아이콘 이름 person/person-guide/person-done/person-fail의 절 간 동일성, 목록 상태 정의와 check.py 검출 규칙의 맞물림, '파일당 3개'·'페이지당 1개'·'별 없는 페이지 금지'의 상호·기존 규칙 정합성, 인물 그림 포함 범위 결정과 구성 요소 표·build.py 설명의 일치, 기존 HTML 수정 작업에서의 data-anim 규칙 적용)은 원문과 SKILL.md·check.py·보고서-규격.md를 대조한 결과 모순이나 드리프트를 찾지 못해 findings에 올리지 않았다. 원본 묶음 '네 개(약 55MB)'와 build-peeps.py가 읽는 단일 zip 파일 간에 처음에는 불일치로 의심했으나, assets/open-peeps-src 폴더를 직접 열어 zip·fig·sketch·studio 네 파일의 실제 용량 합이 약 55MB임을 확인해 모순이 아니라고 판단하고 제외했다(NO-ASSUME)."
+}
