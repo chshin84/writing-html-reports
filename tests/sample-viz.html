@@ -776,7 +776,7 @@ addEventListener('DOMContentLoaded',function(){
 <p class="blk"><b>근거</b></p>
 <figure id="d-order">
   <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
-  <svg class="stage" id="st-order" viewBox="0 40 820 320" width="100%" role="img" aria-label="주문 처리 과정">
+  <svg class="stage" id="st-order" viewBox="0 20 820 340" width="100%" role="img" aria-label="주문 처리 과정">
     <path d="M140 230H195" fill="none" stroke="currentColor"/>
     <path d="M345 230H420" fill="none" stroke="currentColor"/>
     <path d="M540 230H640" fill="none" stroke="currentColor"/>
@@ -846,10 +846,10 @@ RC.chart(document.getElementById('c-share'), {
     data: [{ name: '유가증권시장', value: 58 }, { name: '코스닥시장', value: 35 }, { name: '코넥스시장', value: 7 }] }]
 });
 var fx = RC.fx, st = document.getElementById('st-order');
-// 스틱맨(80×80)과 설명 상자는 한 쌍으로 도형 위에 둔다. 스틱맨 중심 = (상자 x − 48, 상자 y + 32), 물음표 = (스틱맨 x, 상자 y − 22)
+// 스틱맨(80×80)과 설명 상자는 한 쌍으로 도형 위에 둔다. 스틱맨 중심 = (상자 x − 48, 상자 y + 32), 물음표 = (스틱맨 x, 상자 y − 42)
 var ic = {
-  guide: RC.icon(st, 'person-guide', 60, 110), who: RC.icon(st, 'person', 222, 110), ask: RC.icon(st, 'question', 222, 56),
-  ok: RC.icon(st, 'check', 222, 56), nx: RC.icon(st, 'cross', 222, 56),
+  guide: RC.icon(st, 'person-guide', 60, 110), who: RC.icon(st, 'person', 222, 110), ask: RC.icon(st, 'question', 222, 36),
+  ok: RC.icon(st, 'check', 222, 36), nx: RC.icon(st, 'cross', 222, 36),
   pass: RC.icon(st, 'person-done', 222, 110), fail: RC.icon(st, 'person-fail', 222, 110),
   won: RC.icon(st, 'coin', 450, 102), done: RC.icon(st, 'person-done', 570, 110), no: RC.icon(st, 'cross', 356, 320)
 };
