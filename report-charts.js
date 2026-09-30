@@ -1,8 +1,8 @@
 /* report-charts for echarts@6.1.0 mermaid@11.17.2 gsap@3.15.0
    보고서 시각화 연결 코드. build.py가 문서의 BEGIN/END report-charts 사이에 채운다. 원본은 이 파일이고, 문서 안에서 고치지 않는다.
    함수: RC.chart(상자, 옵션), RC.color(토큰 이름), RC.ma(값 배열, n), RC.demo(figure, 단계 배열),
-   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(동작 예시 효과 묶음), RC.check(figure id: 완료 전 판정 도구).
-   규칙은 SKILL.md '시각화' 절과 '동작 예시' 절에 있다. */
+   RC.icon(무대 svg, 아이콘 이름, x, y), RC.note(무대 svg, 폭, 높이), RC.focus(무대 svg), RC.fx(애니메이션 효과 묶음), RC.check(figure id: 완료 전 판정 도구).
+   규칙은 SKILL.md '시각화' 절과 '애니메이션' 절에 있다. */
 (function () {
   var root = document.documentElement;
   var FAIL = '시각화를 불러오지 못했습니다';
@@ -126,7 +126,7 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', res); else res();
   }).then(function () { return document.fonts ? document.fonts.ready : null; }).then(renderMermaid);
 
-  /* 동작 예시 아이콘: 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
+  /* 애니메이션 아이콘: 스틱맨(Open Peeps 상반신 80×80, report-peeps.js)과 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
   var SVGNS = 'http://www.w3.org/2000/svg';
   function sv(tag, attrs, parent) {
     var e = document.createElementNS(SVGNS, tag);
@@ -139,11 +139,6 @@
     t.textContent = ch;
   }
   var ICONS = {
-    person: function (g, x, y) { // 졸라맨: 높이 40, 폭 18
-      sv('circle', { cx: x, cy: y - 14, r: 6 }, g);
-      sv('path', { d: 'M' + x + ' ' + (y - 8) + 'V' + (y + 8) + 'M' + (x - 9) + ' ' + (y - 2) + 'H' + (x + 9) +
-        'M' + (x - 7) + ' ' + (y + 20) + 'L' + x + ' ' + (y + 8) + 'L' + (x + 7) + ' ' + (y + 20) }, g);
-    },
     question: function (g, x, y) { glyph(g, x, y, '?', 20); },
     check: function (g, x, y) {
       sv('circle', { cx: x, cy: y, r: 11 }, g);
@@ -161,6 +156,15 @@
   };
   var ICON_COLOR = { question: 'accent', check: 'accent', cross: 'neg' };
   RC.icon = function (svg, name, x, y) {
+    var P = window.RC_PEEPS;
+    if (svg && P && P.figures[name]) { // 스틱맨: 선은 ink, 바탕은 paper 토큰으로 칠한다
+      var pg = sv('g', { 'class': 'rc-icon', opacity: 0 }, svg);
+      var box = sv('svg', { x: x - 40, y: y - 40, width: 80, height: 80, viewBox: P.viewBox }, pg);
+      box.innerHTML = P.figures[name];
+      [].forEach.call(box.querySelectorAll('.pk'), function (e) { e.setAttribute('fill', tok('ink')); });
+      [].forEach.call(box.querySelectorAll('.pw'), function (e) { e.setAttribute('fill', tok('paper')); });
+      return pg;
+    }
     if (!svg || !ICONS[name]) { console.error('RC.icon: 무대가 없거나 없는 아이콘 이름 ' + name); return null; }
     var c = tok(ICON_COLOR[name] || 'ink');
     var g = sv('g', { 'class': 'rc-icon', fill: 'none', stroke: c, 'stroke-width': 1, opacity: 0 }, svg);
@@ -169,7 +173,7 @@
     return g;
   };
 
-  /* 동작 예시 설명 상자: 발췌 문장을 연출 중인 도형 옆에 두어 시선이 무대 안에 머물게 한다.
+  /* 애니메이션 설명 상자: 발췌 문장을 연출 중인 도형 옆에 두어 시선이 무대 안에 머물게 한다.
      돌려주는 값 { g: 상자, t: 문장 칸, n: 숫자 칸 }. 위치는 RC.fx.say가 단계마다 옮긴다 */
   RC.note = function (svg, w, h) {
     if (!svg) { console.error('RC.note: 무대가 없다'); return null; }
@@ -197,7 +201,7 @@
     if (e.tagName === 'circle') return { x: a('cx') - a('r'), y: a('cy') - a('r'), width: 2 * a('r'), height: 2 * a('r') };
     return e.getBBox();
   }
-  /* 동작 예시 초점 틀: 현재 도형의 네 모서리에 붙는 괄호. RC.fx.spot이 도형에서 도형으로 미끄러지듯 옮긴다 */
+  /* 애니메이션 초점 틀: 현재 도형의 네 모서리에 붙는 괄호. RC.fx.spot이 도형에서 도형으로 미끄러지듯 옮긴다 */
   RC.focus = function (svg) {
     if (!svg) { console.error('RC.focus: 무대가 없다'); return null; }
     var A = 9, g = sv('g', { 'class': 'rc-focus', fill: 'none', stroke: tok('accent'), 'stroke-width': 1.5, opacity: 0 }, svg);
@@ -205,7 +209,7 @@
     return { g: g, c: d.map(function (p) { return sv('path', { d: p }, g); }), cur: null };
   };
 
-  /* 동작 예시 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
+  /* 애니메이션 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
      at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
      글 규칙(RC.demo가 강제한다): 글이 한 번 나타날 때(타이핑과 카운트업이 이어진 한 덩어리)마다 1초 안에 끝나고,
      단계의 마지막 글이 나타나기 시작한 때부터 min(1초 + 글자 수 ÷ 10초, 4초) 동안 보여 준 뒤 다음 단계로 넘어간다.
@@ -313,7 +317,7 @@
     }
   };
 
-  /* 동작 예시 */
+  /* 애니메이션 */
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -430,12 +434,12 @@
     return null;
   };
 
-  /* 완료 전 판정 도구: 동작 예시를 처음부터 연속 재생하며 매 프레임 겹침을 판정하고 글 규칙 위반(RC.issues)을 함께 돌려준다.
+  /* 완료 전 판정 도구: 애니메이션을 처음부터 연속 재생하며 매 프레임 겹침을 판정하고 글 규칙 위반(RC.issues)을 함께 돌려준다.
      브라우저에서 RC.check('figure id')를 실행한다. 판정 대상: 아이콘·설명 상자와 무대의 모든 요소(글자·도형·연결선·초점 틀),
      초점 틀과 무대 글자, 무대 글자끼리. class="rc-token"인 이동 표식은 뺀다 */
   RC.check = function (id) {
     var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
-    if (!st) return Promise.resolve({ error: '동작 예시 figure가 없다: ' + id });
+    if (!st) return Promise.resolve({ error: '애니메이션 figure가 없다: ' + id });
     var b = fig.querySelectorAll('.demo-ctl button');
     if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
     var op = function (e) { return +getComputedStyle(e).opacity; };
@@ -463,9 +467,9 @@
     }
     return RC.ready.then(function () {
       if (fig.dataset.rcReady !== '1' || fig.classList.contains('demo-static'))
-        return { pass: false, error: '동작 예시가 만들어지지 않았다(GSAP이 없거나 단계 코드 오류). 콘솔의 RC.demo 오류를 확인한다' };
+        return { pass: false, error: '애니메이션이 만들어지지 않았다(GSAP이 없거나 단계 코드 오류). 콘솔의 RC.demo 오류를 확인한다' };
       if (!st.getBoundingClientRect().width)
-        return { pass: false, error: '동작 예시가 화면에 보이지 않는다. 페이지형 문서는 그 페이지로 이동한 뒤 실행한다' };
+        return { pass: false, error: '애니메이션이 화면에 보이지 않는다. 페이지형 문서는 그 페이지로 이동한 뒤 실행한다' };
       var mine = function () { return RC.issues.filter(function (m) { return m.indexOf('[' + id + ']') === 0; }); };
       return new Promise(function (done) {
         var frames = 0, overlapFrames = 0, samples = [], t0 = performance.now();

@@ -68,6 +68,14 @@ class Build(unittest.TestCase):
         self.assertIn("echarts", r.stderr)
         self.assertEqual(before, self.path.read_bytes())
 
+    def test_peeps_inserted_in_chart_block(self):
+        self.write(CSS + cdn("echarts", "6.1.0") + cdn("mermaid", "11.17.2") + cdn("gsap", "3.15.0") + CHARTS)
+        r = build(self.path)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        text = self.path.read_text(encoding="utf-8")
+        block = text[text.index("/* BEGIN report-charts"):text.index("/* END report-charts */")]
+        self.assertIn("window.RC_PEEPS", block)
+
 
 if __name__ == "__main__":
     unittest.main()

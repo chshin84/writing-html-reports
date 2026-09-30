@@ -5,6 +5,7 @@
 - report-charts: <script> 안의 표시를 report-charts.js로 채운다. 표시가 있는 문서만 채운다.
   문서의 CDN 주소 버전이 report-charts.js 첫 줄의 대상 버전과 다르면 채우지 않고 멈춘다.
   문서가 RC 함수를 호출하는데 이 표시가 없어도 멈춘다.
+  같은 블록에 report-peeps.js(스틱맨 그림 데이터)를 이어 넣는다.
 """
 import re
 import sys
@@ -13,6 +14,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 BASE = (HERE / "report-base.css").read_text(encoding="utf-8")
 CHARTS = (HERE / "report-charts.js").read_text(encoding="utf-8")
+PEEPS = (HERE / "report-peeps.js").read_text(encoding="utf-8")
 LIBS = dict(re.findall(r"(echarts|mermaid|gsap)@([\d.]+)", CHARTS.splitlines()[0]))
 MARK = ("/* BEGIN report-charts " + " ".join(f"{k}@{v}" for k, v in LIBS.items())
         + " (build.py가 채운다. 손으로 고치지 않는다) */\n")
@@ -34,6 +36,6 @@ for name in sys.argv[1:]:
         wrong = {k: v for k, v in CDN_VER.findall(out) if LIBS.get(k) != v}
         if wrong:
             sys.exit(f"{name}: CDN 버전 {wrong}이 연결 코드의 대상 버전 {LIBS}과 다르다. 채우지 않았다")
-        out = CHART_BLOCK.sub(lambda m: MARK + CHARTS + m.group(1), out)
+        out = CHART_BLOCK.sub(lambda m: MARK + CHARTS + "\n" + PEEPS + m.group(1), out)
     p.write_text(out, encoding="utf-8")
     print(f"{name}: 기준 CSS 반영" + (", 연결 코드 반영" if charts else ""))
