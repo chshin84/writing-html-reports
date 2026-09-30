@@ -133,9 +133,11 @@ class Templates(unittest.TestCase):
 
 class DemoCount(unittest.TestCase):
     def run_page(self, n):
+        body = "".join(f'<figure id="d{i}" data-anim="구조"><svg></svg></figure>' for i in range(n))
+        script = "".join(f"RC.demo(document.getElementById('d{i}'),[]);" for i in range(n))
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "doc.html"
-            f.write_text(page(body="<p>가</p>", script="RC.demo(a,[]);" * n), encoding="utf-8")
+            f.write_text(page(body=body, script=script), encoding="utf-8")
             return run_check(f)
 
     def test_four_demos_violation(self):
@@ -199,6 +201,45 @@ class Scores(unittest.TestCase):
         self.assertTrue(all(x["expect"] == "" for x in rows))
 
 
+def anim_page(sections, typ="구조"):
+    """sections: [(section 클래스, 페이지 id, figure id 목록)]"""
+    body = "".join(
+        f'<section class="{c}" id="{p}"><h2>절 {p}</h2>'
+        + "".join(f'<figure id="{f}" data-anim="{typ}"><svg></svg></figure>' for f in figs)
+        + "</section>" for c, p, figs in sections)
+    script = "".join(f"RC.demo(document.getElementById('{f}'),[]);" for _, _, figs in sections for f in figs)
+    return page(body=body, script=script)
+
+
+class Anim(unittest.TestCase):
+    def test_ok(self):
+        self.assertEqual(check.anim_violations(anim_page([("page core", "p2", ["d1"])])), [])
+
+    def test_missing_type(self):
+        html = page(body='<figure id="d1"><svg></svg></figure>', script="RC.demo(document.getElementById('d1'),[]);")
+        self.assertTrue(any("유형 누락" in f for f in check.anim_violations(html)))
+
+    def test_waiting_type(self):
+        fails = check.anim_violations(anim_page([("page core", "p2", ["d1"])], typ="선별"))
+        self.assertTrue(any("견본 대기" in f for f in fails))
+
+    def test_unknown_type(self):
+        fails = check.anim_violations(anim_page([("page core", "p2", ["d1"])], typ="회전"))
+        self.assertTrue(any("목록에 없다" in f for f in fails))
+
+    def test_two_on_one_page(self):
+        fails = check.anim_violations(anim_page([("page core", "p2", ["d1", "d2"])]))
+        self.assertTrue(any("페이지당 1개" in f for f in fails))
+
+    def test_unstarred_page(self):
+        fails = check.anim_violations(anim_page([("page", "p2", ["d1"])]))
+        self.assertTrue(any("별 표시 없는 페이지" in f for f in fails))
+
+    def test_demo_without_figure_id(self):
+        fails = check.anim_violations(page(body="<p>가</p>", script="RC.demo(a,[]);"))
+        self.assertTrue(any("getElementById" in f for f in fails))
+
+
 class Stars(unittest.TestCase):
     def test_one_core_two_key_ok(self):
         self.assertEqual(check.star_violations(toc("core", "key", "key", "")), [])
@@ -225,6 +266,25 @@ class Original(unittest.TestCase):
             r = run_check(new, old)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             self.assertIn("참고: 원본에 있던 스크립트 위반", r.stdout)
+
+    def test_anim_violation_already_in_original_is_note_only(self):
+        with tempfile.TemporaryDirectory() as d:
+            html = anim_page([("page", "p2", ["d1"])])
+            new, old = Path(d) / "new.html", Path(d) / "old.html"
+            new.write_text(html, encoding="utf-8")
+            old.write_text(html, encoding="utf-8")
+            r = run_check(new, old)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertIn("참고: 원본에 있던 애니메이션 위반", r.stdout)
+
+    def test_new_anim_violation_counts_even_with_original(self):
+        with tempfile.TemporaryDirectory() as d:
+            new, old = Path(d) / "new.html", Path(d) / "old.html"
+            new.write_text(anim_page([("page", "p2", ["d1"]), ("page", "p3", ["d2"])]), encoding="utf-8")
+            old.write_text(anim_page([("page", "p2", ["d1"])]), encoding="utf-8")
+            r = run_check(new, old)
+            self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+            self.assertIn("p3 별 표시 없는 페이지", r.stdout)
 
 
 if __name__ == "__main__":

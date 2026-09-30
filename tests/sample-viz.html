@@ -774,7 +774,7 @@ addEventListener('DOMContentLoaded',function(){
   <li>검증 단계는 주문 금액이 한도보다 작을 때만 주문을 체결로 넘깁니다.</li>
 </ul>
 <p class="blk"><b>근거</b></p>
-<figure id="d-order">
+<figure id="d-order" data-anim="구조">
   <figcaption><span class="t">주문 처리 과정 (동작 예시)</span><span class="u">시나리오 A는 한도 이내 주문, 시나리오 B는 한도 초과 주문</span></figcaption>
   <svg class="stage" id="st-order" viewBox="0 20 820 340" width="100%" role="img" aria-label="주문 처리 과정">
     <path d="M140 230H195" fill="none" stroke="currentColor"/>
@@ -819,7 +819,7 @@ addEventListener('DOMContentLoaded',function(){
 <h2>정산 과정</h2>
 <ul class="pts"><li>체결된 주문은 대금 계산을 거쳐 결제로 정산됩니다.</li></ul>
 <p class="blk"><b>근거</b></p>
-<figure id="d-mmd">
+<figure id="d-mmd" data-anim="구조">
   <figcaption><span class="t">정산 과정 (동작 예시)</span><span class="u">버튼으로 단계를 넘깁니다</span></figcaption>
   <pre class="mermaid">flowchart LR
   P[체결 확정] --> Q[대금 계산] --> R[결제]</pre>

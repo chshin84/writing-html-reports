@@ -277,6 +277,47 @@ def star_violations(html):
     return out
 
 
+ANIM_TYPES = {  # 애니메이션 목록. SKILL.md '애니메이션' 절의 표와 같아야 한다(tests의 ListSync가 확인한다)
+    "구조": "사용 가능", "전후 전환": "사용 가능", "규칙 적용 재생": "사용 가능",
+    "선별": "견본 대기", "표본 누적": "견본 대기", "충격 적용": "견본 대기", "분해 합산": "견본 대기",
+}
+DEMO_ID = re.compile(r"\bRC\.demo\s*\(\s*document\.getElementById\(\s*['\"]([^'\"]+)['\"]\s*\)")
+
+
+def anim_violations(html):
+    """애니메이션 figure의 유형(data-anim)과 배치를 본다. 페이지 규칙은 페이지형 문서에만 적용한다."""
+    scripts = doc_scripts(html)
+    calls = len(re.findall(r"\bRC\.demo\s*\(", scripts))
+    ids = DEMO_ID.findall(scripts)
+    out = []
+    if calls > len(ids):
+        out.append(f"RC.demo 호출 {calls - len(ids)}개가 figure를 document.getElementById('figure id')로 넘기지 않는다(유형을 확인할 수 없다)")
+    figs = {}
+    for attrs in re.findall(r"<figure\b([^>]*)>", html):
+        m = re.search(r'\bid="([^"]+)"', attrs)
+        if m:
+            figs[m.group(1)] = attrs
+    for fid in ids:
+        attrs = figs.get(fid)
+        if attrs is None:
+            out.append(f"애니메이션 figure가 없다: {fid}")
+            continue
+        t = re.search(r'\bdata-anim="([^"]*)"', attrs)
+        if not t:
+            out.append(f"애니메이션 유형 누락: {fid}에 data-anim이 없다")
+        elif t.group(1) not in ANIM_TYPES:
+            out.append(f"허용 밖 애니메이션 유형: {fid}의 '{t.group(1)}'은 목록에 없다")
+        elif ANIM_TYPES[t.group(1)] != "사용 가능":
+            out.append(f"허용 밖 애니메이션 유형: {fid}의 '{t.group(1)}'은 {ANIM_TYPES[t.group(1)]} 상태다(견본을 먼저 만든다)")
+    for cls, pid, body in PAGE_ID.findall(html):
+        n = sum(f'id="{fid}"' in body for fid in ids)
+        if n > 1:
+            out.append(f"{pid} 애니메이션 {n}개(페이지당 1개)")
+        if n and not ({"core", "key"} & set(cls.split())):
+            out.append(f"{pid} 별 표시 없는 페이지의 애니메이션(★·☆ 페이지에만 둔다)")
+    return out
+
+
 PAGE_ID = re.compile(r'<section class="(page[^"]*)" id="(p\d+)"[^>]*>(.*?)</section>', re.S)
 SRC = re.compile(r'<(?:li|p)\b[^>]*\bdata-src="([^"]+)"')  # 결론 문장의 근거 페이지
 KEY_SRC = re.compile(r'<div\b[^>]*\bdata-src="([^"]+)"')  # 핵심 수치의 출처 페이지
@@ -382,11 +423,18 @@ def main():
         if kept:
             print(f"참고: 원본에 있던 스크립트 위반(원본 스크립트는 고치지 않는다) — {kept}")
         scripts = [f for f in scripts if f not in kept]
+    anims = anim_violations(new)
+    if old is not None:
+        old_anims = set(anim_violations(old))
+        kept = [f for f in anims if f in old_anims]
+        if kept:
+            print(f"참고: 원본에 있던 애니메이션 위반(수정 작업이라 위반으로 세지 않는다) — {kept}")
+        anims = [f for f in anims if f not in old_anims]
     scores = score_violations(new, show=True)
     if old is not None and scores:  # 기존 문서 수정은 구조를 바꾸지 않으므로 점수표만 참고로 둔다
         print(f"참고: 핵심 페이지 표시가 평가와 다르다(수정 작업이라 위반으로 세지 않는다) — {scores}")
         scores = []
-    fails = (style_violations(new) + scripts + star_violations(new) + scores + label_violations(new)
+    fails = (style_violations(new) + scripts + star_violations(new) + anims + scores + label_violations(new)
              + page_violations(new) + banned_violations(new, old))
     if old is not None:
         ratio, lost = preservation(new, old)
