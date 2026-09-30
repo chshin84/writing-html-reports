@@ -264,6 +264,18 @@ class Stars(unittest.TestCase):
         self.assertTrue(any("★이 없다" in f for f in check.star_violations(toc("key"))))
 
 
+class ListSync(unittest.TestCase):
+    def test_skill_table_matches_check(self):
+        text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        sec = text.split("\n## 애니메이션\n", 1)[1].split("\n## ", 1)[0]
+        rows = {}
+        for line in sec.splitlines():
+            cols = [c.strip() for c in line.strip().strip("|").split("|")]
+            if line.startswith("|") and len(cols) >= 2 and cols[-1] in ("사용 가능", "견본 대기"):
+                rows[cols[0]] = cols[-1]
+        self.assertEqual(rows, check.ANIM_TYPES)
+
+
 class Original(unittest.TestCase):
     def test_script_violation_already_in_original_is_note_only(self):
         with tempfile.TemporaryDirectory() as d:
