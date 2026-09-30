@@ -110,7 +110,8 @@ class Peeps(unittest.TestCase):
             r = subprocess.run([sys.executable, "-B", str(ROOT / "tools" / "build-peeps.py"), str(out)],
                                capture_output=True, text=True, encoding="utf-8", env=ENV)
             self.assertEqual(r.returncode, 0, r.stderr)
-            self.assertEqual(out.read_bytes(), PEEPS.read_bytes())
+            same = lambda p: p.read_bytes().replace(b"\r\n", b"\n")  # git이 체크아웃 때 줄바꿈을 바꿔도 비교가 흔들리지 않게 한다
+            self.assertEqual(same(out), same(PEEPS))
 
 
 if __name__ == "__main__":
