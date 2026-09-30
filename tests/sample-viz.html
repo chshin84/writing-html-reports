@@ -358,12 +358,11 @@ footer p{margin:0 0 4px}
   var ICON_COLOR = { question: 'accent', check: 'accent', cross: 'neg' };
   RC.icon = function (svg, name, x, y) {
     var P = window.RC_PEEPS;
-    if (svg && P && P.figures[name]) { // 스틱맨: 선은 ink, 바탕은 paper 토큰으로 칠한다
+    if (svg && P && P.figures[name]) { // 스틱맨: 80×80 image(SVG data URI)로 넣어 경계와 변형 원점이 그림 칸과 같게 한다. 선은 ink, 바탕은 paper 토큰 값을 만들 때 넣는다
+      var body = P.figures[name].replace(/class="pk"/g, 'fill="' + tok('ink') + '"').replace(/class="pw"/g, 'fill="' + tok('paper') + '"');
+      var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + P.viewBox + '">' + body + '</svg>');
       var pg = sv('g', { 'class': 'rc-icon', opacity: 0 }, svg);
-      var box = sv('svg', { x: x - 40, y: y - 40, width: 80, height: 80, viewBox: P.viewBox }, pg);
-      box.innerHTML = P.figures[name];
-      [].forEach.call(box.querySelectorAll('.pk'), function (e) { e.setAttribute('fill', tok('ink')); });
-      [].forEach.call(box.querySelectorAll('.pw'), function (e) { e.setAttribute('fill', tok('paper')); });
+      sv('image', { x: x - 40, y: y - 40, width: 80, height: 80, href: src }, pg);
       return pg;
     }
     if (!svg || !ICONS[name]) { console.error('RC.icon: 무대가 없거나 없는 아이콘 이름 ' + name); return null; }
