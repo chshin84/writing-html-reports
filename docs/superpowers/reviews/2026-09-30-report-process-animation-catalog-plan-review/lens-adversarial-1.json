@@ -1,0 +1,75 @@
+{
+  "lens": "lens-adversarial",
+  "read": [
+    "C:\\Users\\CHSHIN\\.claude\\disciplined-coder\\agent-principles.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\docs\\superpowers\\plans\\2026-09-30-report-process-animation-catalog.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\docs\\superpowers\\specs\\2026-09-30-report-process-animation-catalog-design.md",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\check.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\report-charts.js",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\build.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\tests\\test_build.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\tests\\test_check.py",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\tests\\sample-viz.html",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\template-paged.html",
+    "C:\\Users\\CHSHIN\\.claude\\skills\\writing-html-reports\\template.html"
+  ],
+  "issues": [
+    {
+      "where": "Review Focus '어두운 화면' 항목 / 작업 5 Step 5",
+      "type": "risk",
+      "claim": "Review Focus는 '어두운 화면'에서 스틱맨의 선·바탕 색이 토큰을 따르는지 검증한다고 적었지만, 계획 전체에서 실제 스크린샷 촬영은 이 한 단계뿐이고, 그 시점(d-order를 2단계 끝 'e1'으로 이동)에는 person-done과 선 아이콘 check만 화면에 남는다. person, person-guide, person-fail 세 그림은 계획의 어느 단계에서도 육안으로 확인되지 않는다.",
+      "file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md",
+      "evidence": "어두운 화면: 스틱맨의 선과 바탕 색은 만들 때 토큰 값을 읽는다. 어두운 화면에서 선이 밝은 색, 바탕이 어두운 색이어야 한다 → 작업 5의 어두운 화면 스크린샷 단계.",
+      "counterpart_file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 5 Step 5)",
+      "counterpart": "Playwright에서 `browser_emulate_media`로 `colorScheme: 'dark'`를 설정하고 페이지를 새로 연 뒤, `d-order`를 2단계 끝으로 이동해 figure 스크린샷을 찍는다. ... Expected: 스틱맨의 선이 밝은 색, 안쪽 바탕이 어두운 색으로 보인다.",
+      "principle": "CHECKABLE / NO-ASSUME",
+      "consequence": "person·person-guide·person-fail 세 그림은 다크 모드에서 실제로 밝은 선·어두운 바탕으로 보이는지 한 번도 검증되지 않은 채 완료로 보고될 수 있다. (RC.demo의 1단계 'e0'이나 5~7단계 'e4'~'e6'을 추가로 스크린샷하면 없앨 수 있는 격차다.)"
+    },
+    {
+      "where": "작업 1 Step 1(tests/test_peeps.py) / Step 4",
+      "type": "risk",
+      "claim": "tools/build-peeps.py가 원본 SVG 조각을 자르고 좌표를 반올림하는 로직(peep, inner, rounded)이 실제로 사람 모양으로 이어붙는지 확인하는 시험이 없다. test_regenerates_identically는 같은 스크립트를 다시 돌려 바이트가 같은지만 보는 자기참조 시험이라, translate 좌표나 rounded()의 반올림이 잘못돼 팔다리가 어긋나거나 머리가 잘려도 그대로 통과한다.",
+      "file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 1 Step 1)",
+      "evidence": "def test_regenerates_identically(self): ... self.assertEqual(out.read_bytes(), PEEPS.read_bytes())",
+      "counterpart_file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 1 Step 4)",
+      "counterpart": "Run: `python -B tools/build-peeps.py`\nExpected: `…report-peeps.js: 스틱맨 4개, 95,000바이트 안팎` 출력\n\nRun: `python -B -m unittest tests.test_peeps -v`\nExpected: 4개 모두 PASS",
+      "principle": "NO-ASSUME",
+      "consequence": "작업 1의 완료 기준(Step 4~7, 단위 시험 4개 PASS)을 다 통과해도 스틱맨 네 개가 실제로 사람 모양인지는 작업 5 Step 5의 단일 스크린샷 전까지 전혀 알 수 없다."
+    },
+    {
+      "where": "작업 2 Step 5",
+      "type": "failure-mode",
+      "claim": "작업 2에서 스틱맨 크기를 40에서 80으로 키우면 tests/sample-viz.html의 d-order 배치가 깨지는데, 이 깨짐을 잡아낼 자동 시험이 없다. check.py는 브라우저 없이 정규식만 보므로 겹침을 검출할 수 없고 단위 시험도 겹침을 재지 않는다. 작업 2 커밋 뒤 세션이 끊기거나 작업 5가 늦게 실행되면 이 깨진 상태가 최소 3개 커밋(작업 2·3·4) 동안 저장소에 남고, 그 사이 unittest와 check.py는 모두 통과로 보고한다.",
+      "file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 2 Step 5)",
+      "evidence": "`tests/sample-viz.html` 4쪽의 겹침 판정은 스틱맨 크기가 바뀌어 작업 5 전까지 실패하는 것이 정상이다.",
+      "counterpart_file": "check.py",
+      "counterpart": "위반이 하나라도 있으면 종료 코드 1을 돌려준다.",
+      "principle": "CHECKABLE / TELL-NOW",
+      "consequence": "육안으로만 알 수 있는 깨진 동작 예시가 '위반 0건·전체 시험 OK'인 채로 이력에 남을 수 있고, 그 사실을 아는 유일한 근거는 계획 문서의 이 한 문장뿐이다."
+    },
+    {
+      "where": "작업 2 Step 4(RC.icon) / 작업 5 Step 4, 작업 6 Step 3",
+      "type": "risk",
+      "claim": "RC.check의 겹침 판정은 getBoundingClientRect()로 요소 경계를 잰다. 새 스틱맨은 80×80 중첩 svg라 경계가 사람 실루엣과 무관하게 항상 고정된 80×80 사각형이다. 계획은 이 차이를 언급하지 않고 '겹침이 나오면 x를 옮겨 다시 판정한다'는 반복 조정만 안내한다.",
+      "file": "report-charts.js (작업 2 Step 4 교체 대상 RC.icon 함수)",
+      "evidence": "var pg = sv('g', { 'class': 'rc-icon', opacity: 0 }, svg); var box = sv('svg', { x: x - 40, y: y - 40, width: 80, height: 80, viewBox: P.viewBox }, pg); box.innerHTML = P.figures[name];",
+      "counterpart_file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 5 Step 4)",
+      "counterpart": "Expected: `\"pass\":true`. 겹침이 나오면 `overlapSamples`가 가리키는 아이콘의 x를 옮겨 Global Constraints의 스틱맨 배치 규칙 안에서 조정하고 다시 판정한다.",
+      "principle": "NO-ASSUME",
+      "consequence": "실제 그림은 겹치지 않는데도 두 80×80 사각형이 스칠 만큼 가까우면 RC.check가 겹침으로 판정해 위치 조정을 반복해야 할 수 있고, 반복 횟수의 상한이 계획에 없다."
+    },
+    {
+      "where": "작업 8 Step 6",
+      "type": "failure-mode",
+      "claim": "작업 8 Step 6은 scratchpad의 `stick`, `peeps` 미리 보기 폴더와 `add_demos.py`, `rebuild.sh`를 지우라고 하지만, 이 이름들은 계획의 어느 작업·Step에서도 만들어지지 않는다.",
+      "file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 8 Step 6)",
+      "evidence": "작업 폴더(scratchpad)의 `stick`, `peeps` 미리 보기 폴더와 `add_demos.py`, `rebuild.sh`를 지운다.",
+      "counterpart_file": "docs/superpowers/plans/2026-09-30-report-process-animation-catalog.md (작업 1 Files 절, 대표로 인용)",
+      "counterpart": "**Files:**\n- Create: `tools/build-peeps.py`\n- Create: `report-peeps.js` (생성물)\n- Create: `assets/LICENSE-open-peeps.md`\n- Test: `tests/test_peeps.py`",
+      "principle": "REPORT-DEAD",
+      "consequence": "실행자가 그대로 따르면 존재하지 않는 파일을 찾느라 시간을 쓰거나, 우연히 같은 이름의 무관한 파일이 scratchpad에 있으면 계획과 무관하게 지워질 수 있다."
+    }
+  ],
+  "principles_applied": ["NO-ASSUME", "CHECKABLE", "TELL-NOW", "REPORT-DEAD"],
+  "notes": "체크리스트 항목별로 따로 봤다. (1) 실패 모드: 작업 2 뒤 d-order 겹침이 작업 5까지 깨진 채 남는 지점을 확인했다. 작업 순서가 바뀌는 경우도 살펴봤으나 근거가 약해 올리지 않았다. (2) 정규식(DEMO_ID·PAGE_ID·ANIM_FIG, paged()/anim_page())과 템플릿·견본의 실제 리터럴을 대조했고 모두 일치했다. SVG innerHTML은 현재 스택에서 표준 지원 범위라 올리지 않았다. GSAP fill/var() 보간은 RC.color()·tok()이 계산된 색 값을 돌려주므로 문제가 없다. RC.check의 중첩 svg 경계 측정은 실제 위험이라 올렸다. 새 시험들이 우연히 통과하는지 손으로 추적했고 그런 시험은 찾지 못했다. (3) 과설계·비가역: 결정 기록에서 확정한 사항은 문제 삼지 않았다. 되돌리기 어려운 삭제·외부 전송은 없다. (4) 완화할 위험: 스틱맨 생성물의 시각 확인 수단 부재와 고정 사각형 판정은 검증 단계를 늘려 완화할 수 있다."
+}
