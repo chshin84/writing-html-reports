@@ -200,6 +200,14 @@ class Scores(unittest.TestCase):
                                        ("요약", "결론", "부록 A", "구조")))
         self.assertTrue(all(x["expect"] == "" for x in rows))
 
+    def test_demo_figure_not_counted_in_branches(self):
+        fig = ('<figure id="d1" data-anim="구조"><svg><polygon points="0,0 1,1"/></svg>'
+               '<pre class="mermaid">flowchart LR\n A{판단} --> B[가]</pre></figure>')
+        html = paged('<li data-src="p2">가</li>', {}).replace(
+            "<h2>구조 A</h2>", "<h2>구조 A</h2>" + fig + '<svg><polygon points="0,0 1,1"/></svg>')
+        rows = {x["id"]: x for x in check.page_scores(html)}
+        self.assertEqual(rows["p2"]["B"], 1)
+
 
 def anim_page(sections, typ="구조"):
     """sections: [(section 클래스, 페이지 id, figure id 목록)]"""

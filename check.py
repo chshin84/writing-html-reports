@@ -322,13 +322,14 @@ PAGE_ID = re.compile(r'<section class="(page[^"]*)" id="(p\d+)"[^>]*>(.*?)</sect
 SRC = re.compile(r'<(?:li|p)\b[^>]*\bdata-src="([^"]+)"')  # 결론 문장의 근거 페이지
 KEY_SRC = re.compile(r'<div\b[^>]*\bdata-src="([^"]+)"')  # 핵심 수치의 출처 페이지
 WEIGHT = {"N": 4, "R": 3, "B": 2, "C": 2, "D": 1}
+ANIM_FIG = re.compile(r'<figure\b[^>]*\bdata-anim="[^"]*"[^>]*>.*?</figure>', re.S)
 
 
 def page_scores(html):
     """핵심 페이지 평가. 요약·결론·부록 페이지는 후보에서 뺀다.
     N 필수도: 이 페이지만을 근거로 하는 결론 문장 수(이 페이지가 없으면 그 결론을 이해할 수 없다).
     R 관련도: 이 페이지를 근거에 포함하는 결론 문장 수.
-    B 구조 복잡도: 이 페이지 도식의 판단 분기 수(polygon 마름모, Mermaid {…} 노드).
+    B 구조 복잡도: 이 페이지 정지 도식의 판단 분기 수(polygon 마름모, Mermaid {…} 노드). 애니메이션 figure는 세지 않는다.
     C 핵심 수치: 머리말 핵심 수치 중 이 페이지에서 나온 수.
     D 참조: 다른 페이지가 이 페이지를 가리키는 링크 수.
     점수 = 4N + 3R + 2B + 2C + D. 별은 N ≥ 1인 후보만 받는다.
@@ -348,9 +349,10 @@ def page_scores(html):
         excluded = (bool({"summary", "conclusion", "list"} & set(cls.split()))
                     or 'class="doc-head"' in body or 'class="gist"' in body
                     or re.match(r"(요약|결론|부록)", title) is not None)
-        mermaid = " ".join(re.findall(r'<pre\b[^>]*\bclass="[^"]*\bmermaid\b[^"]*"[^>]*>(.*?)</pre>', body, re.S))
+        static = ANIM_FIG.sub("", body)  # 애니메이션이 자기 페이지 점수를 올리지 않게 뺀다
+        mermaid = " ".join(re.findall(r'<pre\b[^>]*\bclass="[^"]*\bmermaid\b[^"]*"[^>]*>(.*?)</pre>', static, re.S))
         m = {"N": sum(s == [pid] for s in srcs), "R": sum(pid in s for s in srcs),
-             "B": len(re.findall(r"<polygon\b", body)) + len(re.findall(r"\w\{[^}\n]*\}", mermaid)),
+             "B": len(re.findall(r"<polygon\b", static)) + len(re.findall(r"\w\{[^}\n]*\}", mermaid)),
              "C": sum(pid in s for s in ksrcs),
              "D": sum(o[2].count(f'href="#{pid}"') for o in pages if o[1] != pid)}
         rows.append(dict(m, id=pid, title=title, excluded=excluded, order=order, expect="",
