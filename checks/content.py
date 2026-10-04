@@ -158,8 +158,16 @@ class ProseText(TextOnly):
 
 
 def abbrs(text):
-    """(약어, 시작, 끝) 목록. 숫자·점·하이픈이 섞인 토큰 전체는 약어가 아니다."""
-    return [(m.group(), m.start(), m.end()) for m in TOKEN.finditer(text) if ABBR.fullmatch(m.group())]
+    """(약어, 시작, 끝) 목록. 숫자·점·하이픈이 섞인 토큰 전체는 약어가 아니다.
+    점이 없고 빗금이 든 토큰(ETF/ETN)은 빗금으로 나눠 조각마다 본다. 점이 든 토큰(파일 경로·URL)은 통째로 본다."""
+    out = []
+    for m in TOKEN.finditer(text):
+        tok = m.group()
+        pieces = [(tok, m.start())]
+        if "." not in tok and re.search(r"[/\\]", tok):
+            pieces = [(p.group(), m.start() + p.start()) for p in re.finditer(r"[^/\\]+", tok)]
+        out += [(t, st, st + len(t)) for t, st in pieces if ABBR.fullmatch(t)]
+    return out
 
 
 def unglossed(html):

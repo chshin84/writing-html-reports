@@ -133,6 +133,22 @@ class Abbr(unittest.TestCase):
     def test_paren_after_tag(self):
         self.assertEqual(content.abbr_violations(new_doc("<p><b>API</b>(응용 프로그램 인터페이스)</p>")), [])
 
+    def test_slash_joined_abbrs(self):
+        self.assertEqual(content.unglossed(new_doc("<p>ETF/ETN을 산다.</p>")), ["ETF", "ETN"])
+
+    def test_block_boundary_paragraph(self):
+        self.assertEqual(content.unglossed(new_doc("<p>상장지수펀드</p><p>(ETF)를 산다.</p>")), ["ETF"])
+
+    def test_block_boundary_list_item(self):
+        self.assertEqual(content.unglossed(new_doc("<ul><li>상장지수펀드</li><li>(ETF)</li></ul>")), ["ETF"])
+
+    def test_block_boundary_table_cell(self):
+        html = new_doc("<table><tr><td>상장지수펀드</td><td>(ETF)</td></tr></table>")
+        self.assertEqual(content.unglossed(html), ["ETF"])
+
+    def test_paren_across_inline_tag_ok(self):
+        self.assertEqual(content.unglossed(new_doc("<p>상장지수펀드(<b>ETF</b>)</p>")), [])
+
     def test_old_has_same(self):
         old = new_doc("<p>API를 쓴다.</p>")
         new = new_doc("<p>API를 쓴다. ETF도 쓴다.</p>")
@@ -173,6 +189,12 @@ class AbbrExcluded(unittest.TestCase):
 
     def test_file_name_piece(self):
         self.ok("<p>SKILL.md와 README.txt를 읽는다.</p>")
+
+    def test_path_with_extension(self):
+        self.ok("<p>docs/API.md를 읽는다.</p>")
+
+    def test_single_letter_slash(self):
+        self.ok("<p>A/B 시험</p>")
 
     def test_hyphen_identifier_piece(self):
         self.ok("<p>lens-API와 PR-12와 X-API-KEY</p>")
