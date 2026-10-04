@@ -66,5 +66,32 @@ class Rebuild(unittest.TestCase):
         self.assertEqual(rebuild.mismatches(p), ["report-base"])
 
 
+class Shoot(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_named_files_and_index(self):
+        from test_eval_gates import FAKE_RC, GOOD, PAGER, PAGE_JS, STAGE, doc
+        body = (PAGER + '<section class="page" id="p1"><p class="pno">1 / 2</p><p>첫 페이지</p></section>'
+                f'<section class="page" id="p2"><p class="pno">2 / 2</p>{STAGE}</section>')
+        script = PAGE_JS + "window.FAKE = " + json.dumps(GOOD, ensure_ascii=False) + ";" + FAKE_RC + "RC.demo(document.getElementById('d'), []);"
+        src = Path(self.tmp.name, "doc.html")
+        src.write_text(doc(body, script), encoding="utf-8")
+        out = Path(self.tmp.name, "shots")
+        r = run(ROOT / "eval/shoot.py", src, out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        names = {p.name for p in out.iterdir()}
+        for n in ("p1-1280.png", "p1-390.png", "p2-1280.png", "p2-390.png", "p1.txt", "p2.txt",
+                  "d-s1.png", "d-s2.png", "index.json"):
+            self.assertIn(n, names)
+        idx = json.loads((out / "index.json").read_text(encoding="utf-8"))
+        steps = [x for x in idx if x["kind"] == "step"]
+        self.assertEqual([(x["figure"], x["step"], x["seconds"]) for x in steps], [("d", 1, 3.5), ("d", 2, 3.5)])
+        self.assertIn("첫 페이지", (out / "p1.txt").read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()
