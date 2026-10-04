@@ -1,0 +1,14 @@
+{"lens":"lens-fit","target":"docs/superpowers/specs/2026-10-04-c1-animation-engine-design.md","issues":[
+{"where":"검증 66행","principle":"TITLE-LAYERS","claim":"절 첫 문장 없이 번호 목록으로 시작한다."},
+{"where":"7행","principle":"COUNT-EARNS","claim":"'두 가지를 이룬다' 개수 예고."},
+{"where":"66, 70, 24행","principle":"COUNT-EARNS","claim":"'견본 두 파일'이 어느 파일인지 모호, '다음 두 명령'·'두 방식' 예고."},
+{"where":"81, 16, 48, 58행","principle":"TERM-EXPLAIN","claim":".cnt, BLOCKED, neg, bp 풀이 없음."},
+{"where":"69행","principle":"CHECKABLE","claim":"'새 동작마다 시험'과 한정된 대상 목록이 서로 다르게 읽힌다."},
+{"where":"40행","principle":"CHECKABLE","claim":"'옅은 채움'에 수치·토큰 기준이 없다."},
+{"where":"66~71행","principle":"ONE-ENDING","claim":"검증 항목 말끝 불일치."},
+{"where":"26, 27, 30, 37, 56, 82행","principle":"BULLET-SCOPE","claim":"여러 문장 불릿."},
+{"where":"7, 26, 56행","principle":"NO-MID-MOD","claim":"중간 관형절."},
+{"where":"11, 30, 50행","principle":"NO-STACK-MOD","claim":"수식어 겹침."},
+{"where":"3행","principle":"FULL-SENTENCE","claim":"머리말이 명사 조각이고 C0 하네스가 무엇인지 본문에서 풀리지 않는다."}],
+"principles_applied":["TITLE-LAYERS","COUNT-EARNS","TERM-EXPLAIN","CHECKABLE","ONE-ENDING","BULLET-SCOPE","NO-MID-MOD","NO-STACK-MOD","COMMA-CUT","FULL-SENTENCE","DOC-TYPE"],
+"notes":"'이번 세션'은 보존 문서에서 낡는 표현. 7행(상위 설계를 따름)과 91행(다르게 정한 점 기록)이 다르게 읽힌다. 함정의 행 번호는 낡는 표기."}

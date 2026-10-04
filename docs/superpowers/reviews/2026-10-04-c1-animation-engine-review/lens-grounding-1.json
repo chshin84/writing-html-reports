@@ -1,0 +1,8 @@
+{"lens":"lens-grounding","target":"docs/superpowers/specs/2026-10-04-c1-animation-engine-design.md","issues":[
+{"where":"설명 상자·현재 노드 계기, 검증","type":"contradiction","claim":"sample-viz d-mmd는 RC.fx.mark 대신 문서의 지역 mark(tl.to)로 강조하므로 mark·spot 계기로는 상자도 data-rc-active도 생기지 않는다. 엔진이 가로챌 길은 play에 넘기는 $뿐이다."},
+{"where":"현재 노드 표시, 검증 sample-anim","type":"contradiction","claim":"sample-anim d-shift·d-rule은 mark·spot을 쓰지 않고 상자 좌표를 fx.pair 인자로 고정한다(상자 y18~82, 막대 y138). 통과 경로가 정의되지 않았다."},
+{"where":"견본 결함","type":"omission","claim":"기준선 막대 유지와 축 추가는 엔진으로 못 고치고 견본 무대·호출 코드를 고쳐야 하며, tests/ 사본 수정은 고정 견본 판정에 반영되지 않는다."},
+{"where":"스틱맨 도입 문장","type":"unsupported","claim":"research는 '근거 약함'인데 spec은 '이해를 떨어뜨린다'·'신호로 쓸 때만 근거'로 단정한다."},
+{"where":"재생 1단계","type":"unsupported","claim":"'정지 상태는 마지막 장면'은 현재 동작과 다르다. 마지막 장면 이동은 beforeprint뿐이고 demo-static은 단계 목록을 보인다."}],
+"principles_applied":["NO-ASSUME","STATE-ASSUME","CHECKABLE","FOCUSED","WRITTEN-ONLY","TERM-ONE"],
+"notes":"맞는 주장: 398~430행, 356~372행, holdFor 4초, $가 g.node 안 첫 rect·polygon·path를 돌려줌(346행), peeps 네 이름, legend·symbol 기본값(52·55행), g=0.63과 동적·모바일 약함. 04-rules는 fx.mark만 쓰지만 RC.demo가 name·text를 쥐고 있어 자동 상자 정보가 충분하고 단계 문장은 30자 이하, 묶음 5개·28단계로 시나리오 조건 충족. Mermaid 마름모 polygon 여부·간선 id 형식 미확인. 04-rules의 neg 강조(Q3,Q4)는 마름모라 고민·실패 규칙이 동시 발동. sample-viz d-order 마지막 단계에 person-fail 자동 부착 가능. 고정 견본에 선 계열 둘 이상 차트 없음."}

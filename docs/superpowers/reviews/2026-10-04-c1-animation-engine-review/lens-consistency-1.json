@@ -1,0 +1,15 @@
+{"lens":"lens-consistency","target":"docs/superpowers/specs/2026-10-04-c1-animation-engine-design.md","issues":[
+{"where":"재생 체류 시간","type":"contradiction","claim":"엔진의 n(무대 글 우선)과 C0의 n(.demo-cap 포함 모든 새 글)이 다르다."},
+{"where":"재생 단계 넘김","type":"contradiction","claim":"단계 넘김은 머무는 시간 앞에서 멈춰야 하는데 e(i)는 머무는 시간 포함이라 멈출 지점이 없다. C0 step1은 넘김 방식에서도 e0 도달을 잰다."},
+{"where":"시나리오 묶기","type":"gap","claim":"시나리오 재생 시 _rcTl과 라벨 번호(전체/시나리오 안)가 정해지지 않았다."},
+{"where":"시나리오 버튼","type":"gap","claim":".demo-ctl button의 이전·재생·다음·처음부터 순서를 지키라는 조건이 없다(RC.check·C0가 순서로 찾음)."},
+{"where":"자동 설명 상자·스틱맨","type":"gap","claim":".rc-note·.rc-icon 클래스 요구가 없다."},
+{"where":"현재 노드 표시","type":"gap","claim":"직접 그린 무대에서 RC.note 없이 강조만 하는 단계, 기존 RC.note가 48px보다 먼 경우의 처리가 없다."},
+{"where":"검증·산출 계약","type":"gap","claim":"보류 견본 사용, 그림 질문 100%, 하락 금지, 판정 차례 3번이 빠졌다."},
+{"where":"소유·BLOCKED","type":"gap","claim":"호출 코드를 고쳐야만 개선될 때의 BLOCKED가 없고, 소유 견본 호출 코드 수정 범위가 없다."},
+{"where":"산출 계약","type":"gap","claim":"plan·리뷰 기록 위치와 마커, 소유 견본 관리 블록 재빌드 단계가 없다."},
+{"where":"checks/anim.py","type":"gap","claim":"규칙은 RULES 목록에 원본 대조 방식과 짝지어 넣어야 rules-motion에 잡힌다."},
+{"where":"스틱맨","type":"drift","claim":"상위는 '고민, 통과·실패'인데 C1은 끝 노드 완료를 두고 판단 노드 통과 표시를 뺐다."},
+{"where":"검증 4","type":"drift","claim":"'3회'가 반복 횟수와 재점검 상한 두 뜻이고 종료 규칙과 shoot 모드가 없다."}],
+"principles_applied":["CHECKABLE","TERM-ONE","FOCUSED","TELL-NOW","NO-ASSUME","STATE-ASSUME","WRITTEN-ONLY"],
+"notes":"active-visible을 C0가 seek로 재면 엔진 스크롤도 타임라인 갱신에서 일어나야 함(L1 고정 필요). session-report에 SVG가 있으면 svg-font-390 대상 확인 필요. 자동 상자 글이 RC.check 30자 규칙과 충돌 가능."}
