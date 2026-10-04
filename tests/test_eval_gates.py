@@ -170,6 +170,10 @@ class Browser(unittest.TestCase):
         r = self.items(doc("<p>글</p>", css=":root{--s1: oklch(0.5 0.1 250)}"), {"cvd"})
         self.assertTrue(r["cvd"]["value"]["tokens"]["s1"].startswith("rgba("), r["cvd"]["value"]["tokens"])
 
+    def test_canvas_unsupported_token_not_carried_over(self):  # 캔버스가 받지 않는 표기가 앞 토큰의 색을 물려받지 않는다
+        r = self.items(doc("<p>글</p>", css=":root{color-scheme:light;--s1: oklch(0.5 0.1 250);--s2: light-dark(#000000, #ffffff)}"), {"cvd"})
+        self.assertEqual(r["cvd"]["value"]["tokens"]["s2"].replace(" ", ""), "rgb(0,0,0)", r["cvd"]["value"]["tokens"])
+
     def test_color_mix_text_measured(self):  # F6: color-mix로 만든 글자색도 측정한다
         r = self.items(doc('<p style="color:color-mix(in srgb, #000 80%, #fff)">섞은 색 글자</p>'), {"contrast-text"})
         self.assertEqual(r["contrast-text"]["value"]["unmeasurable"], 0)

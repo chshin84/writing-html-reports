@@ -1,0 +1,12 @@
+{"lens":"lens-fit","target":"docs/superpowers/specs/2026-10-04-c3-content-rules-design.md","issues":[
+{"where":"필수 절 23행, 작업 과정 37행, 내용 검사 55행","principle":"TITLE-LAYERS","claim":"절 첫 문장이 결론 없이 아래 목록만 가리킨다."},
+{"where":"검증 68행","principle":"TITLE-LAYERS","claim":"산문 첫 문장 없이 번호 목록으로 시작한다."},
+{"where":"3행","principle":"FULL-SENTENCE","claim":"'작성일 2026-10-04.' 명사 조각."},
+{"where":"검증 71행","principle":"CHECKABLE","claim":"충족률 분모, 다수결 단위, 세 차례 미달 시 처분이 없다."},
+{"where":"검증 3번·내용 검사","principle":"CHECKABLE","claim":"바꾸는 기존 규칙(페이지 이름 읽기)의 시험 요구가 없다."},
+{"where":"작업 과정·페이지 구성·검증","principle":"CHECKABLE","claim":"결정 먼저·원격 게시·원자료 병기·반복 금지의 확인 방법이 없다."},
+{"where":"47, 55, 57, 73, 77행","principle":"TERM-EXPLAIN","claim":"여러 줄 불릿 지시, page list, 점수표, 근거 없는 페이지 검사, 보류 원자료, 리뷰 마커, TITLE-LAYERS 미풀이."},
+{"where":"15, 17, 39, 40, 42, 49, 51, 57, 70, 71행","principle":"BULLET-SCOPE","claim":"여러 문장 불릿."},
+{"where":"55행, 7행","principle":"NO-MID-MOD","claim":"중간 관형절."}],
+"principles_applied":["TITLE-LAYERS","COUNT-EARNS","TERM-EXPLAIN","CHECKABLE","ONE-ENDING","BULLET-SCOPE","NO-MID-MOD","NO-STACK-MOD","COMMA-CUT","FULL-SENTENCE","DOC-TYPE"],
+"notes":"7행 '고정 원자료'와 73행 '보류 원자료' 용어 불일치. 64행은 진행 상태 문장. checklist content 항목에 반복 금지·원자료 병기가 있는지 미확인."}

@@ -1,0 +1,17 @@
+{"lens":"lens-adversarial","target":"docs/superpowers/specs/2026-10-04-c3-content-rules-design.md","issues":[
+{"where":"결정 먼저","type":"failure-mode","claim":"사용자에게 물을 수 없는 생성자(재생성 서브에이전트) 예외가 없어 멈추거나 결정을 지어낸다. 완화: 미결정은 결정 요청 절로."},
+{"where":"결정 요청 행·33행","type":"failure-mode","claim":"결정 요청 절이 정할 사항인지 정한 사항 기록인지 섞이고 '별도 기록'은 검사가 못 찾는다."},
+{"where":"마무리 보고서 판별","type":"failure-mode","claim":"data-kind 자가 표시에만 맡겨 빠뜨리면 검사가 꺼지고 붙이면 짧은 보고서에 다섯 절이 강제된다. 완화: SKILL.md 작업 방식에 판별 행, 해당 없음 한 줄 허용."},
+{"where":"필수 절 식별","type":"failure-mode","claim":"절 이름 글자·클래스·속성 중 무엇으로 식별하는지 없다."},
+{"where":"약어 풀이","type":"failure-mode","claim":"파일 이름 조각·원칙 식별자·노드 id·표준 원어까지 잡는다(session-report SKILL 14회 등). code·pre 제외, 파일 이름·하이픈 식별자·숫자 섞인 토큰 제외 필요."},
+{"where":"old 설명","type":"risk","claim":"old는 원본을 넘기기만 한다. exact가 원본 위반 제외를 이미 한다. old면 None 처리 필요."},
+{"where":"원본 기준·질문과 용어 먼저","type":"failure-mode","claim":"기존 HTML 수정 작업 적용 여부가 없어 내용 불변·유사도 검사와 충돌."},
+{"where":"원본 기준","type":"failure-mode","claim":"커밋·spec만으로 한정해 데이터 파일 기반 작업은 채울 수 없다. 완화: 원자료 파일 경로 포함."},
+{"where":"대체됨 배너","type":"failure-mode","claim":"누가 언제 다는지 없다. 완화: 새 보고서가 옛 보고서를 대체할 때 새 보고서를 만드는 세션이 단다."},
+{"where":"확인 상태·원자료","type":"risk","claim":"둘이 묶이지 않아 상태가 꼬리표가 된다. 완화: run은 같은 줄에 원자료가 있을 때만."},
+{"where":"페이지 구성 47행","type":"failure-mode","claim":"SKILL.md 다른 절의 h2 명사구 정의가 남아 충돌한다."},
+{"where":"소유 파일","type":"risk","claim":"마무리 보고서 전용 규칙이 모두 SKILL.md에 들어가 비대해진다. 완화: 별도 규칙 문서."},
+{"where":"검증","type":"failure-mode","claim":"자기가 쓴 견본 하나로만 검증한다. 완화: 새 규칙을 bench/fixed에 실행해 규칙별 위반 수 기록."},
+{"where":"원격 게시","type":"risk","claim":"확인 후 점검 순서라 점검 결과를 보기 전에 승인한다. 완화: 점검→결과와 함께 확인→게시."}],
+"principles_applied":["YAGNI","REVERSIBLE","SECRETS","NO-ASSUME","STATE-ASSUME","CHECKABLE","DOC-PLACE","FOCUSED","EDIT-DISCIPLINE","TERM-ONE","SPECIFIC-NAME","WRITTEN-ONLY"],
+"notes":"비가역 없음. 페이지 이름 읽기 변경의 점수표 차이는 L1이 고정 견본에서 비교 확인할 일."}
