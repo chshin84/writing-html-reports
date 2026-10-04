@@ -181,5 +181,105 @@ class AbbrExcluded(unittest.TestCase):
         self.ok("<p>A와 ABCDEFG</p>")
 
 
+PART_IDS = ("changed", "achieved", "remaining", "decisions", "verification")
+PARTS_ALL = "".join(f'<section data-part="{p}"><h2>절</h2></section>' for p in PART_IDS)
+
+
+def wrapup(body, head='<p class="basis">기준: 커밋 b2cfc00</p>'):
+    return page(body=head + body).replace('<main class="doc">', '<main class="doc" data-kind="wrapup">')
+
+
+class Parts(unittest.TestCase):
+    def test_all_present(self):
+        self.assertEqual(content.parts_violations(wrapup(PARTS_ALL)), [])
+
+    def test_missing(self):
+        body = PARTS_ALL.replace('data-part="decisions"', 'data-part="x"')
+        self.assertEqual(content.parts_violations(wrapup(body)), ["마무리 보고서 필수 절 없음: decisions(결정 요청)"])
+
+    def test_old_missing_same(self):
+        body = PARTS_ALL.replace('data-part="decisions"', 'data-part="x"')
+        self.assertEqual(content.parts_violations(wrapup(body), wrapup(body)), [])
+
+    def test_new_convention_not_wrapup(self):
+        self.assertEqual(content.parts_violations(new_doc("<p>글</p>")), [])
+
+    def test_not_new_convention(self):
+        self.assertEqual(content.parts_violations(page(body=PARTS_ALL.replace('data-part="decisions"', ""))), [])
+
+    def test_parts_on_page_sections(self):
+        pages = "".join(f'<section class="page" id="p{i}" data-part="{p}"><h2>절</h2><table></table></section>'
+                        for i, p in enumerate(PART_IDS, 1))
+        self.assertEqual(content.parts_violations(wrapup(pages)), [])
+
+    def test_parts_need_page_shape(self):
+        pages = "".join(f'<section class="page" id="p{i}" data-part="{p}"><h2>절</h2><table></table></section>'
+                        for i, p in enumerate(PART_IDS[:4], 1))
+        pages += '<section data-part="verification" class="page" id="p5"><h2>절</h2></section>'
+        self.assertEqual(content.parts_violations(wrapup(pages)), ["마무리 보고서 필수 절 없음: verification(검증 범위)"])
+
+
+class Basis(unittest.TestCase):
+    def fails(self, head):
+        return content.basis_violations(wrapup(PARTS_ALL, head))
+
+    def test_hash_ok(self):
+        self.assertEqual(self.fails('<p class="basis">기준: 커밋 b2cfc00</p>'), [])
+
+    def test_md_path_ok(self):
+        self.assertEqual(self.fails('<p class="basis">기준: <code>docs/specs/a-design.md</code></p>'), [])
+
+    def test_file_path_ok(self):
+        self.assertEqual(self.fails('<p class="basis">원자료 data/raw.csv</p>'), [])
+
+    def test_known_extension_name_ok(self):
+        self.assertEqual(self.fails('<p class="basis">원자료 성과표.xlsx</p>'), [])
+
+    def test_basis_hash_before_hangul(self):
+        self.assertEqual(self.fails('<p class="basis">b2cfc00커밋 기준</p>'), [])
+
+    def test_missing(self):
+        self.assertEqual(self.fails(""), ["원본 기준 없음: 문서 머리(첫 section 끝 앞)에 p.basis가 없다"])
+
+    def test_after_first_section(self):
+        html = wrapup(PARTS_ALL + '<p class="basis">b2cfc00</p>', "")
+        self.assertEqual(content.basis_violations(html), ["원본 기준 없음: 문서 머리(첫 section 끝 앞)에 p.basis가 없다"])
+
+    def test_inside_first_page_ok(self):
+        body = '<section class="page" id="p1"><div class="doc-head"><p class="basis">커밋 b2cfc00</p></div></section>'
+        self.assertEqual(content.basis_violations(wrapup(body, "")), [])
+
+    def test_no_reference(self):
+        self.assertEqual(self.fails('<p class="basis">기준: 어제 회의 3.5절</p>'),
+                         ["원본 기준에 커밋 해시·.md 경로·파일 경로가 없다: 기준: 어제 회의 3.5절"])
+
+    def test_digits_and_abbrev_rejected(self):
+        self.assertEqual(len(self.fails('<p class="basis">기준: 20261004 회의(e.g. 주간 점검), U.S 자료</p>')), 1)
+
+    def test_short_hex_rejected(self):
+        self.assertEqual(len(self.fails('<p class="basis">abc12</p>')), 1)
+
+    def test_old_same(self):
+        html = wrapup(PARTS_ALL, "")
+        self.assertEqual(content.basis_violations(html, html), [])
+
+    def test_new_convention_not_wrapup(self):
+        self.assertEqual(content.basis_violations(new_doc("<p>글</p>")), [])
+
+    def test_not_new_convention(self):
+        self.assertEqual(content.basis_violations(page(body="<p>글</p>")), [])
+
+
+class FixedNoFalsePositive(unittest.TestCase):
+    """새 규칙은 고정 견본과 template.html(새 규약 문서가 아님)에 위반을 내지 않는다."""
+
+    def test_zero(self):
+        files = sorted((ROOT / "bench" / "fixed").glob("*.html")) + [ROOT / "template.html"]
+        for f in files:
+            html = f.read_text(encoding="utf-8")
+            for fn in (content.abbr_violations, content.parts_violations, content.basis_violations):
+                self.assertEqual(fn(html), [], f"{f.name} {fn.__name__}")
+
+
 if __name__ == "__main__":
     unittest.main()

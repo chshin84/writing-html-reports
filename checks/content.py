@@ -186,9 +186,57 @@ def abbr_violations(html, old_html=None):
     return [f"약어 풀이 없음: {a}(.gloss 용어나 처음 나온 곳의 괄호 풀이를 둔다)" for a in unglossed(html) if a not in old]
 
 
+PARTS = {"changed": "바뀐 것", "achieved": "처음 요청 대비 달성", "remaining": "남은 일",
+         "decisions": "결정 요청", "verification": "검증 범위"}
+PAGE_OPEN = re.compile(r'<section class="page[^"]*" id="p\d+"([^>]*)>')  # PAGE_ID와 같은 모양의 여는 태그
+PART = re.compile(r'\bdata-part="([^"]+)"')
+BASIS = re.compile(r'<p\b[^>]*\bclass="(?:[^"]*\s)?basis(?:\s[^"]*)?"[^>]*>(.*?)</p>', re.S)
+REF = re.compile(
+    r"(?<![0-9A-Za-z])(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![0-9A-Za-z])"  # 커밋 해시
+    r"|[\w.-]*[/\\][\w./\\-]*\w\.[A-Za-z]\w{0,5}(?![0-9A-Za-z])"  # 확장자가 붙은 경로
+    r"|[\w-]+\.(?:md|html|csv|json|py|txt|xlsx|pdf|yaml|yml)(?![0-9A-Za-z])")  # 알려진 확장자가 붙은 이름
+
+
+def _missing_parts(html):
+    """페이지형 문서는 PAGE_ID 모양의 페이지 section에 있는 data-part만 센다(그 밖의 페이지는 장면·점수에서 빠진다)."""
+    opens = PAGE_OPEN.findall(html)
+    attrs = opens if opens else re.findall(r"<section\b([^>]*)>", html)
+    found = {m for a in attrs for m in PART.findall(a)}
+    return [p for p in PARTS if p not in found]
+
+
+def parts_violations(html, old_html=None):
+    """마무리 보고서(data-kind="wrapup")에 다섯 필수 절(data-part)이 모두 있는지 본다. 수정 전 문서에도 없던 절은 뺀다."""
+    if not WRAPUP.search(html):
+        return []
+    old = set(_missing_parts(old_html)) if old_html is not None else set()
+    return [f"마무리 보고서 필수 절 없음: {p}({PARTS[p]})" for p in _missing_parts(html) if p not in old]
+
+
+def _basis_problems(html):
+    m = BASIS.search(html)
+    end = html.find("</section>")
+    if not m or (end != -1 and m.start() > end):
+        return ["원본 기준 없음: 문서 머리(첫 section 끝 앞)에 p.basis가 없다"]
+    text = strip_tags(m.group(1))
+    if not REF.search(text):
+        return [f"원본 기준에 커밋 해시·.md 경로·파일 경로가 없다: {text[:40]}"]
+    return []
+
+
+def basis_violations(html, old_html=None):
+    """마무리 보고서 머리의 원본 기준(p.basis)에 커밋 해시·.md 경로·파일 경로가 있는지 본다. 수정 전 문서에도 있던 결함은 뺀다."""
+    if not WRAPUP.search(html):
+        return []
+    old = {f.split(":")[0] for f in _basis_problems(old_html)} if old_html is not None else set()
+    return [f for f in _basis_problems(html) if f.split(":")[0] not in old]
+
+
 RULES = [
     (star_violations, "plain"),
     (score_violations, "drop"),
     (page_violations, "plain"),
     (abbr_violations, "old"),
+    (parts_violations, "old"),
+    (basis_violations, "old"),
 ]
