@@ -27,7 +27,7 @@ def anim_count_violations(html):
     return [f"애니메이션 {demos}개(3개 이하로 둔다)"] if demos > 3 else []
 
 
-ANIM_TYPES = {  # 애니메이션 목록. SKILL.md '애니메이션' 절의 표와 같아야 한다(tests의 ListSync가 확인한다)
+ANIM_TYPES = {  # 애니메이션 목록. 시각화.md '애니메이션' 절의 표와 같아야 한다(tests의 ListSync가 확인한다)
     "구조": "사용 가능", "전후 전환": "사용 가능", "규칙 적용 재생": "사용 가능",
     "선별": "견본 대기", "표본 누적": "견본 대기", "충격 적용": "견본 대기", "분해 합산": "견본 대기",
 }

@@ -64,7 +64,7 @@ class Anim(unittest.TestCase):
 
 class ListSync(unittest.TestCase):
     def test_skill_table_matches_check(self):
-        text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        text = (ROOT / "시각화.md").read_text(encoding="utf-8")
         sec = text.split("\n## 애니메이션\n", 1)[1].split("\n## ", 1)[0]
         rows = {}
         for line in sec.splitlines():
