@@ -158,6 +158,17 @@ class ConclusionTitle(unittest.TestCase):
         self.assertTrue(has(fails, self.NAME))
         self.assertIn("문장 어미", fails[0])
 
+    def test_sec_with_extra_class_gets_noun_check(self):
+        html = page(body=f'<section class="page" id="p2"><p class="pno">2 / 2</p><p class="sec lead">결과를 정리했다</p>'
+                         f'<h2>{OK_TITLE}</h2></section>')
+        self.assertTrue(has(style.label_violations(html), "라벨이 명사구가 아님"))
+
+    def test_unclosed_p_before_h2_keeps_h2_direct_child(self):
+        html = page(body=f'<section class="page" id="p2"><p class="pno">2 / 2<p class="sec">검토 결과<h2>{OK_TITLE}</h2></section>')
+        self.assertEqual([t for _, t in style.conclusion_titles(html)], [OK_TITLE])
+        self.assertEqual(style.conclusion_violations(html), [])
+        self.assertEqual(style.label_violations(html), [])
+
     def test_sec_gets_noun_check(self):
         self.assertTrue(has(style.label_violations(sec_page(OK_TITLE, sec="결과를 정리했다")), "라벨이 명사구가 아님"))
         self.assertTrue(has(style.label_violations(sec_page(OK_TITLE, sec="가" * 19)), "라벨이 명사구가 아님"))

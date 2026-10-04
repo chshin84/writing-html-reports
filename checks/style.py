@@ -62,6 +62,11 @@ TITLE_MAX = 40  # 결론 제목은 공백 포함 40자 이하
 SENTENCE_END = re.compile(r"[가-힣]다\.?$")
 
 
+BLOCK = {"address", "article", "aside", "blockquote", "div", "dl", "fieldset", "figure", "footer", "form",
+         "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "main", "nav", "ol", "p", "pre", "section",
+         "table", "ul"}
+
+
 class _Heads(HTMLParser):
     """모든 h2의 (시작 위치, 글자)와, section.page마다 직계 <p class="sec"> 유무와 직계 h2를 모은다."""
 
@@ -76,6 +81,8 @@ class _Heads(HTMLParser):
         if tag in VOID:
             return
         cls = (dict(attrs).get("class") or "").split()
+        if tag in BLOCK and self.stack and self.stack[-1][0] == "p":
+            self.stack.pop()  # 블록 요소가 시작되면 닫는 태그 없는 p는 HTML 규칙대로 먼저 닫힌다
         top = self.stack[-1] if self.stack else None
         if tag == "h2":
             line, col = self.getpos()
@@ -136,7 +143,7 @@ def conclusion_violations(new_html, old_html=None):
 
 HANGUL = re.compile("[가-힣]")
 LABEL_TAGS = re.compile(r'<(title|h1|h2|h3|caption|th)\b[^>]*>(.*?)</\1>|<span class="(?:t|k)">(.*?)</span>'
-                        r'|<p class="sec">(.*?)</p>', re.S)
+                        r'|<p class="[^"]*\bsec\b[^"]*">(.*?)(?:</p>|(?=<(?:h[1-6]|ul|ol|div|p|table|dl|figure|section)\b))', re.S)
 LABEL_MAX = {"title": 24, "h1": 24}  # 나머지 라벨(절 이름 .sec 포함)은 18자
 
 
