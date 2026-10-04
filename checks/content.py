@@ -1,5 +1,7 @@
 """페이지 근거·핵심 페이지(별) 표시·점수표·새 규약 문서(약어 풀이·마무리 보고서) 규칙. C3(보고서 내용 규격) 소유."""
 import re
+from collections import Counter
+from html.parser import HTMLParser
 
 from checks.common import PAGE_ID, TOC, TextOnly, visible_text
 
@@ -199,8 +201,9 @@ PARTS = {"changed": "바뀐 것", "achieved": "처음 요청 대비 달성", "re
 PAGE_OPEN = re.compile(r'<section class="page[^"]*" id="p\d+"([^>]*)>')  # PAGE_ID와 같은 모양의 여는 태그
 PART = re.compile(r'\bdata-part="([^"]+)"')
 BASIS = re.compile(r'<p\b[^>]*\bclass="(?:[^"]*\s)?basis(?:\s[^"]*)?"[^>]*>(.*?)</p>', re.S)
+HASH = r"(?<![0-9A-Za-z])(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![0-9A-Za-z])"  # 커밋 해시
 REF = re.compile(
-    r"(?<![0-9A-Za-z])(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![0-9A-Za-z])"  # 커밋 해시
+    HASH +
     r"|[\w.-]*[/\\][\w./\\-]*\w\.[A-Za-z]\w{0,5}(?![0-9A-Za-z])"  # 확장자가 붙은 경로
     r"|[\w-]+\.(?:md|html|csv|json|py|txt|xlsx|pdf|yaml|yml)(?![0-9A-Za-z])")  # 알려진 확장자가 붙은 이름
 
@@ -240,6 +243,146 @@ def basis_violations(html, old_html=None):
     return [f for f in _basis_problems(html) if f.split(":")[0] not in old]
 
 
+FILE_LINE = re.compile(r"[\w./\-]*\w\.[A-Za-z]\w{0,5}:\d+")  # 파일:줄
+RUN_SRC = re.compile(HASH + "|" + FILE_LINE.pattern)
+DOC_PATH = re.compile(r"\S+\.(?:md|html|pdf|docx|pptx|hwp)")  # 읽는 문서. 줄 번호 없이는 실행 원자료가 아니다
+LINE_TAGS = ("li", "p", "tr", "dd")  # 한 줄로 보는 요소. 겹치면 바깥 요소가 한 줄이다
+NEST = ("ul", "ol", "dl", "table")  # 이 요소가 열려 있으면 같은 이름의 줄 요소는 중첩이다
+VOID = ("br", "img", "hr", "meta", "link", "input", "wbr", "source", "col", "area", "base", "embed", "track")
+
+
+class Lines(HTMLParser):
+    """줄(li·p·tr·dd)마다 글, code 요소 안의 글, 링크, 확인 상태, 요약(.gist) 안인지, 첫 data-part 절 앞인지를 모은다.
+    닫지 않은 li·p·tr·dd는 같은 이름의 형제 요소가 열릴 때 닫는다."""
+
+    def __init__(self):
+        super().__init__()
+        self.stack, self.lines, self.cur, self.cur_depth, self.part_seen, self.skip = [], [], None, 0, False, 0
+        self.ids, self.in_code = set(), 0
+
+    def _finish(self):
+        self.cur["text"] = re.sub(r"\s+", " ", "".join(self.cur["text"])).strip()
+        self.lines.append(self.cur)
+        self.cur = None
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if a.get("id"):
+            self.ids.add(a["id"])
+        if tag == "section" and "data-part" in a:
+            self.part_seen = True
+        if tag in ("script", "style"):
+            self.skip += 1
+        if (self.cur is not None and tag == self.cur["tag"]
+                and not any(t in NEST for t, _ in self.stack[self.cur_depth:])):
+            del self.stack[self.cur_depth - 1:]  # 닫지 않은 형제 줄
+            self._finish()
+        if tag not in VOID:
+            self.stack.append((tag, (a.get("class") or "").split()))
+        if tag in LINE_TAGS and self.cur is None:
+            gist = tag == "li" and any("gist" in c for _, c in self.stack)
+            self.cur = dict(tag=tag, text=[], codes=[], links=[], state=None, gist=gist, head=not self.part_seen)
+            self.cur_depth = len(self.stack)
+        if self.cur is not None:
+            if tag == "code":
+                self.in_code += 1
+                self.cur["codes"].append("")
+            if tag == "a" and a.get("href"):
+                self.cur["links"].append(a["href"])
+            if a.get("data-state") and self.cur["state"] != "run":
+                self.cur["state"] = a["data-state"]
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style") and self.skip:
+            self.skip -= 1
+        if tag == "code" and self.in_code:
+            self.in_code -= 1
+        for i in range(len(self.stack) - 1, -1, -1):
+            if self.stack[i][0] == tag:
+                del self.stack[i:]
+                break
+        if self.cur is not None and len(self.stack) < self.cur_depth:
+            self._finish()
+
+    def handle_data(self, data):
+        if self.cur is not None and not self.skip:
+            self.cur["text"].append(data)
+            if self.in_code and self.cur["codes"]:
+                self.cur["codes"][-1] += data
+
+
+def lines(html):
+    """(줄 목록, 문서의 id 집합)."""
+    parser = Lines()
+    parser.feed(html)
+    parser.close()
+    if parser.cur is not None:
+        parser._finish()
+    return parser.lines, parser.ids
+
+
+def _subtract(found, old_html, fn):
+    """원본(old_html)에도 같은 줄의 위반이 있으면 그 개수만큼 뺀다. found는 (줄 글, 위반 문장) 목록이다."""
+    old = Counter(t for t, _ in fn(old_html)) if old_html is not None else Counter()
+    out = []
+    for text, msg in found:
+        if old[text]:
+            old[text] -= 1
+        else:
+            out.append(msg)
+    return out
+
+
+def _run_source(x):
+    """실행 원자료: 문서 경로만 든 것이 아닌 code 요소, 파일:줄, 커밋 해시."""
+    real_code = any(c.strip() and not DOC_PATH.fullmatch(c.strip()) for c in x["codes"])
+    return real_code or RUN_SRC.search(x["text"])
+
+
+def _run_problems(html):
+    return [(x["text"], f"실행 확인 줄에 원자료 없음: {x['text'][:40]}") for x in lines(html)[0]
+            if x["state"] == "run" and not _run_source(x)]
+
+
+def run_source_violations(html, old_html=None):
+    """마무리 보고서에서 실행 확인(data-state="run") 줄에 원자료(code 요소·파일:줄·커밋 해시)가 없으면 검출한다.
+    code 안의 글이 문서 경로(.md·.html 등)뿐이면 읽은 내용이므로 원자료로 세지 않는다. 수정 전 문서에도 있던 줄은 뺀다."""
+    if not WRAPUP.search(html):
+        return []
+    return _subtract(_run_problems(html), old_html, _run_problems)
+
+
+def section_names(html):
+    """「절 이름」으로 가리킬 수 있는 이름: 절 이름(p.sec), 요약 상자 밖의 h2·h3 제목, 다섯 필수 절 이름."""
+    body = re.sub(r'<div\b[^>]*\bclass="(?:[^"]*\s)?gist(?:\s[^"]*)?"[^>]*>.*?</div>', "", html, flags=re.S)
+    names = {strip_tags(t) for t in SEC.findall(body) + re.findall(r"<h[23]\b[^>]*>(.*?)</h[23]>", body, re.S)}
+    return names | set(PARTS.values())
+
+
+def _summary_problems(html):
+    names = section_names(html)
+    found, ids = lines(html)
+    out = []
+    for x in found:
+        if not (x["gist"] or (x["head"] and x["state"])):
+            continue
+        linked = any(h[1:] in ids if h.startswith("#") else True for h in x["links"])
+        named = any(n in names for n in re.findall(r"「([^」]+)」", x["text"]))
+        if not (linked or any(c.strip() for c in x["codes"]) or named
+                or REF.search(x["text"]) or FILE_LINE.search(x["text"])):
+            out.append((x["text"], f"요약 줄에 근거 위치 없음: {x['text'][:40]}"))
+    return out
+
+
+def summary_source_violations(html, old_html=None):
+    """마무리 보고서의 요약 줄(.gist의 li)과 첫 data-part 절 앞의 확인 상태 줄에 보이는 근거 위치가 없으면 검출한다.
+    근거 위치: 문서에 있는 id로 가는 링크나 외부 링크, 「절 이름」, code 요소, 커밋 해시, 파일 경로, 파일:줄.
+    data-src는 독자에게 보이지 않아 세지 않는다."""
+    if not WRAPUP.search(html):
+        return []
+    return _subtract(_summary_problems(html), old_html, _summary_problems)
+
+
 RULES = [
     (star_violations, "plain"),
     (score_violations, "drop"),
@@ -247,4 +390,6 @@ RULES = [
     (abbr_violations, "old"),
     (parts_violations, "old"),
     (basis_violations, "old"),
+    (run_source_violations, "old"),
+    (summary_source_violations, "old"),
 ]

@@ -292,6 +292,135 @@ class Basis(unittest.TestCase):
         self.assertEqual(content.basis_violations(page(body="<p>글</p>")), [])
 
 
+RUN = '<span class="state" data-state="run">실행으로 확인함</span>'
+INFER = '<span class="state" data-state="infer">추론함</span>'
+
+
+class RunSource(unittest.TestCase):
+    """실행 확인 줄(data-state="run")에 원자료(code 요소, 파일:줄, 커밋 해시)가 같은 줄에 있는지 본다."""
+
+    def fails(self, line, old=None):
+        html = wrapup(f"<ul>{line}</ul>" + PARTS_ALL)
+        return content.run_source_violations(html, None if old is None else wrapup(f"<ul>{old}</ul>" + PARTS_ALL))
+
+    def test_code_ok(self):
+        self.assertEqual(self.fails(f"<li>{RUN} 시험 18건 통과(<code>python -m pytest</code>)</li>"), [])
+
+    def test_file_line_ok(self):
+        self.assertEqual(self.fails(f"<li>{RUN} 검사 함수가 있다(checks/content.py:120)</li>"), [])
+
+    def test_commit_ok(self):
+        self.assertEqual(self.fails(f"<li>{RUN} 커밋 b2cfc00에서 바뀌었다</li>"), [])
+
+    def test_table_row_ok(self):
+        row = f"<table><tr><td>{RUN} 단위 시험</td><td><code>python -m pytest</code></td></tr></table>"
+        self.assertEqual(content.run_source_violations(wrapup(row + PARTS_ALL)), [])
+
+    def test_missing(self):
+        self.assertEqual(self.fails(f"<li>{RUN} 설계대로 동작한다</li>"),
+                         ["실행 확인 줄에 원자료 없음: 실행으로 확인함 설계대로 동작한다"])
+
+    def test_plain_path_is_not_source(self):
+        self.assertEqual(len(self.fails(f"<li>{RUN} spec docs/a-design.md를 읽었다</li>")), 1)
+
+    def test_doc_path_code_is_not_source(self):
+        self.assertEqual(len(self.fails(f"<li>{RUN} 기준값은 0.5다(<code>docs/a-design.md</code>)</li>")), 1)
+
+    def test_doc_path_with_line_ok(self):
+        self.assertEqual(self.fails(f"<li>{RUN} 기준값은 0.5다(<code>docs/a-design.md:42</code>)</li>"), [])
+
+    def test_unclosed_items_are_separate_lines(self):
+        self.assertEqual(len(self.fails(f"<li>{RUN} 설계대로 동작한다<li>{RUN} 시험(<code>python -m pytest</code>)")), 1)
+
+    def test_old_has_other_violation(self):
+        self.assertEqual(len(self.fails(f"<li>{RUN} 경계 조건 B도 맞다</li>", f"<li>{RUN} 경계 조건 A가 맞다</li>")), 1)
+
+    def test_paged_violation(self):
+        pages = "".join(f'<section class="page" id="p{i}" data-part="{p}"><h2>절</h2><ul><li>{RUN} 동작한다</li></ul></section>'
+                        for i, p in enumerate(PART_IDS, 1))
+        self.assertEqual(len(content.run_source_violations(wrapup(pages))), 5)
+
+    def test_infer_not_checked(self):
+        self.assertEqual(self.fails(f"<li>{INFER} 설계대로 동작한다</li>"), [])
+
+    def test_old_same(self):
+        line = f"<li>{RUN} 설계대로 동작한다</li>"
+        self.assertEqual(self.fails(line, line), [])
+
+    def test_new_convention_not_wrapup(self):
+        self.assertEqual(content.run_source_violations(new_doc(f"<ul><li>{RUN} 글</li></ul>")), [])
+
+
+class SummarySource(unittest.TestCase):
+    """머리말·요약 줄(첫 data-part 절 앞의 .gist 항목과 확인 상태가 붙은 줄)에 보이는 근거 위치가 있는지 본다."""
+
+    def fails(self, gist, head="", old=None):
+        def doc(g):
+            return wrapup(f'{head}<div class="gist"><h2>요약</h2><ul>{g}</ul></div>' + PARTS_ALL)
+        return content.summary_source_violations(doc(gist), None if old is None else doc(old))
+
+    def test_link_ok(self):
+        html = wrapup('<div class="gist"><ul><li data-src="p2">결론이다(<a href="#p2">바뀐 것</a>)</li></ul></div>'
+                      + PARTS_ALL.replace('data-part="changed"', 'id="p2" data-part="changed"'))
+        self.assertEqual(content.summary_source_violations(html), [])
+
+    def test_dangling_link(self):
+        self.assertEqual(len(self.fails('<li>결론이다(<a href="#p9">없는 절</a>)</li>')), 1)
+
+    def test_external_link_ok(self):
+        self.assertEqual(self.fails('<li>결론이다(<a href="https://example.com/log">실행 기록</a>)</li>'), [])
+
+    def test_gist_title_is_not_section(self):
+        self.assertEqual(len(self.fails("<li>결론이다(「요약」)</li>")), 1)
+
+    def test_gist_paragraph_not_checked(self):
+        html = wrapup('<div class="gist"><p>아래는 결론입니다.</p><ul><li>결론(「남은 일」)</li></ul></div>' + PARTS_ALL)
+        self.assertEqual(content.summary_source_violations(html), [])
+
+    def test_paged_violation(self):
+        p1 = '<section class="page" id="p1"><div class="gist"><ul><li data-src="p2">결론이다</li></ul></div></section>'
+        pages = "".join(f'<section class="page" id="p{i}" data-part="{p}"><h2>절</h2></section>'
+                        for i, p in enumerate(PART_IDS, 2))
+        self.assertEqual(content.summary_source_violations(wrapup(p1 + pages)), ["요약 줄에 근거 위치 없음: 결론이다"])
+
+    def test_section_name_ok(self):
+        self.assertEqual(self.fails("<li>결론이다(「결정 요청」 참조)</li>"), [])
+
+    def test_unknown_section_name(self):
+        self.assertEqual(len(self.fails("<li>결론이다(「없는 절」 참조)</li>")), 1)
+
+    def test_code_ok(self):
+        self.assertEqual(self.fails("<li>결론이다(<code>logs/run.txt</code>)</li>"), [])
+
+    def test_commit_or_path_ok(self):
+        self.assertEqual(self.fails("<li>결론이다(커밋 b2cfc00, docs/a-design.md)</li>"), [])
+
+    def test_data_src_alone_is_hidden(self):
+        self.assertEqual(self.fails('<li data-src="p2">결론이다</li>'),
+                         ["요약 줄에 근거 위치 없음: 결론이다"])
+
+    def test_head_line_with_state(self):
+        head = f'<header class="doc-head"><p class="lede">{INFER} 33개 시도가 모두 빠진다</p></header>'
+        self.assertEqual(self.fails('<li>결론이다(「남은 일」)</li>', head),
+                         [f"요약 줄에 근거 위치 없음: 추론함 33개 시도가 모두 빠진다"])
+
+    def test_head_line_without_state_not_checked(self):
+        head = '<header class="doc-head"><p class="lede">이 보고서는 무엇을 했는가?</p></header>'
+        self.assertEqual(self.fails('<li>결론이다(「남은 일」)</li>', head), [])
+
+    def test_body_section_not_checked(self):
+        html = wrapup('<div class="gist"><ul><li>결론(「남은 일」)</li></ul></div>'
+                      + PARTS_ALL.replace("<h2>절</h2>", f"<h2>절</h2><ul><li>{INFER} 근거 없는 줄</li></ul>"))
+        self.assertEqual(content.summary_source_violations(html), [])
+
+    def test_old_same(self):
+        self.assertEqual(self.fails("<li>결론이다</li>", old="<li>결론이다</li>"), [])
+
+    def test_new_convention_not_wrapup(self):
+        html = new_doc('<div class="gist"><ul><li>결론이다</li></ul></div>')
+        self.assertEqual(content.summary_source_violations(html), [])
+
+
 class FixedNoFalsePositive(unittest.TestCase):
     """새 규칙은 고정 견본과 template.html(새 규약 문서가 아님)에 위반을 내지 않는다."""
 
@@ -299,7 +428,16 @@ class FixedNoFalsePositive(unittest.TestCase):
         files = sorted((ROOT / "bench" / "fixed").glob("*.html")) + [ROOT / "template.html"]
         for f in files:
             html = f.read_text(encoding="utf-8")
-            for fn in (content.abbr_violations, content.parts_violations, content.basis_violations):
+            for fn in (content.abbr_violations, content.parts_violations, content.basis_violations,
+                       content.run_source_violations, content.summary_source_violations):
+                self.assertEqual(fn(html), [], f"{f.name} {fn.__name__}")
+
+    def test_source_rules_zero_on_samples(self):
+        """원자료·근거 위치 규칙은 마무리 보고서 견본에 위반을 내지 않는다.
+        template-paged.html은 마무리 보고서 표시가 없어 적용 대상이 아님을 확인한다."""
+        for f in (ROOT / "template-paged.html", ROOT / "examples" / "wrapup.html"):
+            html = f.read_text(encoding="utf-8")
+            for fn in (content.run_source_violations, content.summary_source_violations):
                 self.assertEqual(fn(html), [], f"{f.name} {fn.__name__}")
 
 

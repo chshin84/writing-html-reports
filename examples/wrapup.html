@@ -251,11 +251,11 @@ footer p{margin:0 0 4px}
   <div class="gist">
     <h2>요약</h2>
     <ul>
-      <li data-src="p2">새 스크립트는 통합 CSV의 열 순서가 매달 같다는 전제에 기대므로, 순서가 바뀌면 멈추도록 열 이름 검사를 넣었습니다.</li>
-      <li data-src="p3">미완 요청은 PDF 출력이며, 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제입니다.</li>
-      <li data-src="p4">PDF 보완이 10월 마감 실행보다 2주 이상 먼저 끝나므로 10월 표부터 PDF를 함께 냅니다.</li>
-      <li data-src="p5">결측 기준가 처리는 10월 마감 실행 전에 정해야 하며, 권장안은 결측을 감추지 않는 빈 칸 표시입니다.</li>
-      <li data-src="p6">PDF 화면을 아직 확인하지 않았으므로 보완이 끝나기 전에는 PDF를 외부에 보내지 않습니다.</li>
+      <li data-src="p2">새 스크립트는 통합 CSV의 열 순서가 매달 같다는 전제에 기대므로, 순서가 바뀌면 멈추도록 열 이름 검사를 넣었습니다(<a href="#p2">바뀐 것</a>).</li>
+      <li data-src="p3">미완 요청은 PDF 출력이며, 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제입니다(<a href="#p3">처음 요청 대비 달성</a>).</li>
+      <li data-src="p4">PDF 보완 예정일(10월 15일)이 10월 마감 실행(10월 31일)보다 2주 이상 앞서므로, 일정대로 끝나면 10월 표부터 PDF를 함께 냅니다. 보완은 아직 끝나지 않았고 이 일정은 작업 기록 기준입니다(<a href="#p4">남은 일</a>).</li>
+      <li data-src="p5">결측 기준가 처리는 10월 마감 실행 전에 정해야 하며, 권장안은 결측을 감추지 않는 빈 칸 표시입니다(<a href="#p5">결정 요청</a>).</li>
+      <li data-src="p6">PDF 화면을 아직 확인하지 않았으므로 보완이 끝나기 전에는 PDF를 외부에 보내지 않습니다(<a href="#p6">검증 범위</a>).</li>
     </ul>
   </div>
   <dl class="gloss">
@@ -323,7 +323,7 @@ footer p{margin:0 0 4px}
   <ul class="pts">
     <li><span class="state" data-state="infer">추론함</span> 시간 요청과 수작업 제거 요청은 원자료 일괄 읽기 하나로 함께 풀렸다고 판단합니다.</li>
     <li><span class="state" data-state="run">실행으로 확인함</span> PDF 출력의 미달 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제 하나입니다(<code>logs/pdf-check-0930.txt</code>).</li>
-    <li><span class="state" data-state="infer">추론함</span> 펀드가 늘어도 개발자 없이 운용지원팀이 설정 파일만으로 대응할 수 있습니다.</li>
+    <li><span class="state" data-state="infer">추론함</span> 시험 펀드 1개를 추가한 시험이 통과했으므로(<code>tests/test_funds.py</code>), 펀드가 늘어도 개발자 없이 운용지원팀이 설정 파일만으로 대응할 수 있다고 판단합니다. 여러 펀드를 한꺼번에 추가하는 조건은 시험하지 않았습니다.</li>
   </ul>
   <p class="blk"><b>근거</b></p>
   <div class="tbl"><table>
@@ -358,7 +358,7 @@ footer p{margin:0 0 4px}
   <p class="sec">남은 일</p>
   <h2>남은 일 3건 중 10월 마감 전 처리는 1건뿐이다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="infer">추론함</span> 보완은 10월 마감 실행보다 2주 이상 앞서 끝나므로, 일정이 며칠 밀려도 10월 표부터 PDF를 함께 낼 여유가 있습니다.</li>
+    <li><span class="state" data-state="infer">추론함</span> 보완 예정일(10월 15일)이 10월 마감 실행보다 2주 이상 앞서므로, 일정이 며칠 밀려도 10월 표부터 PDF를 함께 낼 수 있다고 판단합니다. 보완은 아직 끝나지 않았습니다.</li>
     <li><span class="state" data-state="run">실행으로 확인함</span> 8월 표를 새 스크립트로 다시 만들어 대조한 결과 옛 표와 차이가 없었습니다(<code>python compare.py 2026-08</code> 출력 <code>차이 0건</code>).</li>
     <li><span class="state" data-state="assume">가정함</span> 서버 측정을 미뤄도 10월 마감 실행은 요청 기준 시간 안에 끝난다고 가정합니다.</li>
     <li><span class="state" data-state="infer">추론함</span> 결측 기준가 처리를 빈 칸 표시로 정하면 PDF 보완 범위에 빈 칸 표기 규칙이 추가됩니다(<a href="#p5">결정 요청</a> 참조).</li>
@@ -393,7 +393,7 @@ footer p{margin:0 0 4px}
   <p class="sec">결정 요청</p>
   <h2>펀드의 2.5%인 결측 기준가는 빈 칸 표시를 권장한다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="run">실행으로 확인함</span> 10월 마감 실행 전에 정하지 않으면 현행 설정인 직전 값 채움이 그대로 적용됩니다(<code>config.yaml</code>의 <code>missing: ffill</code>).</li>
+    <li><span class="state" data-state="infer">추론함</span> 현행 설정이 직전 값 채움이므로(<code>config.yaml:12</code>의 <code>missing: ffill</code>), 10월 마감 실행 전에 정하지 않으면 직전 값 채움이 적용된다고 판단합니다. 설정을 읽어 판단했고, 결측이 있는 달로 실행해 보지는 않았습니다.</li>
     <li><span class="state" data-state="assume">가정함</span> 빈 칸 표시를 고르면 엑셀과 PDF에 같은 표기를 넣어야 하며, 이 작업은 PDF 서식 보완 일정 안에서 끝난다고 가정합니다.</li>
     <li><span class="state" data-state="run">실행으로 확인함</span> 결정한 파일 이름 규칙은 9월 출력 파일에 이미 적용했습니다(<code>out/monthly_2026-09.xlsx</code>).</li>
   </ul>
@@ -428,7 +428,7 @@ footer p{margin:0 0 4px}
   <p class="sec">검증 범위</p>
   <h2>검증 항목 4개 중 2개만 실행으로 확인했다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="run">실행으로 확인함</span> 단위 시험은 결측 기준가와 설정 첫 달 같은 경계 조건의 수익률 계산을 포함합니다(<code>tests/test_returns.py</code>).</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 결측 기준가와 설정 첫 달 같은 경계 조건의 수익률 계산 시험이 통과했습니다(<code>python -m pytest tests/test_returns.py</code> 출력 <code>6 passed</code>).</li>
     <li><span class="state" data-state="infer">추론함</span> PDF 화면을 확인하기 전에는 서식 오류가 외부에 나갈 수 있으므로, PDF 배포는 보완 뒤로 미룹니다.</li>
     <li><span class="state" data-state="assume">가정함</span> 9월 수작업 수정본의 값이 올바르다고 가정하고 대조 기준으로 썼습니다.</li>
   </ul>
