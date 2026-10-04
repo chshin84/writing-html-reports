@@ -555,6 +555,22 @@
     tl.to(o, { v: 1, duration: 0.01, onUpdate: function () { box.t.textContent = o.v > 0 ? text : prev; } }, at); // 되감으면 앞 단계 글로 돌아간다
     box.text = text;
   }
+  function keepInView(fig, it, reduce) { // 현재 노드와 설명 상자가 창 밖이면 가장 가까운 위치로 옮긴다. figure가 화면과 겹칠 때만 한다
+    var f = fig.getBoundingClientRect(), H = innerHeight, M = 16;
+    if (!f.width || f.bottom <= 0 || f.top >= H) return;
+    var els = [it.active].concat(it.noteOn ? [].slice.call(fig.querySelectorAll('.rc-note')) : []).filter(Boolean);
+    var rs = els.map(function (e) { return e.getBoundingClientRect(); }).filter(function (r) { return r.width || r.height; });
+    if (!rs.length) return;
+    var how = reduce ? 'auto' : 'smooth', sb = it.active && it.active.closest && it.active.closest('.rc-scroll');
+    var top = Math.min.apply(null, rs.map(function (r) { return r.top; })), bot = Math.max.apply(null, rs.map(function (r) { return r.bottom; }));
+    var dy = bot - top > H - 2 * M || top < M ? top - M : bot > H - M ? bot - H + M : 0;
+    if (sb) { // 390 폭 스크롤 상자 안에서는 가로로도 옮긴다
+      var s = sb.getBoundingClientRect(), lf = Math.min.apply(null, rs.map(function (r) { return r.left; })), rt = Math.max.apply(null, rs.map(function (r) { return r.right; }));
+      var dx = rt - lf > s.width || lf < s.left ? lf - s.left - M : rt > s.right ? rt - s.right + M : 0;
+      if (dx) sb.scrollBy({ left: dx, behavior: how });
+    }
+    if (dy) scrollBy({ top: dy, behavior: how });
+  }
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -708,7 +724,7 @@
           activeEl = a;
           if (a) a.setAttribute('data-rc-active', '');
         }
-        /* Task 7: pend 처리(keepInView) */
+        if (pend !== null && t >= info[pend].start + 1e-3) { var k = pend; pend = null; keepInView(fig, info[k], reduce); }
       }
       function stop() {
         tl.pause();

@@ -484,5 +484,28 @@ class EnginePeep(EngineCase):
         self.assertEqual(r, {"note": 1, "peep": 0})
 
 
+# 자막 높이가 바뀔 때 브라우저의 스크롤 앵커링이 scrollY를 옮기지 않도록 끈다. 엔진이 옮긴 스크롤만 본다
+TALL = """<style>html{overflow-anchor:none}</style><div style="height:300px"></div><figure id="d1" data-anim="구조"><svg viewBox="0 0 400 1600" width="400" height="1600">
+<rect id="top" x="20" y="20" width="100" height="40" fill="none" stroke="currentColor"/>
+<rect id="bot" x="20" y="1500" width="100" height="40" fill="none" stroke="currentColor"/></svg></figure><div style="height:2000px"></div>"""
+TALL_JS = ("RC.demo(document.getElementById('d1'),[{name:'가',text:'위 상자입니다.',play:function(tl,$){tl.to($('top'),{strokeWidth:2,duration:0.3});}},"
+           "{name:'나',text:'아래 상자입니다.',play:function(tl,$){tl.to($('bot'),{strokeWidth:2,duration:0.3});}}]);")
+
+
+class EngineScroll(EngineCase):
+    def test_scrolls_when_figure_on_screen(self):
+        p = self.open(TALL, TALL_JS)
+        self.assertEqual(self.js(p, "() => scrollY"), 0)  # 문서를 열 때는 스크롤하지 않는다
+        r = self.js(p, "async () => { scrollTo(0, 300); await __c0.toStep('d1', 0); await __c0.toStep('d1', 1);"
+                       " const b = document.getElementById('bot').getBoundingClientRect(); return [b.top, b.bottom, innerHeight]; }")
+        self.assertTrue(0 <= r[0] and r[1] <= r[2], r)
+
+    def test_no_scroll_when_figure_off_screen(self):
+        p = self.open(TALL, TALL_JS)
+        r = self.js(p, "async () => { scrollTo(0, 3500); const y = scrollY; const f = document.getElementById('d1');"
+                       " f._rcTl.seek('e1', false); f._rcTl.seek('e0', false); await new Promise(r => setTimeout(r, 400)); return [y, scrollY]; }")
+        self.assertEqual(r[0], r[1])
+
+
 if __name__ == "__main__":
     unittest.main()
