@@ -430,5 +430,59 @@ class EngineNote(EngineCase):
             self.assertTrue(s["near"], s)
 
 
+class EnginePeep(EngineCase):
+    def peeps(self, p, i):
+        return self.js(p, """([i]) => { const f = document.getElementById('d1'); f._rcTl.seek('e' + i, false);
+          return [...f.querySelectorAll('.rc-icon')].filter(g => +getComputedStyle(g).opacity > 0.05).map(g => g.dataset.rcPeep).sort(); }""", [i])
+
+    def test_think_then_done(self):
+        p = self.open(MMD_WIDE, mmd_steps(FLOW))
+        self.assertEqual([self.peeps(p, i) for i in range(3)], [[], ["person"], ["person-done"]])
+
+    def test_neg_step_after_diamond_fails(self):  # 판정 색은 이번 단계의 강조 색으로 정한다
+        spec = [FLOW[0], ("시나리오 A · 검증", "한도를 넘습니다.", "B", None), ("시나리오 A · 거부", "주문을 거부합니다.", "D", "neg")]
+        p = self.open(MMD_WIDE, mmd_steps(spec))
+        self.assertEqual([self.peeps(p, i) for i in range(3)], [[], ["person"], ["person-fail"]])
+
+    def test_neg_non_diamond_has_no_peep(self):
+        spec = [("가", "거부합니다.", "D", "neg"), ("나", "접수합니다.", "A", None)]
+        p = self.open(MMD_WIDE, mmd_steps(spec))
+        self.assertEqual([self.peeps(p, i) for i in range(2)], [[], []])
+
+    def test_author_icon_means_no_auto_peep(self):
+        script = "RC.ready.then(function(){RC.icon(document.querySelector('#d1 svg'),'check',10,10);" + mmd_steps(FLOW) + "});"
+        p = self.open(MMD_WIDE, script)
+        self.assertEqual([g for i in range(3) for g in self.peeps(p, i) if g], [])
+
+    def test_prev_and_reset_restore_state(self):  # '이전'·'처음부터' 뒤 설명 상자 글·현재 노드·스틱맨이 그 단계 상태다
+        p = self.open(MMD_WIDE, mmd_steps(FLOW))
+        r = self.js(p, """() => { const f = document.getElementById('d1'), b = f.querySelectorAll('.demo-ctl button');
+          const st = () => ({note: f.querySelector('svg .rc-note').textContent.trim(),
+            act: [...f.querySelectorAll('[data-rc-active]')].map(e => e.closest('g.node').id.replace(/.*flowchart-/, '').replace(/-\\d+$/, '')),
+            peep: [...f.querySelectorAll('.rc-icon')].filter(g => +getComputedStyle(g).opacity > 0.05).map(g => g.dataset.rcPeep)});
+          f._rcTl.seek('e2', false); b[0].click(); const one = st(); b[3].click(); const zero = st();
+          return {one, zero: {act: zero.act, peep: zero.peep, op: +getComputedStyle(f.querySelector('svg .rc-note')).opacity}}; }""")
+        self.assertEqual(r["one"], {"note": "한도 이내입니다.", "act": ["B"], "peep": ["person"]})
+        self.assertEqual(r["zero"], {"act": [], "peep": [], "op": 0})
+
+    def test_note_without_peep_room_drops_peep(self):  # 상자만 들어가고 스틱맨 칸이 없으면 상자만 두고 스틱맨은 두지 않는다
+        # 마름모 B 오른쪽에 상자 하나만 들어갈 빈칸(폭 232, 높이 60)을 남기고 나머지를 직사각형으로 막는다
+        block = """RC.ready.then(function(){var s=document.querySelector('#d1 svg'),inv=s.getScreenCTM().inverse(),
+          n=[].filter.call(s.querySelectorAll('g.node'),function(g){return /-flowchart-B-\\d+$/.test(g.id);})[0].querySelector('polygon'),
+          r=n.getBoundingClientRect(),p=new DOMPoint(r.left,r.top).matrixTransform(inv),q=new DOMPoint(r.right,r.bottom).matrixTransform(inv),
+          m=(p.y+q.y)/2,W=3000,L=q.x+5,R=q.x+232,T=m-30,B=m+30;
+          function bx(x,y,w,h){var e=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            e.setAttribute('x',x);e.setAttribute('y',y);e.setAttribute('width',w);e.setAttribute('height',h);
+            e.setAttribute('fill','none');e.setAttribute('stroke','currentColor');s.appendChild(e);}
+          bx(p.x-W,p.y-W,W-1,2*W);bx(p.x-W,p.y-W,2*W,W-1);bx(p.x-W,q.y+1,2*W,W);
+          bx(L,p.y-W,W,T-p.y+W);bx(L,B,W,W);bx(R,T,W,B-T);"""
+        script = block + "RC.demo(document.getElementById('d1'),[{name:'가',text:'한도를 봅니다.',play:function(tl,$){RC.fx.mark(tl,$('B'));}}]);});"
+        p = self.open(MMD_WIDE, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          return {note: +getComputedStyle(f.querySelector('svg .rc-note')).opacity,
+                  peep: [...f.querySelectorAll('.rc-icon')].filter(g => +getComputedStyle(g).opacity > 0.05).length}; }""")
+        self.assertEqual(r, {"note": 1, "peep": 0})
+
+
 if __name__ == "__main__":
     unittest.main()

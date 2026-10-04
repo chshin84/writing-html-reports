@@ -600,12 +600,15 @@
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
       var capPrev = null;
       var memo = { author: new Set(), fill: new Map() }, prevActive = null;
-      var stage = fig.querySelector('svg'), restore = reveal(fig);
+      var stage = fig.querySelector('svg'), restore = null;
+      try { // 펼친 figure는 빌드가 어떻게 끝나도 되돌린다
+      restore = reveal(fig);
       var box = stage && !authored.note.has(fig) && !stage.querySelector('.rc-note') ? autoNote(stage) : null;
       var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
-      /* Task 6: usePeep, hideNext, prevIt, NEG */
-      var usePeep = false;
+      var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
+      var hideNext = [], prevIt = null, NEG = tok('neg');
+      if (box) tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 자동 상자·스틱맨 설정을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
           var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
@@ -623,7 +626,12 @@
           it.diamond = mmdShape(it.active) && it.active.tagName.toLowerCase() === 'polygon';
           styleNodes(tl, sub, it.active, prevActive, start, memo);
           prevActive = it.active;
-          /* Task 6: 앞 단계 스틱맨 숨김과 판정 스틱맨 */
+          if (hideNext.length) tl.set(hideNext, { opacity: 0 }, start);
+          hideNext = [];
+          if (prevIt && prevIt.think) { // 바로 앞 단계의 마름모 옆 스틱맨을 판정으로 바꾼다. 색은 이번 단계의 강조 색으로 정한다
+            var vd = peepEl(stage, it.color === NEG ? 'person-fail' : 'person-done', prevIt.think.x + PEEP / 2, prevIt.think.y + PEEP / 2, PEEP);
+            tl.set(vd, { opacity: 1 }, start); hideNext.push(vd);
+          }
           var animEnd = Math.max(sub.endTime(), tl.duration());
           rewindTo(pre);
           if (box && vb && it.active && stage.contains(it.active) && stage.getScreenCTM()) {
@@ -635,7 +643,9 @@
               var cm = stage.getScreenCTM(), a = userBox(cm.inverse(), it.active), nh = noteHeight(box, s.text);
               var lim = Math.min(40, 44 / (Math.sqrt(Math.abs(cm.a * cm.d - cm.b * cm.c)) || 1)); // 화면 거리 44px(판정 48px) 안에 들도록 무대 단위로 바꾼다
               var peepW = usePeep && it.diamond ? PEEP + 4 : 0;
-              it.note = placeUnit(a, nh, peepW, obs, vb, lim);
+              it.note = peepW && placeUnit(a, nh, peepW, obs, vb, lim); // 스틱맨 칸까지 들어갈 위치가 없으면 상자만 둔다
+              if (it.note) it.note.think = true;
+              else it.note = placeUnit(a, nh, 0, obs, vb, lim);
               showNote(tl, box, start, it.note && it.note.note, s.text, nh);
             } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
             rewindTo(pre);
@@ -643,7 +653,12 @@
           var authorNotes = [].filter.call(fig.querySelectorAll('.rc-note'), function (n) { return !box || n !== box.g; });
           if (authorNotes.length) { tl.seek(animEnd, false); it.noteOn = authorNotes.some(function (n) { return seen(n, fig); }); rewindTo(pre); } // 작성자 상자가 단계 끝에 보이는지
           if (it.note) it.noteOn = true;
-          /* Task 6: 고민 스틱맨 */
+          it.think = usePeep && it.diamond && it.note && it.note.think ? it.note.peep : null;
+          if (it.think) {
+            var th = peepEl(stage, 'person', it.think.x + PEEP / 2, it.think.y + PEEP / 2, PEEP);
+            tl.set(th, { opacity: 1 }, start); hideNext.push(th);
+          }
+          prevIt = it;
           var pool = textPool(fig);
           rewindTo(pre);
           var before = texts(fig, pool), smp = sampleStep(tl, fig, start, animEnd, before, pool), capText = s.name + ': ' + s.text;
@@ -662,10 +677,9 @@
         console.error('RC.demo', e);
         tl.kill();
         fig.classList.add('demo-static');
-        restore();
         return;
       }
-      restore();
+      } finally { if (restore) restore(); }
       rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
       var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, last = steps.length - 1;
       var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;
