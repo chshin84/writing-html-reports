@@ -298,10 +298,12 @@
   }
   RC.fx = {
     mark: function (tl, e, color, at) {
+      if (demoStep) demoStep.mark = e && e.length != null && !e.tagName ? e[e.length - 1] : e;
       return tl.to(e, { stroke: tok(color || 'accent'), strokeWidth: 2, duration: 0.3 }, at);
     },
     unmark: function (tl, els, at) { return tl.set(els, { stroke: tok('ink'), strokeWidth: 1 }, at); },
     spot: function (tl, frame, e, color, at) { // 초점 틀을 도형 e로 옮기고, e는 현재 도형, 직전 도형은 지나온 도형으로 바꾼다
+      if (demoStep) demoStep.mark = e;
       var c = tok(color || 'accent'), b = geom(e), P = 6;
       var pts = [[b.x - P, b.y - P], [b.x + b.width + P, b.y - P], [b.x + b.width + P, b.y + b.height + P], [b.x - P, b.y + b.height + P]];
       if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3 }, at);
@@ -391,6 +393,45 @@
     });
     return { of: of, list: list };
   }
+  function authorSet(sub, e, keys) { // 이번 단계에서 작성자가 요소 e에 준 속성 값. 없으면 null
+    if (!e) return null;
+    var hit = null;
+    sub.getChildren(true, true, false).forEach(function (t) {
+      if (t.targets().indexOf(e) < 0) return;
+      keys.forEach(function (k) {
+        var v = t.vars[k] != null ? t.vars[k] : t.vars.attr && t.vars.attr[k];
+        if (v != null) { hit = hit || {}; hit[k] = v; }
+      });
+    });
+    return hit;
+  }
+  function closedShape(e) { return !!(e && /^(rect|polygon|circle|ellipse)$/i.test(e.tagName) && !e.closest('.rc-note, .rc-icon, .rc-focus')); }
+  function mmdShape(e) { return !!(e && e.closest && e.closest('pre.mermaid svg g.node')); }
+  function ownFill(e) { var f = e.style.fill || e.getAttribute('fill'); return !!f && f !== 'none'; } // 작성자가 인라인 스타일·속성으로 준 채움
+  function styleNodes(tl, sub, cur, prev, at, memo) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
+    var A = tok('accent'), K = ['stroke', 'strokeWidth', 'fill', 'fillOpacity'];
+    if (closedShape(prev) && prev !== cur) {
+      var s = authorSet(sub, prev, K) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
+      if (s.stroke == null && !memo.author.has(prev)) v.stroke = tok('accent-2'); // 작성자가 tl.to로 색을 준 적이 있으면 그 색을 둔다
+      if (s.strokeWidth == null) v.strokeWidth = 1.5;
+      if (s.fill == null && s.fillOpacity == null && memo.fill.has(prev)) { v.fill = memo.fill.get(prev).fill; v.fillOpacity = memo.fill.get(prev).op; }
+      tl.to(prev, v, at);
+    }
+    if (closedShape(cur)) {
+      var c = authorSet(sub, cur, K) || {}, w = { duration: 0.3, autoRound: false };
+      if (c.stroke == null && !memo.author.has(cur)) w.stroke = A;
+      if (c.strokeWidth == null) w.strokeWidth = 2;
+      if (c.fill == null && c.fillOpacity == null && !ownFill(cur)) {
+        if (!memo.fill.has(cur)) { var cs = getComputedStyle(cur); memo.fill.set(cur, { fill: cs.fill, op: +cs.fillOpacity }); }
+        w.fill = A; w.fillOpacity = 0.08;
+      }
+      tl.to(cur, w, at);
+    }
+    sub.getChildren(true, true, false).forEach(function (t) { // 작성자가 tl.to·tl.set으로 테두리 색을 준 요소를 기억한다
+      var v = t.vars.stroke != null ? t.vars.stroke : t.vars.attr && t.vars.attr.stroke;
+      if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
+    });
+  }
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -435,7 +476,7 @@
       var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
       var capPrev = null;
-      /* Task 4: memo, prevActive */
+      var memo = { author: new Set(), fill: new Map() }, prevActive = null;
       /* Task 5: stage, restore, box, vb */
       /* Task 6: usePeep, hideNext, prevIt, NEG */
       try {
@@ -450,7 +491,11 @@
           if (!auto && sub.duration() > STEP_MAX) sub.timeScale(sub.duration() / STEP_MAX);
           var it = { start: start, active: rec.mark || rec.last, noteOn: false, n: 0, done: start, pause: 0.3,
                      color: undefined, diamond: false, note: null, think: null };
-          /* Task 4: it.color, it.diamond, styleNodes */
+          var set = authorSet(sub, it.active, ['stroke']);
+          it.color = set ? set.stroke : undefined;
+          it.diamond = mmdShape(it.active) && it.active.tagName.toLowerCase() === 'polygon';
+          styleNodes(tl, sub, it.active, prevActive, start, memo);
+          prevActive = it.active;
           /* Task 6: 앞 단계 스틱맨 숨김과 판정 스틱맨 */
           var animEnd = Math.max(sub.endTime(), tl.duration());
           rewindTo(pre);
@@ -500,7 +545,12 @@
       function sync() {
         var t = tl.time(), i = stepAt(t);
         if (i !== at) show(i);
-        /* Task 4: data-rc-active 옮기기 */
+        var a = i < 0 ? null : t >= ends[i] - 1e-6 ? info[i].active : i > 0 ? info[i - 1].active : null;
+        if (a !== activeEl) {
+          if (activeEl) activeEl.removeAttribute('data-rc-active');
+          activeEl = a;
+          if (a) a.setAttribute('data-rc-active', '');
+        }
         /* Task 7: pend 처리(keepInView) */
       }
       function stop() {

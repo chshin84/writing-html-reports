@@ -286,5 +286,53 @@ class EngineScenario(EngineCase):
         self.assertEqual(self.js(p, "() => getComputedStyle(document.querySelector('#d1 .demo-scen')).display"), "none")
 
 
+class EngineActive(EngineCase):
+    def active_at(self, p, i):
+        return self.js(p, """([i]) => { const f = document.getElementById('d1'); f._rcTl.seek('e' + i, false);
+          return [...f.querySelectorAll('[data-rc-active]')].map(e => (e.closest('g.node') || e).id.replace(/.*flowchart-/, '').replace(/-\\d+$/, '')); }""", [i])
+
+    def test_last_lookup_and_mark_priority(self):
+        script = ("RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'조회만 합니다.',play:function(tl,$){tl.to($('A'),{strokeWidth:2,duration:0.3});$('B');}},"
+                  "{name:'나',text:'mark를 씁니다.',play:function(tl,$){RC.fx.mark(tl,$('C'));$('D');}}]);")
+        p = self.open(MMD, script)
+        self.assertEqual(self.active_at(p, 0), ["B"])
+        self.assertEqual(self.active_at(p, 1), ["C"])
+
+    def test_spot_priority_on_drawn_stage(self):
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="a" x="20" y="80" width="80" height="40" fill="none" stroke="currentColor"/>'
+                '<rect id="b" x="200" y="80" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),fr=RC.focus(st);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 단계입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('a'));$('b');}}]);")
+        p = self.open(body, script)
+        self.assertEqual(self.active_at(p, 0), ["a"])
+
+    def test_current_and_past_style_keep_author_color(self):
+        script = ("RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 단계입니다.',play:function(tl,$){$('A');}},"
+                  "{name:'나',text:'둘째 단계입니다.',play:function(tl,$){RC.fx.mark(tl,$('B'),'neg');}},"
+                  "{name:'다',text:'셋째 단계입니다.',play:function(tl,$){$('C');}}]);")
+        p = self.open(MMD, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'), cs = e => getComputedStyle(e);
+          const shape = n => [...f.querySelectorAll('g.node')].find(g => g.id.includes('-' + n + '-')).querySelector('rect, polygon');
+          const col = n => { const d = document.createElement('i'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--' + n); document.body.appendChild(d); const c = cs(d).color; d.remove(); return c; };
+          f._rcTl.seek('e2', false);
+          return {curW: cs(shape('C')).strokeWidth, curFill: +cs(shape('C')).fillOpacity, pastA: cs(shape('A')).stroke,
+                  pastAW: cs(shape('A')).strokeWidth, pastB: cs(shape('B')).stroke, pastBW: cs(shape('B')).strokeWidth,
+                  accent2: col('accent-2'), neg: col('neg')}; }""")
+        self.assertEqual(r["curW"], "2px")
+        self.assertAlmostEqual(r["curFill"], 0.08, places=2)
+        self.assertEqual((r["pastA"], r["pastAW"]), (r["accent2"], "1.5px"))  # 작성자 색이 없던 노드는 보조 강조색
+        self.assertEqual((r["pastB"], r["pastBW"]), (r["neg"], "1.5px"))     # 작성자가 준 neg 색은 유지한다
+
+    def test_active_moves_at_step_end(self):  # data-rc-active는 단계 끝 시각에 옮긴다
+        p = self.open(MMD, mmd_steps(FLOW))
+        r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl;
+          const id = () => [...f.querySelectorAll('[data-rc-active]')].map(e => e.closest('g.node').id.replace(/.*flowchart-/, '').replace(/-\\d+$/, ''));
+          tl.seek(tl.labels.e0 + 0.05, false); const mid = id(); tl.seek('e1', false); return [mid, id()]; }""")
+        self.assertEqual(r, [["A"], ["B"]])
+
+
 if __name__ == "__main__":
     unittest.main()
