@@ -1,0 +1,36 @@
+{
+ "lens": "lens-grounding",
+ "read": [
+  "C:/Users/ho381/.claude/plugins/cache/chshin-tools/disciplined-coder/4edfe8ef3073/skills/lens-grounding/SKILL.md",
+  "C:/Users/ho381/.claude/disciplined-coder/agent-principles.md",
+  "D:/projects/Structure/whr-c3/docs/superpowers/plans/2026-10-04-c3-content-rules.md",
+  "D:/projects/Structure/whr-c3/docs/superpowers/specs/2026-10-04-c3-content-rules-design.md",
+  "D:/projects/Structure/whr-c3/docs/superpowers/specs/2026-10-04-c2-page-frame-design.md (grep: sec·chg·state·superseded·gloss)",
+  "D:/projects/Structure/whr-c3/docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md (grep: C3·09-27·마무리)",
+  "D:/projects/Structure/whr-c3/checks/content.py",
+  "D:/projects/Structure/whr-c3/checks/common.py",
+  "D:/projects/Structure/whr-c3/checks/style.py",
+  "D:/projects/Structure/whr-c3/check.py",
+  "D:/projects/Structure/whr-c3/build.py",
+  "D:/projects/Structure/whr-c3/eval/rules.py",
+  "D:/projects/Structure/whr-c3/eval/gates.py",
+  "D:/projects/Structure/whr-c3/eval/measure.py (1-40행)",
+  "D:/projects/Structure/whr-c3/eval/shoot.py (머리 독스트링·main 인자)",
+  "D:/projects/Structure/whr-c3/eval/checklist.md",
+  "D:/projects/Structure/whr-c3/tests/helpers.py",
+  "D:/projects/Structure/whr-c3/tests/test_content.py",
+  "D:/projects/Structure/whr-c3/tests/test_eval_gates.py (195-225행)",
+  "D:/projects/Structure/whr-c3/SKILL.md",
+  "D:/projects/Structure/whr-c3/report-base.css (grep: 클래스 선택자별 출현)",
+  "D:/projects/Structure/whr-c3/보고서-규격.md (grep: keyfig·pager)",
+  "D:/projects/Structure/whr-c3/bench/fixed/*.html, template.html (grep: class=\"sec\"·data-kind·class=\"basis\" 출현 없음 확인)"
+ ],
+ "issues": [
+  {"where": "Task 5 Step 2 (남은 옛 규칙 grep)", "type": "mismatch", "claim": "grep 패턴의 'TITLE-CLAIM보다'는 SKILL.md의 실제 문장과 글자가 맞지 않아, 페이지 구성의 옛 우선 문장이 남아 있어도 출력이 없다. 따라서 이 grep으로는 그 문장의 제거를 확인할 수 없다. Task 5 Step 1이 'TITLE-CLAIM보다 우선한다' 문장이라고 인용한 표현도 SKILL.md 원문과 다르다(spec도 같은 표현으로 줄여 적었다).", "file": "D:/projects/Structure/whr-c3/docs/superpowers/plans/2026-10-04-c3-content-rules.md", "evidence": "Run: `grep -n \"목차) \\|TITLE-CLAIM보다\\|목차(\\`.toc\\`)와 같은 명사구\\|헤드리스 Edge\\|msedge\" SKILL.md`", "counterpart_file": "D:/projects/Structure/whr-c3/SKILL.md", "counterpart": "이 순서가 `TITLE-CLAIM`의 '결론 한 문장' 형식보다 우선한다.", "principle": "CHECKABLE", "consequence": "SKILL.md 76행은 'TITLE-CLAIM`의 ... 형식보다'로 끊겨 있어 grep 대안 'TITLE-CLAIM보다'에 걸리지 않는다. 그래서 Step 2의 '출력 없음'은 76행을 고쳤는지와 상관없이 성립한다."},
+  {"where": "Task 1 Step 2 (실패 확인의 기대 결과)", "type": "mismatch", "claim": "PageName의 시험이 모두 AttributeError로 실패한다고 적었지만 실제로는 그렇지 않다. page_name을 부르지 않는 세 시험 가운데 test_h2_summary_still_excluded_without_sec는 구현 전 코드로도 통과한다. 나머지 test_sec_name_overrides_h2와 test_violation_names_sec는 AttributeError가 아니라 AssertionError로 실패한다.", "file": "D:/projects/Structure/whr-c3/docs/superpowers/plans/2026-10-04-c3-content-rules.md", "evidence": "Expected: `PageName`의 시험이 `AttributeError: module 'checks.content' has no attribute 'page_name'`으로 실패한다.", "counterpart_file": "D:/projects/Structure/whr-c3/checks/content.py", "counterpart": "title = re.sub(r\"<[^>]+>\", \"\", h.group(1)).strip() if h else \"\"", "principle": "NO-ASSUME", "consequence": "현재 page_scores는 h2 '요약 A'를 제목으로 읽어 이미 제외한다. 그래서 test_h2_summary_still_excluded_without_sec는 Step 2에서 통과한다. test_sec_name_overrides_h2는 h2 '요약하면…'으로 제외되어 expect가 ''이므로 단언에서 실패하고, test_violation_names_sec는 이름 'A가 빠르다'로 단언에서 실패한다."},
+  {"where": "Task 1 Step 3 (page_violations 수정 지시)", "type": "mismatch", "claim": "'page_violations의 두 줄을 바꾼다'고 적었지만 이름을 읽는 현재 코드는 h·name·out.append 세 줄이다. 제시한 두 줄로 바꾸면 h = re.search(...) 줄이 쓰이지 않은 채 남는다.", "file": "D:/projects/Structure/whr-c3/docs/superpowers/plans/2026-10-04-c3-content-rules.md", "evidence": "`page_violations`의 두 줄을 바꾼다.", "counterpart_file": "D:/projects/Structure/whr-c3/checks/content.py", "counterpart": "h = re.search(r\"<h[12][^>]*>(.*?)</h[12]>\", body, re.S)", "principle": "REPORT-DEAD", "consequence": "지시대로 name과 out.append 두 줄만 바꾸면 17행의 h 대입이 남는다. h는 이후 어디에서도 쓰이지 않으므로, 이번 변경 때문에 쓰이지 않게 된 코드가 생긴다."},
+  {"where": "Task 6 Step 1 (본문의 목차 지시)", "type": "contradiction", "claim": "목차 지시에 '★·☆은 check.py 점수표대로'라고만 적어, 별 문자를 링크 글에 직접 쓰라는 뜻으로도 읽힌다. 그러나 style.py의 이모지 범위(☀-➿)가 ★(U+2605)·☆(U+2606)를 포함한다. SKILL.md도 별은 CSS가 붙이고 문자는 직접 쓰지 않는다고 정한다.", "file": "D:/projects/Structure/whr-c3/docs/superpowers/plans/2026-10-04-c3-content-rules.md", "evidence": "<p class=\"toc\">`(페이지마다 `<a href=\"#pN\">N. 절 이름</a>`, ★·☆은 check.py 점수표대로)", "counterpart_file": "D:/projects/Structure/whr-c3/checks/style.py", "counterpart": "EMOJI = re.compile(\"[\\U0001F300-\\U0001FAFF☀-➿]\")", "principle": "NO-ASSUME", "consequence": "Step 1만 보면 표시 방법(class=\"core\"·\"key\")이 적혀 있지 않다. class 이름은 Step 3에만 나온다. 구현자가 별 문자를 쓰면 check.py에 '이모지' 위반이 생기고, 이 위반은 Step 3·Task 7 Step 1의 제외 대상 밖이다."}
+ ],
+ "principles_applied": ["NO-ASSUME", "STATE-ASSUME", "CHECKABLE", "REPORT-DEAD", "FOCUSED", "NO-FLEET", "ASYNC-FIRST", "WRITTEN-ONLY", "NAME-ITEMS"],
+ "notes": "검토 관점은 누락·모순·환각·불일치 네 가지다. 각 관점을 따로 대조했다.\n\n시험 코드의 정규식은 머릿속으로 실행해 보았다. Task 1·2·3에 제시된 구현으로 Abbr·AbbrExcluded·Parts·Basis·PageName의 모든 단언이 통과한다. 그중 짚을 만한 경우는 다음과 같다. TOKEN의 역추적 때문에 'API.'는 'API'로 잘린다. '<b>API</b>(…)'는 ' ('가 PAREN_AFTER에 맞는다. 'b2cfc00커밋'은 뒤가 한글이라 해시로 읽힌다. '3.5절'은 [A-Za-z] 때문에 경로로 읽히지 않는다. 'docs/specs/a-design.md'와 'data/raw.csv'는 두 번째 대안에 맞는다. '<section class=\"page\" id=\"p1\" data-part=…>'는 _missing_parts에 걸린다.\n\n코드에 대한 단정도 대조했고, 위 이슈를 빼면 모두 실제 파일과 맞았다. PAGE_ID가 본문을 첫 </section>에서 자르는 점, report-base.css의 .paged·.js .page.on·.pager·.toc a.on·.pno·.doc-head·.blk·.pts 클래스, build.py의 출력 문구 'examples/wrapup.html: 기준 CSS 반영'과 줄바꿈이 필요한 BLOCK 정규식이 그렇다. helpers의 ROOT·page·paged와 '<main class=\"doc\">' 치환 대상, check.py old 방식의 fn(new, old), eval/rules.py의 fn(html, None), gates.py의 --only content → rules-all 단독 실행(브라우저 없음), shoot.py의 '<html> <출력 폴더>' 인자와 빈 폴더 요구, checklist.md의 content 항목 id 네 개도 맞았다. C2 클래스 계약(p.sec, td.chg, span.state, div.superseded)도 C2 spec 64-66행과 맞는다. bench/fixed와 template.html에는 class=\"sec\"·data-kind·class=\"basis\"가 없어서, FixedNoFalsePositive가 이 파일들에서 0건이 될 근거가 있다.\n\n이슈로 올리지 않은 사소한 점은 세 가지다. 첫째, Task 3 Step 2의 기대 결과는 세 클래스 모두 'parts_violations' AttributeError라고 적었으나, Basis 시험은 'basis_violations'로 실패한다. 둘째, spec 「산출 계약」은 plan 마지막 줄에 리뷰 마커를 요구하는데 현재 plan에는 없다. 리뷰가 끝난 뒤 붙일 것으로 보아 이슈로 올리지 않았다. 셋째, REF의 해시 대안은 '20261004' 같은 7자 이상 숫자열(날짜)도 해시로 인정한다. 이것은 plan이 밝힌 해석('7~40자 소문자 16진수')과 일치하므로 근거 문제는 아니다.\n\n더 확인해야 할 것이 있다. template-paged.html은 금지 파일이라 읽지 않았다. 그래서 다음 두 가지는 확인하지 못했고 가정으로 남는다. 하나는 그 파일에 p.sec·data-kind·p.basis가 없어 FixedNoFalsePositive와 Task 7 Step 3이 0건이 되는지다. 다른 하나는 페이지형 템플릿이 .paged를 <main>에 붙이는지(plan의 '<main class=\"doc paged\">')다. 구현자가 시험을 실행하면 첫째는 확인된다. 시작 시점 시험 137개 통과는 주입된 사실이라 따로 실행하지 않았다."
+}
