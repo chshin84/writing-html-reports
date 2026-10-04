@@ -177,12 +177,12 @@ footer p{margin:0 0 4px}
   h1{font-size:25px}
   .keyfig>div+div{border-left:none;padding-left:0}
   .keyfig>div{border-bottom:1px solid var(--hair)}
-  .gloss,.gloss>div{grid-template-columns:1fr}
-  .gloss>dd{border-top:0;padding-top:0}.gloss dd{padding-left:0}
+  .gloss{grid-template-columns:fit-content(7.5em) 1fr}.gloss dd{padding-left:14px} /* 좁은 화면에서도 용어와 풀이를 한 줄에 둔다 */
   .brow{grid-template-columns:110px 1fr 44px;font-size:13px}
 }
 @media screen and (max-width:760px){
   .tbl th,.tbl td{min-width:56px}
+  .page td:first-child{white-space:normal} /* 첫 열 줄바꿈 금지가 표를 화면 밖으로 밀어내므로 좁은 화면에서는 푼다 */
   .tbl:has(tr>:nth-child(4))::before{content:"옆으로 밀어 볼 수 있습니다";display:block;font-size:12.5px;color:var(--ink-3);padding-bottom:4px}
 }
 @media print{
