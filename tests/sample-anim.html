@@ -187,12 +187,21 @@ footer p{margin:0 0 4px}
 .demo-ctl button:disabled{color:var(--ink-3);cursor:default}
 .demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
 .demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-cap{min-height:1.5em}
+.demo-cap.rc-off{visibility:hidden}
 .demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
-.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-scen{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:13px}
+.demo-scen button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink-2);border:1px solid var(--hair);padding:2px 10px;cursor:pointer}
+.demo-scen button.on{color:var(--ink);border-color:var(--ink-3)}
+.demo-static .demo-ctl,.demo-static .demo-cap,.demo-static .demo-scen{display:none}
 .demo-static .demo-steps{display:block}
+.rc-scroll{overflow-x:auto;max-width:100%}
+.rc-scroll>svg{display:block}
 @media print{
-  .demo-ctl,.demo-cap{display:none}
+  .demo-ctl,.demo-cap,.demo-scen{display:none}
   .demo-steps{display:block}
+  .rc-scroll{overflow:visible}
+  .rc-scroll>svg{min-width:0 !important}
 }
 /* END report-base */
 /* 이 문서 전용: 토큰(var(--…))만 쓴다 */
@@ -220,6 +229,51 @@ footer p{margin:0 0 4px}
     if (cls) e.className = cls;
     if (text != null) e.textContent = text;
     return e;
+  }
+
+  var SKIP_TXT = /^(SCRIPT|STYLE|TITLE|NOSCRIPT)$/;
+  function ownText(e) {
+    var s = '';
+    for (var i = 0; i < e.childNodes.length; i++) if (e.childNodes[i].nodeType === 3) s += e.childNodes[i].nodeValue;
+    return s.replace(/\s+/g, ' ').trim();
+  }
+  function seen(e, fig) { // C0 하네스의 보임 판정을 계산된 스타일로 옮긴 것이다. 숨은 페이지에서도 쓰도록 면적 조건은 뺀다
+    var o = 1, c0 = getComputedStyle(e);
+    if (c0.visibility === 'hidden' || c0.visibility === 'collapse') return false;
+    for (var n = e; n && n !== fig.parentElement; n = n.parentElement) {
+      var c = n === e ? c0 : getComputedStyle(n);
+      if (c.display === 'none' || (c.clipPath && c.clipPath !== 'none')) return false;
+      o *= +c.opacity;
+    }
+    if (o <= 0.05) return false;
+    if (!ownText(e)) return true; // C0처럼 글자색은 글을 가진 요소에만 본다. 채움이 없는 도형도 보이는 무대 요소다
+    var col = c0[e instanceof SVGElement ? 'fill' : 'color'];
+    return !/^(transparent|none)$|,\s*0\)$/.test(col);
+  }
+  function textPool(fig) { // 표본마다 다시 찾지 않도록 글을 가질 수 있는 요소를 단계마다 한 번 모은다. 조작 줄·단계 목록·자막·시나리오 줄은 뺀다
+    return [].filter.call(fig.querySelectorAll('*'), function (e) {
+      return !SKIP_TXT.test(e.tagName) && !e.closest('.demo-ctl, .demo-steps, .demo-cap, .demo-scen, defs');
+    });
+  }
+  function texts(fig, pool) { // figure 안 보이는 글 요소와 그 글
+    var m = new Map();
+    pool.forEach(function (e) { var t = ownText(e); if (t && seen(e, fig)) m.set(e, t); });
+    return m;
+  }
+  function sameTexts(a, b) {
+    if (a.size !== b.size) return false;
+    var ok = true;
+    a.forEach(function (v, k) { if (b.get(k) !== v) ok = false; });
+    return ok;
+  }
+  function sampleStep(tl, fig, from, to, before, pool) { // from~to를 0.05초 간격으로 옮기며 글이 마지막으로 바뀐 시각(done)과 새 글자 수(n)를 구한다
+    var prev = before, done = from, ts = [];
+    for (var t = from; t < to - 1e-9; t += 0.05) ts.push(t);
+    ts.push(to);
+    ts.forEach(function (t) { tl.seek(t, false); var cur = texts(fig, pool); if (!sameTexts(prev, cur)) done = t; prev = cur; });
+    var n = 0;
+    prev.forEach(function (v, e) { if (before.get(e) !== v) n += chars(v); });
+    return { done: done, n: n };
   }
 
   RC.color = function (name) {
@@ -262,6 +316,20 @@ footer p{margin:0 0 4px}
       candlestick: { itemStyle: { color: tok('neg'), color0: tok('s1'), borderColor: tok('neg'), borderColor0: tok('s1') } }
     });
   }
+  var SHAPES = ['circle', 'rect', 'triangle', 'diamond', 'roundRect', 'pin'];
+  function lineLabels(option) { // 선 계열이 둘 이상이면 선 끝에 계열 이름을 달고 계열마다 표식 모양을 다르게 한다. 작성자가 준 값은 두고 빈 값만 채운다
+    var lines = (option.series || []).filter(function (s) { return s.type === 'line'; });
+    if (lines.length < 2) return;
+    lines.forEach(function (s, k) {
+      if (s.symbol == null) s.symbol = SHAPES[k % SHAPES.length];
+      if (s.showSymbol == null) s.showSymbol = true;
+      if (s.symbolSize == null) s.symbolSize = 6;
+      if (s.endLabel == null) s.endLabel = { show: true, formatter: '{a}', color: tok('ink-2'), fontSize: 12, distance: 6 };
+    });
+    [].concat(option.grid || (option.grid = {})).forEach(function (g) { // 이름표가 잘리지 않게 오른쪽 여백을 둔다
+      if (g.right == null || (typeof g.right === 'number' && g.right < 72)) g.right = 72;
+    });
+  }
   RC.chart = function (box, option) {
     if (!box) { console.error('RC.chart: 차트 상자가 없다'); return null; }
     if (typeof echarts === 'undefined') { fail(box); return null; }
@@ -271,6 +339,7 @@ footer p{margin:0 0 4px}
       var h = box.clientHeight || parseFloat(getComputedStyle(box).height) || 320;
       var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
       option.animation = false;
+      lineLabels(option);
       if (!option.tooltip) {
         var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
         option.tooltip = { trigger: pie ? 'item' : 'axis' };
@@ -330,8 +399,51 @@ footer p{margin:0 0 4px}
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', res); else res();
   }).then(function () { return document.fonts ? document.fonts.ready : null; }).then(renderMermaid);
 
+  /* 도식 글자: 화면상 11px보다 작아지면 figure 안 가로 스크롤 상자에 넣고 SVG 최소 폭을 글자가 11px이 되는 폭으로 정한다 */
+  var MIN_PX = 11;
+  function scaleOf(m) { return m ? Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) : 0; }
+  function fitSvg(fig) {
+    [].forEach.call(fig.querySelectorAll('svg'), function (svg) {
+      if (svg.parentElement.closest('svg') || svg.closest('[_echarts_instance_]') || !svg.getAttribute('viewBox')) return; // ECharts는 상자 폭대로 그려 글자가 줄지 않는다
+      var keep = svg.style.minWidth;
+      svg.style.minWidth = '';
+      var w = svg.getBoundingClientRect().width;
+      if (!w) { svg.style.minWidth = keep; return; } // 숨은 페이지(폭 0)는 보일 때 다시 계산한다
+      var small = Infinity;
+      [].forEach.call(svg.querySelectorAll('text, tspan, foreignObject *'), function (e) {
+        if (e.closest('defs') || !(ownText(e) || e.closest('.rc-note'))) return; // 설명 상자 글은 처음 상태에서 비어 있어도 단계마다 나타나므로 센다
+        var host = e instanceof SVGElement ? e : e.closest('foreignObject'), k = scaleOf(host.getScreenCTM());
+        if (k) small = Math.min(small, parseFloat(getComputedStyle(e).fontSize) * k);
+      });
+      if (!(small < MIN_PX)) return;
+      if (!svg.parentElement.classList.contains('rc-scroll')) {
+        var box = document.createElement('div');
+        box.className = 'rc-scroll';
+        svg.parentNode.insertBefore(box, svg);
+        box.appendChild(svg);
+      }
+      svg.style.minWidth = Math.ceil(w * MIN_PX / small) + 1 + 'px';
+    });
+  }
+  function watchFit(fig) { // 페이지가 보일 때와 창 크기가 바뀔 때 다시 계산한다
+    if (fig._rcFit) { fitSvg(fig); return; }
+    fig._rcFit = true;
+    var w = -1;
+    new ResizeObserver(function () { if (fig.clientWidth && fig.clientWidth !== w) { w = fig.clientWidth; fitSvg(fig); } }).observe(fig);
+  }
+  RC.ready.then(function () { [].forEach.call(document.querySelectorAll('figure'), watchFit); });
+
   /* 애니메이션 아이콘: 스틱맨(Open Peeps 상반신 80×80, report-peeps.js)과 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
   var SVGNS = 'http://www.w3.org/2000/svg';
+  var authored = { note: new WeakSet(), icon: new WeakSet() }; // 작성자가 RC.note·RC.icon을 만든 figure. 자동 상자·스틱맨을 두지 않는다
+  function own(kind, svg) { var f = svg && svg.closest && svg.closest('figure'); if (f) authored[kind].add(f); }
+  function peepEl(svg, name, x, y, size) { // 스틱맨 그림. (x, y)는 중심, size는 한 변이다. 처음에는 투명하다
+    var P = window.RC_PEEPS, body = P.figures[name].replace(/class="pk"/g, 'fill="' + tok('ink') + '"').replace(/class="pw"/g, 'fill="' + tok('paper') + '"');
+    var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + P.viewBox + '">' + body + '</svg>');
+    var pg = sv('g', { 'class': 'rc-icon', opacity: 0, 'data-rc-peep': name }, svg);
+    sv('image', { x: x - size / 2, y: y - size / 2, width: size, height: size, href: src }, pg);
+    return pg;
+  }
   function sv(tag, attrs, parent) {
     var e = document.createElementNS(SVGNS, tag);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -360,13 +472,9 @@ footer p{margin:0 0 4px}
   };
   var ICON_COLOR = { question: 'accent', check: 'accent', cross: 'neg' };
   RC.icon = function (svg, name, x, y) {
-    var P = window.RC_PEEPS;
+    own('icon', svg); var P = window.RC_PEEPS;
     if (svg && P && P.figures[name]) { // 스틱맨: 80×80 image(SVG data URI)로 넣어 경계와 변형 원점이 그림 칸과 같게 한다. 선은 ink, 바탕은 paper 토큰 값을 만들 때 넣는다
-      var body = P.figures[name].replace(/class="pk"/g, 'fill="' + tok('ink') + '"').replace(/class="pw"/g, 'fill="' + tok('paper') + '"');
-      var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + P.viewBox + '">' + body + '</svg>');
-      var pg = sv('g', { 'class': 'rc-icon', opacity: 0 }, svg);
-      sv('image', { x: x - 40, y: y - 40, width: 80, height: 80, href: src }, pg);
-      return pg;
+      return peepEl(svg, name, x, y, 80);
     }
     if (!svg || !ICONS[name]) { console.error('RC.icon: 무대가 없거나 없는 아이콘 이름 ' + name); return null; }
     var c = tok(ICON_COLOR[name] || 'ink');
@@ -380,6 +488,7 @@ footer p{margin:0 0 4px}
      돌려주는 값 { g: 상자, t: 문장 칸, n: 숫자 칸 }. 위치는 RC.fx.say가 단계마다 옮긴다 */
   RC.note = function (svg, w, h) {
     if (!svg) { console.error('RC.note: 무대가 없다'); return null; }
+    own('note', svg);
     var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
     sv('rect', { x: 0, y: 0, width: w, height: h, fill: tok('paper'), stroke: tok('hair') }, g);
     var fo = sv('foreignObject', { x: 0, y: 0, width: w, height: h }, g);
@@ -415,14 +524,33 @@ footer p{margin:0 0 4px}
   /* 애니메이션 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
      at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
      글 규칙(RC.demo가 강제한다): 글이 한 번 나타날 때(타이핑과 카운트업이 이어진 한 덩어리)마다 1초 안에 끝나고,
-     단계의 마지막 글이 나타나기 시작한 때부터 min(1초 + 글자 수 ÷ 10초, 4초) 동안 보여 준 뒤 다음 단계로 넘어간다.
+     자동 재생에서는 단계의 글이 다 나온 뒤 1초 + 글자 수 ÷ 8초 이상 머문다. 글자 수에는 자막과 설명 상자와 숫자 칸이 모두 든다.
      설명 상자 하나의 글은 30자 이하다. 글자 수는 공백을 빼고 세며 숫자 하나는 1자다 */
   var TEXT_MAX = 1, CHAR_MAX = 30;
   function chars(s) { return String(s).replace(/\d[\d,.]*/g, '#').replace(/\s/g, '').length; }
-  function holdFor(n) { return Math.min(4, 1 + n / 10); }
+  function holdFor(n) { return 1 + n / 8; } // 글이 다 나온 뒤 머무는 시간의 하한(초). 상한은 이 값 + 3초다
+  var HOLD_PAD = 0.3; // 측정 간격(0.05초)과 반올림을 흡수하는 여유
+  var DEFAULT_MODE = 'step'; // 주소에 ?rc-mode가 없을 때의 재생 방식. L1이 실측 뒤 바꿀 수 있다
+  var STEP_MIN = 0.43, STEP_MAX = 2.43; // 단계 넘김의 단계 연출 길이. 사이 띄움 0.02초를 더하면 0.45~2.45초다
+  function playMode() { var m = /[?&]rc-mode=(auto|step)(?:&|$)/.exec(location.search); return m ? m[1] : DEFAULT_MODE; }
+  var demoStep = null; // RC.demo가 단계를 만드는 동안 $로 마지막에 조회한 요소(last)와 mark·spot이 받은 요소(mark)를 적는다
   var stepLog = null; // RC.demo가 단계마다 글 등장 구간과 글자 수를 모은다
   RC.issues = []; // 글 규칙 위반. 겹침 판정 도구가 함께 읽는다
   function issue(msg) { RC.issues.push(msg); console.error('RC.demo: ' + msg); }
+  function textRules(L, s, fig) { // 글 등장 1초 규칙과 설명 상자 30자 규칙(작성자 글만 센다)
+    if (!L.beats.length) return;
+    L.beats.sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [L.beats[0].slice()];
+    L.beats.slice(1).forEach(function (b) { // 이어지거나 겹치는 글 등장은 한 덩어리로 본다
+      var m = merged[merged.length - 1];
+      if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
+    });
+    merged.forEach(function (m) {
+      if (m[1] - m[0] > TEXT_MAX + 0.001) issue('[' + fig.id + '] "' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
+    });
+    var n = 0; L.fin.forEach(function (v) { n += chars(v); });
+    if (n > CHAR_MAX) issue('[' + fig.id + '] "' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
+  }
   function len(e) { return e && e.getTotalLength ? e.getTotalLength() : 0; }
   var shown = typeof WeakMap === 'function' ? new WeakMap() : null; // 글자 요소마다 직전 단계에서 보인 문장
   function textTween(tl, e, from, render, dur, at) { // 되감을 때 직전 단계의 문장으로 돌아가게 한다
@@ -437,15 +565,18 @@ footer p{margin:0 0 4px}
     }
     return tl;
   }
+  var FX = 'rc-fx'; // spot·unspot가 도형에 주는 트윈의 표시. 현재 노드 표시는 이 트윈을 작성자 색으로 보지 않는다
   RC.fx = {
     mark: function (tl, e, color, at) {
+      if (demoStep) demoStep.mark = e && typeof e !== 'string' && e.length != null && !e.tagName ? e[e.length - 1] : e;
       return tl.to(e, { stroke: tok(color || 'accent'), strokeWidth: 2, duration: 0.3 }, at);
     },
     unmark: function (tl, els, at) { return tl.set(els, { stroke: tok('ink'), strokeWidth: 1 }, at); },
     spot: function (tl, frame, e, color, at) { // 초점 틀을 도형 e로 옮기고, e는 현재 도형, 직전 도형은 지나온 도형으로 바꾼다
+      if (demoStep) demoStep.mark = e;
       var c = tok(color || 'accent'), b = geom(e), P = 6;
       var pts = [[b.x - P, b.y - P], [b.x + b.width + P, b.y - P], [b.x + b.width + P, b.y + b.height + P], [b.x - P, b.y + b.height + P]];
-      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3 }, at);
+      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3, data: FX }, at);
       else tl.to({}, { duration: 0 }, at);
       if (!frame.cur) { // 처음에는 크게 나타났다가 조여진다
         pts.forEach(function (p, i) { var o = [[-1, -1], [1, -1], [1, 1], [-1, 1]][i]; tl.set(frame.c[i], { x: p[0] + o[0] * 14, y: p[1] + o[1] * 14 }, '<'); });
@@ -453,14 +584,14 @@ footer p{margin:0 0 4px}
       }
       tl.to(frame.g, { opacity: 1, stroke: c, duration: 0.3 }, '<');
       pts.forEach(function (p, i) { tl.to(frame.c[i], { x: p[0], y: p[1], duration: 0.45, ease: 'power3.inOut' }, '<'); });
-      tl.set(e, { fill: c, fillOpacity: 0 }, '<');
-      tl.to(e, { stroke: c, strokeWidth: 2, fillOpacity: 0.08, duration: 0.35 }, '<0.1');
+      tl.set(e, { fill: c, fillOpacity: 0, data: FX }, '<');
+      tl.to(e, { stroke: c, strokeWidth: 2, fillOpacity: 0.08, duration: 0.35, data: FX }, '<0.1');
       frame.cur = e;
       return tl;
     },
     unspot: function (tl, frame, els, at) { // 시나리오를 다시 시작할 때 도형과 초점 틀을 처음 상태로 돌린다
       els = [].concat(els || []);
-      if (els.length) { tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0 }, at); at = '<'; }
+      if (els.length) { tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0, data: FX }, at); at = '<'; }
       tl.set(frame.g, { opacity: 0 }, at); // 도형 없이 부르면 초점 틀만 숨겨, 다음 spot이 틀을 끌고 가지 않고 새로 나타난다
       frame.cur = null;
       return tl;
@@ -521,6 +652,187 @@ footer p{margin:0 0 4px}
   };
 
   /* 애니메이션 */
+  var SCEN = /^(시나리오 [^·]+?) · (.+)$/;
+  function scenarioGroups(steps) { // '시나리오 X · Y' 단계를 이어진 구간끼리 X로 묶는다. 다른 이름은 묶지 않는다
+    var of = [], list = [];
+    steps.forEach(function (s, i) {
+      var m = SCEN.exec(s.name || ''), g = list[list.length - 1];
+      if (!m) { of.push(null); return; }
+      if (!g || g.name !== m[1] || g.to !== i - 1) { g = { name: m[1], from: i, to: i }; list.push(g); } else g.to = i;
+      of.push(g);
+    });
+    return { of: of, list: list };
+  }
+  function authorSet(sub, e, keys) { // 이번 단계에서 작성자가 요소 e에 준 속성 값. 없으면 null
+    if (!e) return null;
+    var hit = null;
+    sub.getChildren(true, true, false).forEach(function (t) {
+      if (t.vars.data === FX || t.targets().indexOf(e) < 0) return;
+      keys.forEach(function (k) {
+        var v = t.vars[k] != null ? t.vars[k] : t.vars.attr && t.vars.attr[k];
+        if (v != null) { hit = hit || {}; hit[k] = v; }
+      });
+    });
+    return hit;
+  }
+  function closedShape(e) { return !!(e && /^(rect|polygon|circle|ellipse)$/i.test(e.tagName) && !e.closest('.rc-note, .rc-icon, .rc-focus')); }
+  function mmdShape(e) { return !!(e && e.closest && e.closest('pre.mermaid svg g.node')); }
+  function ownFill(e) { var f = e.style.fill || e.getAttribute('fill'); return !!f && f !== 'none'; } // 작성자가 인라인 스타일·속성으로 준 채움
+  function styleNodes(tl, sub, cur, prev, at, memo) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
+    var A = tok('accent'), K = ['stroke', 'strokeWidth', 'fill', 'fillOpacity'];
+    if (closedShape(prev) && prev !== cur) {
+      var s = authorSet(sub, prev, K) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
+      if (s.stroke == null && !memo.author.has(prev)) v.stroke = tok('accent-2'); // 작성자가 tl.to로 색을 준 적이 있으면 그 색을 둔다
+      if (s.strokeWidth == null) v.strokeWidth = 1.5;
+      if (s.fill == null && s.fillOpacity == null && memo.fill.has(prev)) { v.fill = memo.fill.get(prev).fill; v.fillOpacity = memo.fill.get(prev).op; }
+      tl.to(prev, v, at);
+    }
+    if (closedShape(cur)) {
+      var c = authorSet(sub, cur, K) || {}, w = { duration: 0.3, autoRound: false };
+      if (c.stroke == null && !memo.author.has(cur)) w.stroke = A;
+      if (c.strokeWidth == null) w.strokeWidth = 2;
+      if (c.fill == null && c.fillOpacity == null && !ownFill(cur)) {
+        if (!memo.fill.has(cur)) { var cs = getComputedStyle(cur); memo.fill.set(cur, { fill: cs.fill, op: +cs.fillOpacity }); }
+        w.fill = A; w.fillOpacity = 0.08;
+      }
+      tl.to(cur, w, at);
+    }
+    sub.getChildren(true, true, false).forEach(function (t) { // 작성자가 tl.to·tl.set으로 테두리 색을 준 요소를 기억한다
+      if (t.vars.data === FX) return;
+      var v = t.vars.stroke != null ? t.vars.stroke : t.vars.attr && t.vars.attr.stroke;
+      if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
+    });
+  }
+  var NOTE_W = 220, GAP = 8, PEEP = 56;
+  function reveal(fig) { // 숨은 페이지의 figure를 계산하는 동안만 화면 밖에 펼친다. 되돌리는 함수를 돌려준다
+    var undo = [];
+    for (var k = 0; k < 6 && !fig.getClientRects().length; k++) {
+      var n = fig;
+      while (n && n !== document.body && getComputedStyle(n).display !== 'none') n = n.parentElement;
+      if (!n || n === document.body) break;
+      undo.push([n, n.getAttribute('style')]);
+      var w = (n.parentElement && n.parentElement.clientWidth) || document.documentElement.clientWidth;
+      n.style.cssText += ';display:block !important;position:absolute !important;left:-99999px !important;top:0 !important;width:' + w + 'px !important';
+    }
+    return function () { undo.reverse().forEach(function (u) { if (u[1] == null) u[0].removeAttribute('style'); else u[0].setAttribute('style', u[1]); }); };
+  }
+  function autoNote(svg) { // 자동 설명 상자 하나를 만들어 단계마다 글과 위치만 바꾼다
+    var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
+    var rect = sv('rect', { x: 0, y: 0, width: NOTE_W, height: 30, style: 'fill:' + tok('paper') + ';stroke:' + tok('hair') }, g);
+    var fo = sv('foreignObject', { x: 0, y: 0, width: NOTE_W, height: 30 }, g);
+    var div = document.createElement('div'), t = document.createElement('span');
+    div.style.cssText = 'padding:6px 8px;font:12.5px/1.45 var(--sans);color:var(--ink);word-break:keep-all';
+    div.appendChild(t); fo.appendChild(div);
+    return { g: g, rect: rect, fo: fo, div: div, t: t, text: '' };
+  }
+  function noteHeight(box, text) {
+    box.t.textContent = text;
+    var h = box.div.offsetHeight;
+    box.t.textContent = box.text;
+    return h ? Math.ceil(h) + 1 : 18 * Math.ceil(chars(text) * 13 / 204) + 13;
+  }
+  function userBox(inv, e) { // 화면 경계 상자를 무대 좌표로 바꾼다
+    var r = e.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
+    return { l: Math.min(a.x, b.x), t: Math.min(a.y, b.y), r: Math.max(a.x, b.x), b: Math.max(a.y, b.y) };
+  }
+  var STAGE_GEOM = 'text, rect, polygon, circle, ellipse, path, line, polyline, foreignObject, image';
+  function obstacles(svg, fig, into) { // 무대 요소(도형·글자·간선·간선 이름표·보이는 아이콘)의 상자와 간선 점을 무대 좌표로 into에 더한다
+    var inv = svg.getScreenCTM().inverse(), dots = !!svg.closest('pre.mermaid'); // Mermaid 선은 점으로(C0 하네스), 직접 그린 무대의 선은 경계 상자로(RC.check) 본다
+    [].forEach.call(svg.querySelectorAll(STAGE_GEOM), function (e) {
+      if (e.closest('.rc-note, defs, marker, clipPath, mask, pattern') || !seen(e, fig)) return;
+      var c = getComputedStyle(e), tag = e.tagName.toLowerCase();
+      var line = tag === 'line' || tag === 'polyline' || (tag === 'path' && (c.fill === 'none' || /,\s*0\)$/.test(c.fill)));
+      if (line && dots && e.getTotalLength) {
+        var m = e.getScreenCTM(), L = e.getTotalLength();
+        for (var s = 0; s <= L; s += 3) { var p = e.getPointAtLength(s); into.pts.push(new DOMPoint(p.x, p.y).matrixTransform(m).matrixTransform(inv)); }
+        return;
+      }
+      var b = userBox(inv, e), k = line ? 1.5 : 0;
+      if ((b.r - b.l) * (b.b - b.t) >= 1 || line) into.boxes.push({ l: b.l - k, t: b.t - k, r: b.r + k, b: b.b + k });
+    });
+    return into;
+  }
+  function freeAt(u, obs) {
+    var l = u.l - 3, t = u.t - 3, r = u.r + 3, b = u.b + 3;
+    for (var i = 0; i < obs.boxes.length; i++) { var o = obs.boxes[i]; if (Math.min(r, o.r) - Math.max(l, o.l) > 0.5 && Math.min(b, o.b) - Math.max(t, o.t) > 0.5) return false; }
+    for (var k = 0; k < obs.pts.length; k++) { var p = obs.pts[k]; if (p.x >= l && p.x <= r && p.y >= t && p.y <= b) return false; }
+    return true;
+  }
+  function placeUnit(a, nh, peepW, obs, vb, lim) { // 자동 상자(폭 220, 높이 nh)와 스틱맨 칸(peepW가 0이 아니면 56×56)의 위치를 찾는다
+    // 쪽은 오른쪽·왼쪽·아래·위 순서로 보고, 한 쪽 안에서는 노드와의 상자 간 거리, 그다음 옆으로 비킨 정도가 작은 위치를 먼저 본다.
+    // 상자는 표시 범위 vb 안, 노드 경계에서 lim(무대 단위) 안에만 둔다. 대각선 위치도 상자 간 거리로 잰다
+    lim = lim || 40;
+    var h = nh, P = peepW ? PEEP : 0, R = lim + NOTE_W + P + h + 8, seenPt = {};
+    var near = { // 탐색 범위 밖 장애물과 겹친 간선 점을 미리 덜어 낸다
+      boxes: obs.boxes.filter(function (o) { return o.r >= a.l - R && o.l <= a.r + R && o.b >= a.t - R && o.t <= a.b + R; }),
+      pts: obs.pts.filter(function (q) {
+        if (q.x < a.l - R || q.x > a.r + R || q.y < a.t - R || q.y > a.b + R) return false;
+        var key = Math.round(q.x * 2) + ',' + Math.round(q.y * 2);
+        if (seenPt[key]) return false;
+        seenPt[key] = 1; return true;
+      })
+    };
+    function rect(x, y, w, hh) { return { l: x, t: y, r: x + w, b: y + hh }; }
+    function inVb(u) { return u.l >= vb.l && u.t >= vb.t && u.r <= vb.r && u.b <= vb.b; }
+    function ok(u) { return inVb(u) && freeAt(u, near); }
+    function dist(n) { var dx = Math.max(0, n.l - a.r, a.l - n.r), dy = Math.max(0, n.t - a.b, a.t - n.b); return Math.sqrt(dx * dx + dy * dy); }
+    function sweep(lo, hi, mid) { var v = [mid]; for (var d = 4; mid - d >= lo || mid + d <= hi; d += 4) { if (mid + d <= hi) v.push(mid + d); if (mid - d >= lo) v.push(mid - d); } return v; }
+    function peeps(side, n) { // 스틱맨 칸 후보: 노드에서 먼 쪽 옆, 또는 노드에서 먼 쪽 위·아래
+      var far = side === 1 ? n.l - 4 - P : n.r + 4, end = side === 1 ? n.l : n.r - P, out = [rect(far, n.t, P, P)];
+      if (side !== 3) out.push(rect(end, n.b + 4, P, P));
+      if (side !== 2) out.push(rect(end, n.t - 4 - P, P, P));
+      return out;
+    }
+    var cy = (a.t + a.b - h) / 2, cx = (a.l + a.r - NOTE_W) / 2;
+    for (var side = 0; side < 4; side++) {
+      var cands = [];
+      for (var g = GAP; g <= lim + 1e-9; g += 4) {
+        var room = Math.sqrt(Math.max(0, lim * lim - g * g)); // 이 간격에서 옆으로 비킬 수 있는 거리
+        if (side < 2) {
+          var x = side === 0 ? a.r + g : a.l - g - NOTE_W;
+          sweep(a.t - h - room, a.b + room, cy).forEach(function (y) { cands.push({ n: rect(x, y, NOTE_W, h), off: Math.abs(y - cy) }); });
+        } else {
+          var y0 = side === 2 ? a.b + g : a.t - g - h;
+          sweep(a.l - NOTE_W - room, a.r + room, cx).forEach(function (x2) { cands.push({ n: rect(x2, y0, NOTE_W, h), off: Math.abs(x2 - cx) }); });
+        }
+      }
+      cands.forEach(function (c) { c.d = dist(c.n); });
+      cands = cands.filter(function (c) { return c.d <= lim + 1e-9; }).sort(function (p, q) { return p.d - q.d || p.off - q.off; });
+      for (var i = 0; i < cands.length; i++) {
+        var n = cands[i].n;
+        if (!ok(n)) continue;
+        var pk = P ? peeps(side, n).filter(ok)[0] : rect(n.r + 4, n.t, 0, 0);
+        if (!pk) continue;
+        return { side: side, u: { l: Math.min(n.l, pk.l), t: Math.min(n.t, pk.t), r: Math.max(n.r, pk.r), b: Math.max(n.b, pk.b) },
+                 note: { x: n.l, y: n.t }, peep: { x: pk.l, y: pk.t } };
+      }
+    }
+    return null;
+  }
+  function showNote(tl, box, at, p, text, h) { // 단계 시작에 자동 상자의 글과 위치를 바꾼다. p가 null이면 숨긴다
+    if (!p) { tl.set(box.g, { opacity: 0 }, at); return; }
+    var prev = box.text, o = { v: 0 };
+    tl.set(box.g, { x: p.x, y: p.y, opacity: 1 }, at);
+    tl.set([box.rect, box.fo], { attr: { height: h } }, at);
+    tl.to(o, { v: 1, duration: 0.01, onUpdate: function () { box.t.textContent = o.v > 0 ? text : prev; } }, at); // 되감으면 앞 단계 글로 돌아간다
+    box.text = text;
+  }
+  function keepInView(fig, it, reduce) { // 현재 노드와 설명 상자가 창 밖이면 가장 가까운 위치로 옮긴다. figure가 화면과 겹칠 때만 한다
+    var f = fig.getBoundingClientRect(), H = innerHeight, M = 16;
+    if (!f.width || f.bottom <= 0 || f.top >= H) return;
+    var els = [it.active].concat(it.noteOn ? [].slice.call(fig.querySelectorAll('.rc-note')) : []).filter(Boolean);
+    var rs = els.map(function (e) { return e.getBoundingClientRect(); }).filter(function (r) { return r.width || r.height; });
+    if (!rs.length) return;
+    var how = reduce ? 'auto' : 'smooth', sb = it.active && it.active.closest && it.active.closest('.rc-scroll');
+    var top = Math.min.apply(null, rs.map(function (r) { return r.top; })), bot = Math.max.apply(null, rs.map(function (r) { return r.bottom; }));
+    var dy = bot - top > H - 2 * M || top < M ? top - M : bot > H - M ? bot - H + M : 0;
+    if (sb) { // 390 폭 스크롤 상자 안에서는 가로로도 옮긴다
+      var s = sb.getBoundingClientRect(), lf = Math.min.apply(null, rs.map(function (r) { return r.left; })), rt = Math.max.apply(null, rs.map(function (r) { return r.right; }));
+      var dx = rt - lf > s.width || lf < s.left ? lf - s.left - M : rt > s.right ? rt - s.right + M : 0;
+      if (dx) sb.scrollBy({ left: dx, behavior: how });
+    }
+    if (dy) scrollBy({ top: dy, behavior: how });
+  }
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -536,12 +848,21 @@ footer p{margin:0 0 4px}
       li.appendChild(document.createTextNode(' ' + s.text));
       list.appendChild(li);
     });
+    var groups = scenarioGroups(steps), scen = null;
+    if (groups.list.length >= 2 && steps.length > 12) { // 조작 줄 아래 별도 줄. 조작 버튼 순서를 바꾸지 않는다
+      scen = el('div', 'demo-scen');
+      [null].concat(groups.list).forEach(function (g) {
+        var b = el('button', g ? null : 'on', g ? g.name : '전체');
+        b.type = 'button'; b._rcGroup = g; scen.appendChild(b);
+      });
+    }
     var src = fig.querySelector('.src');
-    [ctl, cap, list].forEach(function (n) { fig.insertBefore(n, src); });
+    [ctl, scen, cap, list].forEach(function (n) { if (n) fig.insertBefore(n, src); });
+    var mode = playMode(); fig.dataset.rcMode = mode;
     if (typeof gsap === 'undefined') { fig.classList.add('demo-static'); return null; }
 
     RC.ready.then(function () {
-      var $ = function (name) {
+      var find = function (name) {
         var hit = fig.querySelector('[id="' + name + '"]');
         if (hit) return hit;
         var re = new RegExp('-flowchart-' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-\\d+$');
@@ -551,30 +872,83 @@ footer p{margin:0 0 4px}
         }
         return null;
       };
-      var tl = gsap.timeline({ paused: true }), ends = [], holds = [];
+      var rec = { last: null, mark: null };
+      var $ = function (name) { var e = find(name); if (e && demoStep === rec) rec.last = e; return e; };
+      var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
+      function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
+      var capPrev = null;
+      var memo = { author: new Set(), fill: new Map() }, prevActive = null;
+      var stage = fig.querySelector('svg'), restore = null;
+      try { // 펼친 figure는 빌드가 어떻게 끝나도 되돌린다
+      restore = reveal(fig);
+      var box = stage && !authored.note.has(fig) && !stage.querySelector('.rc-note') ? autoNote(stage) : null;
+      var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
+      var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
+      var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
+      var hideNext = [], prevIt = null, NEG = tok('neg');
+      if (box) tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 자동 상자·스틱맨 설정을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
+          var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
           stepLog = { beats: [], fin: new Map() };
-          s.play(tl, $);
+          rec.last = rec.mark = null; demoStep = rec;
+          try { s.play(sub, $); } finally { demoStep = null; }
           var L = stepLog; stepLog = null;
-          if (L.beats.length) { // 글이 다 나온 뒤 읽을 시간을 두고 다음 단계로 넘어간다
-            L.beats.sort(function (a, b) { return a[0] - b[0]; });
-            var merged = [L.beats[0].slice()];
-            L.beats.slice(1).forEach(function (b) { // 이어지거나 겹치는 글 등장은 한 덩어리로 본다
-              var m = merged[merged.length - 1];
-              if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
-            });
-            merged.forEach(function (m) {
-              if (m[1] - m[0] > TEXT_MAX + 0.001) issue('[' + fig.id + '] "' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
-            });
-            var n = 0; L.fin.forEach(function (v) { n += chars(v); });
-            if (n > CHAR_MAX) issue('[' + fig.id + '] "' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
-            holds[i] = holdFor(n);
-            var lastBeat = merged[merged.length - 1];
-            var need = Math.max(lastBeat[1], lastBeat[0] + holds[i]);
-            if (tl.duration() < need) tl.to({}, { duration: need - tl.duration() });
+          textRules(L, s, fig);
+          tl.add(sub, start);
+          if (!auto && sub.duration() > STEP_MAX) sub.timeScale(sub.duration() / STEP_MAX);
+          var it = { start: start, active: rec.mark || rec.last, noteOn: false, n: 0, done: start, pause: 0.3,
+                     color: undefined, diamond: false, note: null, think: null };
+          var set = authorSet(sub, it.active, ['stroke']);
+          it.color = set ? set.stroke : undefined;
+          it.diamond = mmdShape(it.active) && it.active.tagName.toLowerCase() === 'polygon';
+          styleNodes(tl, sub, it.active, prevActive, start, memo);
+          prevActive = it.active;
+          if (hideNext.length) tl.set(hideNext, { opacity: 0 }, start);
+          hideNext = [];
+          if (prevIt && prevIt.think) { // 바로 앞 단계의 마름모 옆 스틱맨을 판정으로 바꾼다. 색은 이번 단계의 강조 색으로 정한다
+            var vd = peepEl(stage, it.color === NEG ? 'person-fail' : 'person-done', prevIt.think.x + PEEP / 2, prevIt.think.y + PEEP / 2, PEEP);
+            tl.set(vd, { opacity: 1 }, start); hideNext.push(vd);
           }
-          tl.addLabel('e' + i); ends.push(tl.duration());
+          var animEnd = Math.max(sub.endTime(), tl.duration());
+          rewindTo(pre);
+          if (box && vb && it.active && stage.contains(it.active) && stage.getScreenCTM()) {
+            try { // 위치 계산이 실패해도 그 단계에 상자를 두지 않을 뿐 애니메이션은 만든다
+              var obs = { boxes: [], pts: [] }, ots = [];
+              for (var ot = start; ot < animEnd - 1e-9; ot += 0.25) ots.push(ot);
+              ots.push(animEnd);
+              ots.forEach(function (t) { tl.seek(t, false); obstacles(stage, fig, obs); });
+              var cm = stage.getScreenCTM(), a = userBox(cm.inverse(), it.active), nh = noteHeight(box, s.text);
+              var lim = Math.min(40, 44 / (Math.sqrt(Math.abs(cm.a * cm.d - cm.b * cm.c)) || 1)); // 화면 거리 44px(판정 48px) 안에 들도록 무대 단위로 바꾼다
+              var peepW = usePeep && it.diamond ? PEEP + 4 : 0;
+              it.note = peepW && placeUnit(a, nh, peepW, obs, vb, lim); // 스틱맨 칸까지 들어갈 위치가 없으면 상자만 둔다
+              if (it.note) it.note.think = true;
+              else it.note = placeUnit(a, nh, 0, obs, vb, lim);
+              showNote(tl, box, start, it.note && it.note.note, s.text, nh);
+            } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
+            rewindTo(pre);
+          } else if (box) tl.set(box.g, { opacity: 0 }, start);
+          var authorNotes = [].filter.call(fig.querySelectorAll('.rc-note'), function (n) { return !box || n !== box.g; });
+          if (authorNotes.length) { tl.seek(animEnd, false); it.noteOn = authorNotes.some(function (n) { return seen(n, fig); }); rewindTo(pre); } // 작성자 상자가 단계 끝에 보이는지
+          if (it.note) it.noteOn = true;
+          it.think = usePeep && it.diamond && it.note && it.note.think ? it.note.peep : null;
+          if (it.think) {
+            var th = peepEl(stage, 'person', it.think.x + PEEP / 2, it.think.y + PEEP / 2, PEEP);
+            tl.set(th, { opacity: 1 }, start); hideNext.push(th);
+          }
+          prevIt = it;
+          var pool = textPool(fig);
+          rewindTo(pre);
+          var before = texts(fig, pool), smp = sampleStep(tl, fig, start, animEnd, before, pool), capText = s.name + ': ' + s.text;
+          it.n = smp.n; it.done = smp.done;
+          if (!it.noteOn && capPrev !== capText) { it.n += chars(capText); it.done = Math.max(it.done, start + 0.05); } // 자막은 타임라인 밖 글이라 따로 센다
+          capPrev = it.noteOn ? null : capText;
+          if (auto && animEnd - it.done > holdFor(it.n) + 3) console.warn('RC.demo: [' + fig.id + '] "' + s.name + '" 단계는 글이 끝난 뒤 연출이 길어 체류 상한을 넘는다');
+          var end = auto ? Math.max(animEnd, it.done + holdFor(it.n) + HOLD_PAD) : Math.max(animEnd, start + STEP_MIN);
+          if (end > tl.duration()) tl.to({}, { duration: end - tl.duration() });
+          tl.addLabel('e' + i, end); ends.push(end);
+          it.pause = Math.max(0.3, it.done + holdFor(it.n) + HOLD_PAD - end);
+          info.push(it);
           tl.to({}, { duration: 0.02 }); // 다음 단계의 즉시 설정이 이 단계의 끝 시각과 겹쳐 미리 실행되지 않게 띄운다
         });
       } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
@@ -583,15 +957,36 @@ footer p{margin:0 0 4px}
         fig.classList.add('demo-static');
         return;
       }
-      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var cur = 0, tw = null, timer = null, saved = 0, last = steps.length - 1;
-
+      } finally { if (restore) restore(); }
+      rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, last = steps.length - 1;
+      var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;
+      function stepAt(t) { if (t <= 1e-6) return -1; var i = 0; while (i < last && ends[i] < t - 1e-6) i++; return i; }
+      function startOf(i) { return i > 0 ? ends[i - 1] : 0; }
+      function label(i) {
+        if (i < 0) return '0/' + steps.length;
+        var g = groups.of[i];
+        return g ? g.name + ' ' + (i - g.from + 1) + '/' + (g.to - g.from + 1) : (i + 1) + '/' + steps.length;
+      }
       function show(i) {
-        cur = i;
-        cnt.textContent = (i + 1) + '/' + steps.length;
-        cap.textContent = steps[i].name + ': ' + steps[i].text;
-        bPrev.disabled = i === 0;
+        at = i;
+        cnt.textContent = label(i);
+        cap.textContent = i < 0 ? '' : steps[i].name + ': ' + steps[i].text;
+        cap.classList.toggle('rc-off', i >= 0 && info[i].noteOn);
+        bPrev.disabled = i < 0;
         bNext.disabled = i === last;
+        pend = quiet || i < 0 ? null : i;
+      }
+      function sync() {
+        var t = tl.time(), i = stepAt(t);
+        if (i !== at) show(i);
+        var a = i < 0 ? null : t >= ends[i] - 1e-6 ? info[i].active : i > 0 ? info[i - 1].active : null;
+        if (a !== activeEl) {
+          if (activeEl) activeEl.removeAttribute('data-rc-active');
+          activeEl = a;
+          if (a) a.setAttribute('data-rc-active', '');
+        }
+        if (pend !== null && t >= info[pend].start + 1e-3) { var k = pend; pend = null; keepInView(fig, info[k], reduce); }
       }
       function stop() {
         tl.pause();
@@ -599,40 +994,51 @@ footer p{margin:0 0 4px}
         if (timer) { timer.kill(); timer = null; }
         bPlay.textContent = '재생';
       }
+      function seekTo(t) { tl.seek(t, false); sync(); } // seek의 두 번째 인자 false: 바로 옮겨도 글자 효과(onUpdate)가 끝 상태를 그린다
       function go(i, animate) {
         stop();
-        if (animate && !reduce) { // 직전 단계로 바로 옮긴 뒤 한 단계만 연출한다(빠르게 여러 번 눌러도 한 단계 분량만 재생한다)
-          if (i > 0) tl.seek('e' + (i - 1), false);
-          tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
-        }
-        else tl.seek('e' + i, false);
-        show(i);
-      }
-      function tick() {
-        if (cur < last) { tl.seek('e' + (cur + 1), false); show(cur + 1); timer = gsap.delayedCall(holds[cur] || 2, tick); } else stop();
+        if (i < 0) { seekTo(0); return; }
+        if (animate && !reduce) { seekTo(startOf(i)); tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; } }); }
+        else seekTo(ends[i]);
       }
       function play() {
-        if (cur === last) go(0, false);
+        if (at >= to || at < from - 1) seekTo(startOf(from));
         bPlay.textContent = '일시정지';
-        if (reduce) timer = gsap.delayedCall(holds[cur] || 2, tick); else tl.play();
+        if (auto && !reduce) { tw = tl.tweenTo(ends[to], { onComplete: stop }); return; }
+        (function next() { // 단계 넘김: 한 단계를 재생하고 체류 시간 규칙만큼 쉰 뒤 다음 단계로 간다
+          var i = at + 1;
+          var rest = function () {
+            if (i >= to) { stop(); return; }
+            timer = gsap.delayedCall(reduce ? holdFor(info[i].n) + HOLD_PAD : info[i].pause, next);
+          };
+          if (reduce) { seekTo(ends[i]); rest(); }
+          else tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; rest(); } });
+        })();
       }
-      // seek의 두 번째 인자 false: 바로 이동할 때도 글자 효과(onUpdate)가 끝 상태를 그리게 한다
-      tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
-        if (tw) return;
-        var t = tl.time(), i = 0;
-        while (i < last && ends[i] < t - 1e-6) i++;
-        if (i !== cur) show(i);
+      tl.eventCallback('onUpdate', sync);
+      bPrev.onclick = function () { go(at - 1, false); };
+      bNext.onclick = function () { go(Math.min(last, at + 1), true); };
+      bReset.onclick = function () { whole(); go(-1); };
+      bPlay.onclick = function () { if (tw || timer || tl.isActive()) stop(); else play(); };
+      function whole() { // 시나리오 범위를 '전체'로 되돌린다
+        from = 0; to = last;
+        if (scen) [].forEach.call(scen.children, function (x) { x.classList.toggle('on', !x._rcGroup); });
+      }
+      if (scen) [].forEach.call(scen.children, function (b) {
+        b.onclick = function () { // 시나리오를 고르면 첫 단계부터 재생해 그 시나리오 끝에서 멈춘다. '전체'는 처음 상태로 돌아간다
+          var g = b._rcGroup;
+          if (!g) { whole(); go(-1); return; }
+          [].forEach.call(scen.children, function (x) { x.classList.toggle('on', x === b); });
+          from = g.from; to = g.to;
+          stop(); seekTo(startOf(from)); play();
+        };
       });
-      tl.eventCallback('onComplete', function () { bPlay.textContent = '재생'; });
-      bPrev.onclick = function () { go(Math.max(0, cur - 1), false); };
-      bNext.onclick = function () { go(Math.min(last, cur + 1), true); };
-      bReset.onclick = function () { go(0, false); };
-      bPlay.onclick = function () { if (tl.isActive() || tw || timer) stop(); else play(); };
       new ResizeObserver(function () { if (fig.clientWidth === 0) stop(); }).observe(fig); // 다른 페이지로 넘기면 멈춘다
-      addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last, false); });
-      addEventListener('afterprint', function () { go(saved, false); });
-      go(0, false);
-      fig._rcTl = tl; fig.dataset.rcReady = '1'; // RC.check가 빌드 성공을 확인하고 처음부터 재생할 때 쓴다
+      addEventListener('beforeprint', function () { saved = at; stop(); quiet = true; seekTo(ends[last]); });
+      addEventListener('afterprint', function () { go(saved, false); quiet = false; });
+      seekTo(0); quiet = false;
+      fig._rcTl = tl; fig.dataset.rcReady = '1'; // C0 하네스와 RC.check가 쓴다
+      watchFit(fig); // 자동 상자 글이 생긴 뒤 다시 계산한다
     });
     return null;
   };
@@ -743,7 +1149,7 @@ addEventListener('DOMContentLoaded',function(){
 <p class="blk"><b>근거</b></p>
 <figure id="d-shift" data-anim="전후 전환">
   <figcaption><span class="t">모델별 비중 (애니메이션)</span><span class="u">회색은 기준선, 짙은 색은 제안안</span></figcaption>
-  <svg class="stage" id="st-shift" viewBox="0 0 700 290" width="100%" role="img" aria-label="모델별 비중 변화">
+  <svg class="stage" id="st-shift" viewBox="0 0 700 300" width="100%" role="img" aria-label="모델별 비중 변화">
     <text x="30" y="155" font-size="14">모델 A</text>
     <text x="30" y="205" font-size="14">모델 B</text>
     <text x="30" y="255" font-size="14">모델 C</text>
@@ -753,6 +1159,10 @@ addEventListener('DOMContentLoaded',function(){
     <text id="v-a" x="530" y="155" font-size="14">50%</text>
     <text id="v-b" x="530" y="205" font-size="14">25%</text>
     <text id="v-c" x="530" y="255" font-size="14">25%</text>
+    <rect id="b-a0" x="110" y="164" width="400" height="6" style="fill:var(--s4)"/>
+    <rect id="b-b0" x="110" y="214" width="200" height="6" style="fill:var(--s4)"/>
+    <rect id="b-c0" x="110" y="264" width="200" height="6" style="fill:var(--s4)"/>
+    <text x="110" y="292" font-size="12">아래 얇은 막대는 기준선입니다</text>
   </svg>
   <p class="src">자료: 시험용 가상 자료</p>
 </figure>
@@ -782,9 +1192,22 @@ addEventListener('DOMContentLoaded',function(){
 <p class="blk"><b>근거</b></p>
 <figure id="d-rule" data-anim="규칙 적용 재생">
   <figcaption><span class="t">누적 손익 (애니메이션)</span><span class="u">단위: bp, 가상 자료 10개월</span></figcaption>
-  <svg class="stage" id="st-rule" viewBox="0 0 720 260" width="100%" role="img" aria-label="손절 규칙 적용 재생">
+  <svg class="stage" id="st-rule" viewBox="0 0 720 280" width="100%" role="img" aria-label="손절 규칙 적용 재생">
     <path d="M60 200H620" fill="none" style="stroke:var(--hair)"/>
     <text x="52" y="204" font-size="12" text-anchor="end">0</text>
+    <text x="52" y="174" font-size="12" text-anchor="end">10</text>
+    <text x="52" y="144" font-size="12" text-anchor="end">20</text>
+    <text x="52" y="114" font-size="12" text-anchor="end">30</text>
+    <text x="52" y="84" font-size="12" text-anchor="end">40</text>
+    <text x="20" y="84" font-size="12" text-anchor="middle">bp</text>
+    <path d="M60 232V236M172 232V236M284 232V236M396 232V236M508 232V236M620 232V236" fill="none" style="stroke:var(--hair)"/>
+    <text x="60" y="252" font-size="12" text-anchor="middle">0</text>
+    <text x="172" y="252" font-size="12" text-anchor="middle">2</text>
+    <text x="284" y="252" font-size="12" text-anchor="middle">4</text>
+    <text x="396" y="252" font-size="12" text-anchor="middle">6</text>
+    <text x="508" y="252" font-size="12" text-anchor="middle">8</text>
+    <text x="620" y="252" font-size="12" text-anchor="middle">10</text>
+    <text x="660" y="252" font-size="12">개월</text>
     <path id="r-base" d="M60 200L116 176L172 155L228 182L284 206L340 185L396 158L452 134L508 116L564 101L620 86" fill="none" style="stroke:var(--s1);stroke-width:1.5"/>
     <path id="r-1" d="M60 200L116 176L172 155L228 182L284 206" fill="none" style="stroke:var(--neg);stroke-width:2"/>
     <path id="r-2" d="M284 206L396 206L452 182L508 164L564 149L620 134" fill="none" style="stroke:var(--neg);stroke-width:2"/>

@@ -562,5 +562,30 @@ class EngineChart(EngineCase):
         self.assertEqual(r["right"], 16)
 
 
+class SampleSelfCheck(EngineCase):
+    def check(self, name, page, fid):
+        p = self.open_file(name, (ROOT / "tests" / name).read_text(encoding="utf-8"), page=page)
+        p.set_default_timeout(300_000)
+        return p.evaluate("id => RC.check(id)", fid)
+
+    def test_sample_anim_and_viz_pass(self):
+        for name, page, fid in (("sample-anim.html", "p2", "d-shift"), ("sample-anim.html", "p3", "d-rule"),
+                                ("sample-viz.html", "p4", "d-order"), ("sample-viz.html", "p5", "d-mmd")):
+            r = self.check(name, page, fid)
+            self.assertTrue(r.get("pass"), (fid, r))
+
+    def test_baseline_bars_and_axes_in_sample(self):
+        html = (ROOT / "tests" / "sample-anim.html").read_text(encoding="utf-8")
+        for bar in ("b-a0", "b-b0", "b-c0"):
+            self.assertIn(f'id="{bar}"', html)
+        self.assertIn(">bp<", html)
+        self.assertIn(">개월<", html)
+
+    def test_managed_blocks_match_engine(self):  # 엔진을 고친 뒤 견본 관리 블록을 다시 채웠는지 본다
+        js = (ROOT / "report-charts.js").read_text(encoding="utf-8")
+        for name in ("sample-anim.html", "sample-viz.html"):
+            self.assertIn(js, (ROOT / "tests" / name).read_text(encoding="utf-8"), name)
+
+
 if __name__ == "__main__":
     unittest.main()
