@@ -134,6 +134,81 @@ class Anim(unittest.TestCase):
         fails = anim.anim_violations(page(body="<p>가</p>", script="RC.demo(a,[]);"))
         self.assertTrue(any("getElementById" in f for f in fails))
 
+
+def note_demo(fid, *calls):
+    """calls: 단계마다 설명 상자를 옮기는 호출문 → RC.demo 호출문."""
+    items = ",".join("{name:'단계%d',text:'설명입니다.',play:function(tl,$){%s}}" % (i, c) for i, c in enumerate(calls))
+    return f"RC.demo(document.getElementById('{fid}'),[{items}]);"
+
+
+class NoteFixed(unittest.TestCase):  # 설명 상자 위치: 모든 단계에서 같은 좌표에 둔 작성자 상자
+    BODY = '<figure id="d1" data-anim="구조"><svg></svg></figure><figure id="d2" data-anim="구조"><svg></svg></figure>'
+
+    def fails(self, script):
+        return anim.note_fixed_violations(page(body=self.BODY, script="var nt=RC.note(st,190,64);" + script))
+
+    def test_same_place_every_step(self):
+        fails = self.fails(note_demo("d1", "fx.pair(tl, nt, ic.guide, 198, 18, '가', 0.4);",
+                                     "fx.say(tl, nt, 198, 18, '나', 0.4);", "RC.fx.pair(tl,nt,[ic.a, ic.b],198,18,'다',0.4);"))
+        self.assertEqual(len(fails), 1)
+        self.assertTrue(has(fails, "설명 상자 고정 위치"))
+        self.assertIn("d1", fails[0])
+
+    def test_moving_note_ok(self):  # 단계마다 현재 노드 옆으로 옮기면 위반이 아니다. 같은 좌표가 일부 단계에만 있어도 된다
+        self.assertEqual(self.fails(note_demo("d1", "fx.pair(tl, nt, ic.a, 108, 78, '가', 0.5);",
+                                              "fx.pair(tl, nt, [ic.who, ic.ask], 270, 78, '나', 0.4);",
+                                              "fx.pair(tl, nt, ic.a, 108, 78, '다', 0.5);")), [])
+
+    def test_same_place_on_some_steps_ok(self):  # 상자를 쓴 단계만 같은 좌표이고 상자 없는 단계가 있으면 고정으로 보지 않는다
+        self.assertEqual(self.fails(note_demo("d1", "fx.say(tl, nt, 198, 18, '가', 0.4);", "fx.say(tl, nt, 198, 18, '나', 0.4);",
+                                              "tl.to($('a'),{x:1,duration:0.3});")), [])
+
+    def test_single_call_or_variables_ok(self):  # 호출이 하나뿐이거나 좌표가 변수이면 판정하지 않는다
+        self.assertEqual(self.fails(note_demo("d1", "fx.say(tl, nt, 198, 18, '가', 0.4);")), [])
+        self.assertEqual(self.fails(note_demo("d1", "fx.say(tl, nt, x, y, '가', 0.4);", "fx.say(tl, nt, x, y, '나', 0.4);")), [])
+
+    def test_demos_judged_separately(self):  # 다른 애니메이션의 같은 좌표는 합치지 않는다
+        self.assertEqual(self.fails(note_demo("d1", "fx.say(tl, nt, 10, 10, '가', 0.4);", "fx.say(tl, nt, 50, 10, '나', 0.4);")
+                                    + note_demo("d2", "fx.say(tl, nt, 10, 10, '가', 0.4);")), [])
+
+
+class BaselineMark(unittest.TestCase):  # 전후 비교의 기준선: 전후 전환 figure는 기준선 도형에 data-rc-base를 단다
+    def test_before_after_without_mark(self):
+        html = page(body='<figure id="d1" data-anim="전후 전환"><svg><rect id="b"/></svg></figure>',
+                    script="RC.demo(document.getElementById('d1'),[]);")
+        fails = anim.baseline_mark_violations(html)
+        self.assertEqual(len(fails), 1)
+        self.assertTrue(has(fails, "전후 전환 기준선 표시 누락"))
+        self.assertIn("d1", fails[0])
+
+    def test_with_mark_ok(self):
+        html = page(body='<figure id="d1" data-anim="전후 전환"><svg><rect id="b"/><rect id="b0" data-rc-base/></svg></figure>',
+                    script="RC.demo(document.getElementById('d1'),[]);")
+        self.assertEqual(anim.baseline_mark_violations(html), [])
+
+    def test_other_type_not_judged(self):
+        self.assertEqual(anim.baseline_mark_violations(anim_page([("page core", "p2", ["d1"])])), [])
+
+
+class NewRulesOnSamples(unittest.TestCase):  # 새 규칙은 고정 견본 sample-anim에서만 위반을 낸다
+    FILES = ["bench/fixed/03-groups.html", "bench/fixed/04-rules.html", "bench/fixed/sample-viz.html",
+             "bench/fixed/session-report.html", "tests/sample-anim.html", "tests/sample-viz.html",
+             "template.html", "template-paged.html"]
+
+    def test_registered(self):
+        self.assertIn((anim.note_fixed_violations, "exact"), anim.RULES)
+        self.assertIn((anim.baseline_mark_violations, "exact"), anim.RULES)
+
+    def test_only_fixed_sample_anim_violates(self):
+        rules = (anim.note_fixed_violations, anim.baseline_mark_violations)
+        for name in self.FILES:
+            html = (ROOT / name).read_text(encoding="utf-8")
+            self.assertEqual([f for r in rules for f in r(html)], [], name)
+        html = (ROOT / "bench/fixed/sample-anim.html").read_text(encoding="utf-8")
+        self.assertTrue(has(anim.note_fixed_violations(html), "설명 상자 고정 위치"))
+        self.assertTrue(has(anim.baseline_mark_violations(html), "전후 전환 기준선 표시 누락"))
+
+
 class ListSync(unittest.TestCase):
     def test_skill_table_matches_check(self):
         text = (ROOT / "시각화.md").read_text(encoding="utf-8")
@@ -461,6 +536,113 @@ class EngineActive(EngineCase):
         p = self.open(self.BARS, script)
         self.assertEqual(self.corners(p, ["e0", "e1"]), ["", "bb"])
 
+    DIMS = """() => { const f = document.getElementById('d1'), tl = f._rcTl;
+      const op = id => +(+getComputedStyle(document.getElementById(id)).fillOpacity).toFixed(2);
+      return ARGS.map(k => { tl.seek(k, false); return [op('ba'), op('bb')]; }); }"""
+
+    def dims(self, p, keys):
+        return self.js(p, self.DIMS.replace("ARGS", json.dumps(keys)))
+
+    def test_passed_opaque_node_dimmed(self):  # 지나온 불투명 노드(꺾쇠를 받은 노드)는 채움을 흐리게 하고, 다시 현재 노드가 되면 원래 채움으로 돌린다. 되감기에서도 같다
+        script = ("function grow(tl,$,id,w){tl.to($(id),{attr:{width:w},fill:RC.color('s1'),duration:0.6});}"
+                  "RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){grow(tl,$,'ba',248);}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){grow(tl,$,'bb',208);}},"
+                  "{name:'다',text:'첫 막대를 다시 봅니다.',play:function(tl,$){grow(tl,$,'ba',260);}},"
+                  "{name:'라',text:'채움 없는 막대입니다.',play:function(tl,$){tl.to($('bc'),{attr:{width:300},duration:0.3});}}]);")
+        p = self.open(self.BARS, script)
+        D = 0.45
+        self.assertEqual(self.dims(p, ["e0", "e1", "e2", "e3"]), [[1, 1], [D, 1], [1, D], [D, D]])
+        self.assertEqual(self.dims(p, ["e2", "e1", "e0"]), [[1, D], [D, 1], [1, 1]])
+        r = self.js(p, "() => { document.getElementById('d1')._rcTl.seek('e3', false); return +getComputedStyle(document.getElementById('bc')).fillOpacity; }")
+        self.assertNotAlmostEqual(r, D, places=2)  # 작성자 채움이 없는 노드는 흐리게 하지 않는다
+
+    def test_dim_base_is_step_end_opacity(self):  # 흐림 기준은 노드가 현재였던 단계 끝의 채움 불투명도다(그 단계가 0.3에서 1로 올린 값)
+        body = self.BARS.replace('id="ba" x="110" y="60" width="400" height="24" style="fill:var(--s4)"',
+                                 'id="ba" x="110" y="60" width="400" height="24" style="fill:var(--s4);fill-opacity:0.3"')
+        script = ("RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){tl.to($('ba'),{fillOpacity:1,duration:0.3});}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){tl.to($('bb'),{attr:{width:208},duration:0.3});}},"
+                  "{name:'다',text:'첫 막대를 다시 봅니다.',play:function(tl,$){tl.to($('ba'),{attr:{width:260},duration:0.3});}}]);")
+        p = self.open(body, script)
+        self.assertEqual(self.dims(p, ["e0", "e1", "e2"]), [[1, 1], [0.45, 1], [1, 0.45]])
+
+    def test_dim_with_scenario_select(self):  # 시나리오를 고르면 그 시작 화면의 흐림 상태가 앞으로 재생한 상태와 같다
+        items = []
+        for i in range(13):
+            sc, bar = ("A", "ba" if i % 2 == 0 else "bb") if i < 7 else ("B", "bb" if i % 2 else "ba")
+            items.append("{name:'시나리오 %s · 단계%d',text:'단계 %d입니다.',play:function(tl,$){tl.to($('%s'),{attr:{width:%d},duration:0.3});}}"
+                         % (sc, i, i, bar, 200 + i * 10))
+        p = self.open(self.BARS, f"RC.demo(document.getElementById('d1'),[{','.join(items)}]);")
+        fwd = self.dims(p, ["e6", "e7"])
+        r = self.js(p, """() => { const f = document.getElementById('d1'), op = id => +(+getComputedStyle(document.getElementById(id)).fillOpacity).toFixed(2);
+          f._rcTl.seek('e12', false);
+          [...f.querySelectorAll('.demo-scen button')].find(x => x.textContent === '시나리오 B').click();
+          f.querySelectorAll('.demo-ctl button')[1].click();  // 재생을 멈춘다
+          return [op('ba'), op('bb')]; }""")
+        self.assertEqual(fwd, [[1, 0.45], [0.45, 1]])  # e6: ba 현재, e7: bb 현재
+        self.assertEqual(r, fwd[0])  # 시나리오 B 시작 시각은 e6 끝이다
+
+    def test_no_dim_on_mermaid_and_spot(self):  # 엔진 채움을 받는 Mermaid 노드와 초점 틀 노드는 흐리게 하지 않는다
+        p = self.open(MMD, mmd_steps(FLOW))
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e2', false);
+          const shape = n => [...f.querySelectorAll('g.node')].find(g => g.id.includes('-' + n + '-')).querySelector('rect, polygon');
+          return ['A', 'B'].map(n => +getComputedStyle(shape(n)).fillOpacity); }""")
+        self.assertEqual(r, [1, 1])
+        script = ("var st=document.querySelector('#d1 svg'),fr=RC.focus(st);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('ba'));}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('bb'));}}]);")
+        p = self.open_file("no_dim_spot.html", engine_doc(self.BARS, script))
+        self.assertEqual(self.dims(p, ["e1"]), [[0, 0.08]])  # spot이 정한 채움(지나온 0, 현재 0.08) 그대로다
+
+
+class EngineCheckRules(EngineCase):  # RC.check의 작성 규칙 항목: 작성자 상자 거리(noteFar)와 기준선 유지(baseLost)
+    STAGE = ('<figure id="d1" data-anim="전후 전환"><svg viewBox="0 0 600 300" width="600" height="300">'
+             '<rect id="a" x="40" y="200" width="100" height="40" style="fill:var(--s1)"/>'
+             '<rect id="a0" x="40" y="244" width="100" height="6" style="fill:var(--s4)" BASE/>'
+             '<rect id="b" x="300" y="200" width="100" height="40" style="fill:var(--s1)"/></svg></figure>')
+
+    def check(self, body, script):
+        p = self.open(body, script)
+        p.set_default_timeout(120_000)
+        return p.evaluate("() => RC.check('d1')")
+
+    def test_author_note_far_fails(self):
+        script = ("var st=document.querySelector('#d1 svg'),nt=RC.note(st,120,30);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){RC.fx.say(tl,nt,40,150,'가까운 상자',0.3);$('a');}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){RC.fx.say(tl,nt,40,150,'먼 상자',0.3);$('b');}}]);")
+        r = self.check(self.STAGE.replace("BASE", "data-rc-base"), script)
+        self.assertFalse(r["pass"], r)
+        self.assertEqual(len(r["noteFar"]), 1, r)  # 둘째 단계만 48px를 넘는다
+        self.assertIn("2", r["noteFar"][0])
+
+    def test_author_note_near_and_base_kept_pass(self):
+        script = ("var st=document.querySelector('#d1 svg'),nt=RC.note(st,120,30);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){RC.fx.say(tl,nt,40,150,'가',0.3);tl.to($('a'),{attr:{width:120},duration:0.3});}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){RC.fx.say(tl,nt,300,150,'나',0.3);tl.to($('b'),{attr:{width:80},duration:0.3});}}]);")
+        r = self.check(self.STAGE.replace("BASE", "data-rc-base"), script)
+        self.assertTrue(r["pass"], r)
+        self.assertEqual((r["noteFar"], r["baseLost"]), ([], []))
+
+    def test_base_overwritten_or_hidden_fails(self):
+        for i, play in enumerate(("tl.to($('a0'),{attr:{width:60},duration:0.3});",  # 기준선 도형을 바뀐 값으로 덮어쓴다
+                                  "tl.to($('a0'),{opacity:0,duration:0.3});")):    # 마지막 단계에서 기준선을 지운다
+            script = ("RC.demo(document.getElementById('d1'),["
+                      "{name:'가',text:'첫 막대입니다.',play:function(tl,$){tl.to($('a'),{attr:{width:120},duration:0.3});}},"
+                      "{name:'나',text:'기준선을 바꿉니다.',play:function(tl,$){%s$('b');}}]);" % play)
+            p = self.open_file(f"base_lost_{i}.html", engine_doc(self.STAGE.replace("BASE", "data-rc-base"), script))
+            p.set_default_timeout(120_000)
+            r = p.evaluate("() => RC.check('d1')")
+            self.assertFalse(r["pass"], (i, r))
+            self.assertEqual(len(r["baseLost"]), 1, (i, r))
+            self.assertIn("a0", r["baseLost"][0])
+
+    def test_no_mark_no_base_judgment(self):  # data-rc-base가 없는 figure는 기준선을 판정하지 않는다
+        script = ("RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'기준선을 덮어씁니다.',play:function(tl,$){tl.to($('a0'),{attr:{width:60},duration:0.3});$('a');}}]);")
+        r = self.check(self.STAGE.replace("BASE", ""), script)
+        self.assertEqual(r["baseLost"], [], r)
+        self.assertTrue(r["pass"], r)
 
 
 # 상자 폭 220은 표시 범위(viewBox) 안에서만 찾는다. MMD는 viewBox 폭이 242라 어느 노드 옆에도 자리가 없어,

@@ -532,8 +532,17 @@
       return t.vars.fill != null || t.vars.fillOpacity != null || a.fill != null || a['fill-opacity'] != null;
     });
   }
-  function styleNodes(tl, sub, cur, prev, at, memo) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
+  var DIM = 0.45; // 지나온 불투명 노드의 채움 불투명도 배율
+  function styleNodes(tl, sub, cur, prev, at, memo, dimPrev) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
     var A = tok('accent'), K = ['stroke', 'strokeWidth', 'fill', 'fillOpacity'];
+    if (dimPrev && prev !== cur && !touchesFill(sub, prev)) { // 꺾쇠를 받았던 지나온 노드(작성자 채움이 불투명)는 채움을 흐리게 해 같은 색의 현재 노드와 구분한다
+      tl.to(prev, { fillOpacity: DIM * memo.dim.get(prev), duration: 0.3, autoRound: false }, at);
+      memo.dimmed.add(prev);
+    }
+    if (memo.dimmed.has(cur)) { // 흐리게 한 노드가 다시 현재 노드가 되면 원래 채움으로 돌린다. 이번 단계가 채움 불투명도를 직접 주면 그 값을 둔다
+      memo.dimmed.delete(cur);
+      if (!authorSet(sub, cur, ['fillOpacity', 'fill-opacity'])) tl.to(cur, { fillOpacity: memo.dim.get(cur), duration: 0.3, autoRound: false }, at);
+    }
     if (closedShape(prev) && prev !== cur && !touchesStroke(sub, prev)) { // 이번 단계가 직전 노드 테두리를 바꾸면(unspot 포함) 그 값을 둔다
       var s = authorSet(sub, prev, ['stroke', 'strokeWidth']) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
       if (s.stroke == null && !memo.author.has(prev)) v.stroke = tok('accent-2'); // 작성자가 tl.to로 색을 준 적이 있으면 그 색을 둔다
@@ -563,12 +572,14 @@
       if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
     });
   }
-  function cornerStep(tl, st, cur, start, end) { // 작성자 채움이 불투명한 현재 노드는 엔진 채움 0.08이 보이지 않으므로 네 모서리에 강조색 꺾쇠를 둔다
+  function cornerStep(tl, st, cur, start, end) { // 작성자 채움이 불투명한 현재 노드는 엔진 채움 0.08이 보이지 않으므로 네 모서리에 강조색 꺾쇠를 둔다. st.on은 꺾쇠를 둔 노드다
+    st.on = null;
     var on = closedShape(cur) && st.svg.contains(cur) && !cur.classList.contains('rc-token') && !focusFrames.some(function (f) { return f.cur === cur; }); // 이동 표식과 초점 틀이 그리는 노드는 뺀다
     if (on) { // 단계 끝 상태(호출한 쪽이 end로 옮겨 둔 화면)의 채움과 위치를 본다
       var cs = getComputedStyle(cur), cm = st.svg.getScreenCTM();
       on = !!cm && seen(cur, st.svg) && alpha(cs.fill) * +cs.fillOpacity >= 0.5;
     }
+    if (on) { st.on = cur; st.op = +cs.fillOpacity; } // 흐리게 할 때 기준으로 쓸 단계 끝 채움 불투명도
     if (!on && !st.c) return;
     if (!st.c) st.c = brackets(st.svg, 'rc-corner');
     tl.set(st.c.g, { opacity: 0 }, start); // 지나온 노드의 꺾쇠는 단계 시작에 지운다
@@ -577,7 +588,7 @@
     [[b.l - P, b.t - P], [b.r + P, b.t - P], [b.r + P, b.b + P], [b.l - P, b.b + P]].forEach(function (q, i) { tl.set(st.c.c[i], { x: q[0], y: q[1] }, start); });
     tl.to(st.c.g, { opacity: 1, duration: 0.3 }, Math.max(start, end - 0.3)); // 노드의 크기 변화가 끝날 무렵 나타난다
   }
-  var NOTE_W = 220, GAP = 8, PEEP = 56;
+  var NOTE_W = 220, GAP = 8, PEEP = 56, NOTE_NEAR = 48; // NOTE_NEAR: 작성자 설명 상자와 현재 노드의 화면 거리 상한(RC.check)
   function reveal(fig) { // 숨은 페이지의 figure를 계산하는 동안만 화면 밖에 펼친다. 되돌리는 함수를 돌려준다
     var undo = [];
     for (var k = 0; k < 6 && !fig.getClientRects().length; k++) {
@@ -590,8 +601,10 @@
     }
     return function () { undo.reverse().forEach(function (u) { if (u[1] == null) u[0].removeAttribute('style'); else u[0].setAttribute('style', u[1]); }); };
   }
+  var autoNotes = new WeakSet(); // 엔진이 만든 자동 설명 상자. RC.check의 작성자 상자 거리 판정에서 뺀다
   function autoNote(svg) { // 자동 설명 상자 하나를 만들어 단계마다 글과 위치만 바꾼다
     var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
+    autoNotes.add(g);
     var lead = sv('line', { 'class': 'rc-lead', 'vector-effect': 'non-scaling-stroke', style: 'display:none;stroke:' + tok('ink-3') + ';stroke-width:1' }, g); // 멀리 둔 상자와 현재 노드를 잇는 보조선. 상자 뒤에 그린다
     var rect = sv('rect', { x: 0, y: 0, width: NOTE_W, height: 30, style: 'fill:' + tok('paper') + ';stroke:' + tok('hair') }, g);
     var fo = sv('foreignObject', { x: 0, y: 0, width: NOTE_W, height: 30 }, g);
@@ -867,7 +880,7 @@
       var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
       var capPrev = null;
-      var memo = { author: new Set(), fill: new Map(), own: new Map(), filled: new Set() }, prevActive = null;
+      var memo = { author: new Set(), fill: new Map(), own: new Map(), filled: new Set(), dim: new Map(), dimmed: new Set() }, prevActive = null;
       var stage = fig.querySelector('svg'), restore = null;
       try { // 펼친 figure는 빌드가 어떻게 끝나도 되돌린다
       restore = reveal(fig);
@@ -875,7 +888,7 @@
       var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
-      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], fars = [], widened = false, corner = { svg: stage, c: null };
+      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], fars = [], widened = false, corner = { svg: stage, c: null, on: null };
       tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 모든 설정(작성자 tl.set, 자동 상자·스틱맨)을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
@@ -892,7 +905,8 @@
           var set = authorSet(sub, it.active, ['stroke']);
           it.color = set ? set.stroke : undefined;
           it.diamond = mmdShape(it.active) && it.active.tagName.toLowerCase() === 'polygon';
-          styleNodes(tl, sub, it.active, prevActive, start, memo);
+          if (prevActive && corner.on === prevActive && !memo.dim.has(prevActive)) memo.dim.set(prevActive, corner.op);
+          styleNodes(tl, sub, it.active, prevActive, start, memo, !!prevActive && corner.on === prevActive);
           prevActive = it.active;
           if (hideNext.length) tl.set(hideNext, { opacity: 0 }, start);
           hideNext = [];
@@ -902,8 +916,8 @@
           }
           var animEnd = Math.max(sub.endTime(), tl.duration());
           if (stage && it.active) { // 꺾쇠 위치는 단계 끝 화면에서 읽는다. 위치 계산이 실패해도 애니메이션은 만든다
-            try { rewindTo(animEnd); cornerStep(tl, corner, it.active, start, animEnd); } catch (err) { console.error('RC.demo: 꺾쇠 위치 계산', err); if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start); }
-          } else if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start);
+            try { rewindTo(animEnd); cornerStep(tl, corner, it.active, start, animEnd); } catch (err) { console.error('RC.demo: 꺾쇠 위치 계산', err); corner.on = null; if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start); }
+          } else { corner.on = null; if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start); }
           rewindTo(pre);
           if (box && vb && it.active && stage.contains(it.active) && stage.getScreenCTM()) {
             try { // 위치 계산이 실패해도 그 단계에 상자를 두지 않을 뿐 애니메이션은 만든다
@@ -1072,7 +1086,9 @@
 
   /* 완료 전 판정 도구: 애니메이션을 처음부터 연속 재생하며 매 프레임 겹침을 판정하고 글 규칙 위반(RC.issues)을 함께 돌려준다.
      브라우저에서 RC.check('figure id')를 실행한다. 판정 대상: 아이콘·설명 상자와 무대의 모든 요소(글자·도형·연결선·초점 틀),
-     초점 틀과 무대 글자, 무대 글자끼리. class="rc-token"인 이동 표식은 뺀다 */
+     초점 틀과 무대 글자, 무대 글자끼리. class="rc-token"인 이동 표식은 뺀다.
+     재생 뒤 단계 끝마다 작성 규칙도 본다: 작성자 설명 상자(RC.note)와 현재 노드의 거리(noteFar, 48px 이하),
+     data-rc-base를 단 기준선 도형이 마지막 단계에 보이고 처음 보인 때의 위치·크기 그대로인지(baseLost) */
   RC.check = function (id) {
     var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
     if (!st) return Promise.resolve({ error: '애니메이션 figure가 없다: ' + id });
@@ -1098,6 +1114,33 @@
       return /^(text|rect|polygon|circle|path|line)$/.test(e.tagName) && !/\brc-/.test(e.getAttribute('class') || '');
     });
     var texts = fixed.filter(function (e) { return e.tagName === 'text'; });
+    function rules() { // 단계 끝으로 옮겨 가며 작성 규칙을 본다. 마지막 단계 끝 화면에서 끝난다
+      var tl = fig._rcTl, out = { noteFar: [], baseLost: [] }, first = new Map();
+      var notes = [].filter.call(st.querySelectorAll('.rc-note'), function (e) { return !autoNotes.has(e); });
+      var bases = [].slice.call(fig.querySelectorAll('[data-rc-base]'));
+      var gap = function (a, c) { var dx = Math.max(0, c.l - a.r, a.l - c.r), dy = Math.max(0, c.t - a.b, a.t - c.b); return Math.sqrt(dx * dx + dy * dy); };
+      var shown = function (e) { // 보이는 기준선 도형: 보이는 요소이고 채움이나 테두리가 보인다
+        var c = getComputedStyle(e), r = e.getBoundingClientRect();
+        return seen(e, fig) && (r.width > 0 || r.height > 0) && (alpha(c.fill) * +c.fillOpacity > 0.05
+          || (c.stroke !== 'none' && alpha(c.stroke) * +c.strokeOpacity > 0.05 && parseFloat(c.strokeWidth) > 0));
+      };
+      for (var i = 0; tl.labels['e' + i] != null; i++) {
+        tl.seek('e' + i, false);
+        var act = fig.querySelector('[data-rc-active]'), on = notes.filter(function (e) { return seen(e, fig); });
+        if (act && on.length) {
+          var a = box(act), d = Math.min.apply(null, on.map(function (e) { return gap(box(e), a); }));
+          if (d > NOTE_NEAR) out.noteFar.push((i + 1) + '단계: 작성자 설명 상자가 현재 노드에서 ' + Math.round(d) + 'px 떨어져 있다(' + NOTE_NEAR + 'px 이하)');
+        }
+        bases.forEach(function (e) { if (!first.has(e) && shown(e)) first.set(e, box(e)); });
+      }
+      bases.forEach(function (e) {
+        var name = e.id || e.tagName.toLowerCase(), a = first.get(e), z = box(e);
+        if (!shown(e)) out.baseLost.push(name + ': 마지막 단계에서 기준선 도형이 보이지 않는다');
+        else if (a && ['l', 'r', 't', 'b'].some(function (k) { return Math.abs(a[k] - z[k]) > 1; }))
+          out.baseLost.push(name + ': 기준선 도형이 바뀐 값으로 덮어써졌다(바뀐 값은 별도 도형으로 둔다)');
+      });
+      return out;
+    }
     function frame() {
       var dyn = [].filter.call(st.querySelectorAll('.rc-icon, .rc-note'), function (e) { return op(e) > 0.05; });
       var fc = [].concat.apply([], [].map.call(st.querySelectorAll('.rc-focus, .rc-corner'), function (f) { return op(f) > 0.05 ? [].slice.call(f.children) : []; })); // 초점 틀과 엔진 꺾쇠
@@ -1120,9 +1163,11 @@
           var bad = frame(); frames++;
           if (bad.length) { overlapFrames++; if (samples.length < 5) samples.push(fig.querySelector('.cnt').textContent + ' ' + bad.join('; ')); }
           if (performance.now() - t0 > 500 && b[1].textContent === '재생') {
+            var ru = rules();
             b[3].click();
-            done({ pass: overlapFrames === 0 && !mine().length, frames: frames, overlapFrames: overlapFrames, overlapSamples: samples,
-              issues: mine(), seconds: +((performance.now() - t0) / 1000).toFixed(1) });
+            done({ pass: overlapFrames === 0 && !mine().length && !ru.noteFar.length && !ru.baseLost.length, frames: frames,
+              overlapFrames: overlapFrames, overlapSamples: samples, issues: mine(), noteFar: ru.noteFar, baseLost: ru.baseLost,
+              seconds: +((performance.now() - t0) / 1000).toFixed(1) });
           } else requestAnimationFrame(loop);
         })();
       });
