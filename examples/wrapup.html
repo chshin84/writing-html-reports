@@ -215,19 +215,19 @@ footer p{margin:0 0 4px}
   </div>
   <div class="keyfig">
     <div data-src="p2"><span class="k">표 생성 시간(1회)</span><span class="v">6분</span><span class="d">종전 42분</span></div>
-    <div data-src="p3"><span class="k">요청 항목 달성</span><span class="v">4개 중 3개</span><span class="d">나머지 1개는 일부 달성</span></div>
+    <div data-src="p3"><span class="k">요청 항목 달성</span><span class="v">4개 중 3개</span><span class="d">1개는 일부 달성</span></div>
     <div data-src="p4"><span class="k">남은 일(10월 처리)</span><span class="v">1건</span><span class="d">남은 일 3건 중</span></div>
     <div data-src="p5"><span class="k">결정 요청</span><span class="v">1건</span><span class="d">9월 결측 기준가 3건</span></div>
-    <div data-src="p6"><span class="k">자동 시험</span><span class="v">18건 통과</span><span class="d">시험 범위: 계산 함수</span></div>
+    <div data-src="p6"><span class="k">자동 시험</span><span class="v">18건 통과</span><span class="d">단위 시험 기준</span></div>
   </div>
   <div class="gist">
     <h2>요약</h2>
     <ul>
-      <li data-src="p2">월간 성과 표를 한 번 만드는 시간이 종전의 7분의 1로 줄었습니다.</li>
-      <li data-src="p3">처음 요청 중 미완 항목은 PDF 출력이며, 엑셀 출력은 완료했습니다.</li>
-      <li data-src="p4">10월에 처리할 일은 PDF 서식 보완이며, 서버 환경 측정은 11월로 미룹니다.</li>
-      <li data-src="p5">결측 기준가 처리 방식의 결정이 필요하며, 권장안은 결측을 감추지 않는 빈 칸 표시입니다.</li>
-      <li data-src="p6">계산 값은 확인했지만 PDF 화면과 서버 환경 소요 시간은 확인하지 않았습니다.</li>
+      <li data-src="p2">생성 시간 단축은 원자료를 한 번에 읽도록 바꾼 효과이며, 수익률 계산식은 그대로입니다.</li>
+      <li data-src="p3">일부 달성에 그친 요청은 PDF 출력이고, 원인은 긴 펀드명의 줄바꿈 문제입니다.</li>
+      <li data-src="p4">PDF 보완이 마감 실행보다 먼저 끝나므로 다음 마감 표부터 PDF를 함께 냅니다.</li>
+      <li data-src="p5">결측 기준가는 결측을 감추지 않는 빈 칸 표시를 권장하며, 정하지 않으면 현행 직전 값 채움이 그대로 적용됩니다.</li>
+      <li data-src="p6">계산 값은 실행으로 확인했고, PDF 화면은 보완 작업에서 함께 확인합니다.</li>
     </ul>
   </div>
   <dl class="gloss">
@@ -238,6 +238,15 @@ footer p{margin:0 0 4px}
     <div><dt>마감 실행</dt><dd>매달 말 그달의 성과 표를 확정하려고 스크립트를 실행하는 작업입니다.</dd></div>
     <div><dt>확인 상태</dt><dd>결론 줄 앞의 표시로, 실행으로 확인함·추론함·가정함 중 하나입니다.</dd></div>
   </dl>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>변경 내역: 커밋 <code>3f9c2a1</code>(가상, 원자료 일괄 읽기 도입, 계산식 변경 없음)</li>
+    <li>변경 전후 생성 시간: <code>logs/run-0831.txt</code>, <code>logs/run-0930.txt</code>(가상)</li>
+    <li>요청 항목별 판정과 미달 원인: <code>docs/request-0901.md</code>, <code>logs/pdf-check-0930.txt</code>(가상)</li>
+    <li>남은 일 일정과 마감 일정: <code>logs/worklog.md</code>, <code>docs/schedule-2026.md</code>(가상)</li>
+    <li>선택안과 권장 이유, 현행 설정: <code>docs/decisions.md</code>, <code>config.yaml</code>(가상)</li>
+    <li>시험 결과와 미확인 항목: <code>logs/verify-1003.txt</code>(가상)</li>
+  </ul>
 </section>
 
 <section class="page" id="p2" data-part="changed">
@@ -245,9 +254,9 @@ footer p{margin:0 0 4px}
   <p class="sec">바뀐 것</p>
   <h2>표 1회 생성 시간이 42분에서 6분으로 줄었다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="run">실행으로 확인함</span> 생성 시간은 종전의 7분의 1로 줄었습니다(<code>logs/run-0831.txt</code>와 <code>logs/run-0930.txt</code> 대조).</li>
-    <li><span class="state" data-state="infer">추론함</span> 계산식이 그대로이므로 단축 효과는 원자료 읽기 방식 변경에서 나왔다고 판단합니다.</li>
-    <li><span class="state" data-state="run">실행으로 확인함</span> 9월 표부터 손으로 고친 셀이 없어져 수정 이력을 따로 관리하지 않아도 됩니다(<code>out/monthly_2026-09.xlsx</code>).</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 시간 단축은 펀드마다 파일을 열고 닫던 반복을 없앤 데서 나왔습니다(<code>logs/profile-0930.txt</code>의 단계별 소요 시간).</li>
+    <li><span class="state" data-state="infer">추론함</span> 계산식을 바꾸지 않았으므로 새 표의 수익률은 옛 표와 같은 기준으로 비교할 수 있습니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 손으로 고칠 셀이 없어져 검토자는 수정 이력 대신 스크립트 출력만 확인하면 됩니다(<code>out/monthly_2026-09.xlsx</code>).</li>
     <li><span class="state" data-state="assume">가정함</span> 통합 CSV의 열 순서가 매달 같다고 가정하고 읽습니다.</li>
   </ul>
   <p class="blk"><b>근거</b></p>
@@ -273,7 +282,7 @@ footer p{margin:0 0 4px}
   <p class="blk"><b>출처</b></p>
   <ul class="pts src-list">
     <li>변경 전 실행 기록: <code>logs/run-0831.txt</code>(가상)</li>
-    <li>변경 후 실행 기록: <code>logs/run-0930.txt</code>(가상)</li>
+    <li>변경 후 실행 기록과 단계별 소요 시간: <code>logs/run-0930.txt</code>, <code>logs/profile-0930.txt</code>(가상)</li>
     <li>9월 출력 파일: <code>out/monthly_2026-09.xlsx</code>(가상)</li>
     <li>변경 커밋: <code>3f9c2a1</code>(가상, 열 이름 검사 포함)</li>
   </ul>
@@ -284,9 +293,9 @@ footer p{margin:0 0 4px}
   <p class="sec">처음 요청 대비 달성</p>
   <h2>처음 요청한 4개 항목 중 3개를 달성했다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="run">실행으로 확인함</span> 생성 시간은 요청 기준보다 4분 빨라 여유가 있습니다(<code>logs/run-0930.txt</code>).</li>
-    <li><span class="state" data-state="run">실행으로 확인함</span> 펀드를 추가할 때 코드를 고칠 필요가 없어졌습니다(<code>python -m pytest tests/test_funds.py</code> 통과).</li>
-    <li><span class="state" data-state="infer">추론함</span> PDF 출력의 미달 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제 하나라고 판단합니다.</li>
+    <li><span class="state" data-state="infer">추론함</span> 달성한 요청은 원자료 일괄 읽기와 펀드 목록의 설정 파일 분리에서 나왔다고 판단합니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> PDF 출력의 미달 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제 하나입니다(<code>logs/pdf-check-0930.txt</code>).</li>
+    <li><span class="state" data-state="infer">추론함</span> 펀드가 늘어도 개발자 없이 운용지원팀이 설정 파일만으로 대응할 수 있습니다.</li>
   </ul>
   <p class="blk"><b>근거</b></p>
   <div class="tbl"><table>
@@ -294,7 +303,7 @@ footer p{margin:0 0 4px}
     <tbody>
       <tr><td>생성 시간 10분 이내</td><td>달성</td><td>9월 실행 6분</td></tr>
       <tr><td>수작업 수정 제거</td><td>달성</td><td>9월 표의 수정 셀 0개</td></tr>
-      <tr><td>엑셀·PDF 동시 출력</td><td>일부 달성</td><td>엑셀 완료, PDF 표 머리 줄바꿈 미해결</td></tr>
+      <tr><td>엑셀·PDF 동시 출력</td><td>일부 달성</td><td>엑셀 완료, PDF 서식 미완</td></tr>
       <tr><td>설정 파일만으로 펀드 추가</td><td>달성</td><td>시험 펀드 1개 추가 후 시험 통과</td></tr>
     </tbody>
   </table></div>
@@ -310,7 +319,9 @@ footer p{margin:0 0 4px}
   <ul class="pts src-list">
     <li>요청 메모: <code>docs/request-0901.md</code>(가상)</li>
     <li>9월 실행 기록: <code>logs/run-0930.txt</code>(가상)</li>
-    <li>펀드 추가 시험: <code>tests/test_funds.py</code>(가상)</li>
+    <li>변경 커밋: <code>3f9c2a1</code>(가상, 원자료 일괄 읽기와 펀드 목록 설정 파일 분리)</li>
+    <li>펀드 목록 설정과 추가 시험: <code>funds.yaml</code>, <code>tests/test_funds.py</code>(가상)</li>
+    <li>PDF 출력 점검 기록: <code>logs/pdf-check-0930.txt</code>(가상)</li>
   </ul>
 </section>
 
@@ -320,7 +331,8 @@ footer p{margin:0 0 4px}
   <h2>남은 일 3건 중 PDF 서식 보완 1건만 10월에 처리한다</h2>
   <ul class="pts">
     <li><span class="state" data-state="infer">추론함</span> 보완 예정일이 10월 마감 실행보다 앞서므로 10월 표부터 PDF를 함께 낼 수 있습니다.</li>
-    <li><span class="state" data-state="run">실행으로 확인함</span> 8월 표를 새 스크립트로 다시 만들어 기존 표와 대조한 결과 차이가 없어, 8월 이전 표는 다시 만들지 않습니다(<code>python compare.py 2026-08</code> 출력 <code>차이 0건</code>).</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 8월 표를 새 스크립트로 다시 만들어 대조한 결과 옛 표와 차이가 없었습니다(<code>python compare.py 2026-08</code> 출력 <code>차이 0건</code>).</li>
+    <li><span class="state" data-state="assume">가정함</span> 서버 측정을 미뤄도 10월 마감 실행은 요청 기준 시간 안에 끝난다고 가정합니다.</li>
     <li><span class="state" data-state="infer">추론함</span> 결측 기준가 처리를 빈 칸 표시로 정하면 PDF 보완 범위에 빈 칸 표기 규칙이 추가됩니다(<a href="#p5">결정 요청</a> 참조).</li>
   </ul>
   <p class="blk"><b>근거</b></p>
@@ -334,7 +346,7 @@ footer p{margin:0 0 4px}
   </table></div>
   <p class="blk"><b>중요 포인트</b></p>
   <ul class="pts">
-    <li>처분이 '지금 함'인 항목만 이번 작업 범위에서 처리하고, 나머지 항목은 예정 시점에 다시 판단합니다.</li>
+    <li>처분 열은 이번 작업에서 처리할지를 뜻하고, 예정 시점 열은 처리하거나 다시 판단할 날짜입니다.</li>
   </ul>
   <p class="blk warn"><b>유의사항</b></p>
   <ul class="pts">
@@ -361,8 +373,8 @@ footer p{margin:0 0 4px}
   <div class="tbl"><table>
     <thead><tr><th>정할 사항</th><th>선택안</th><th>권장안과 이유</th><th>기각한 대안과 이유</th></tr></thead>
     <tbody>
-      <tr><td>결측 기준가 처리<br>(결정 요청, 9월 3건)</td><td>직전 영업일 값으로 채움(현행)<br>빈 칸으로 표시<br>해당 펀드 행 제외</td><td>빈 칸으로 표시. 결측이 표에서 드러나고 수익률을 지어내지 않음</td><td>직전 값 채움은 결측일의 기준가 변동이 0으로 처리되어 실제 변동이 가려짐. 행 제외는 펀드 수가 달마다 바뀌어 전월 표와 비교하기 어려움</td></tr>
-      <tr><td>출력 파일 이름 규칙<br>(결정한 사항, 9월 28일)</td><td>날짜를 이름 앞에 붙임<br>날짜를 이름 뒤에 붙임</td><td>날짜를 이름 뒤에 붙임. 기존 폴더의 정렬 순서와 같음</td><td>이름 앞에 붙이면 배포 스크립트의 파일 경로를 고쳐야 함</td></tr>
+      <tr><td>결측 기준가 처리<br>(결정 요청, 9월 3건)</td><td>직전 영업일 값으로 채움(현행)<br>빈 칸으로 표시<br>해당 펀드 행 제외</td><td>빈 칸으로 표시. 결측이 표에서 드러나고 수익률을 지어내지 않음</td><td>직전 값 채움은 결측일의 기준가 변동이 0으로 처리되어 실제 변동이 가려짐. 행 제외는 9월 표의 펀드 수가 120개에서 117개로 줄어 전월 표와 비교하기 어려움</td></tr>
+      <tr><td>출력 파일 이름 규칙<br>(결정한 사항, 9월 28일)</td><td>날짜를 이름 앞에 붙임<br>날짜를 이름 뒤에 붙임</td><td>날짜를 이름 뒤에 붙임. 1~8월 기존 파일과 같은 형식이라 폴더 정렬 순서가 유지됨</td><td>이름 앞에 붙이면 <code>monthly_</code>로 시작하는 파일을 찾는 배포 스크립트의 경로 규칙을 고쳐야 함</td></tr>
     </tbody>
   </table></div>
   <p class="blk"><b>중요 포인트</b></p>
@@ -375,7 +387,9 @@ footer p{margin:0 0 4px}
   </ul>
   <p class="blk"><b>출처</b></p>
   <ul class="pts src-list">
-    <li>9월 원자료: <code>data/nav_2026-09.csv</code>(가상)</li>
+    <li>9월 원자료: <code>data/nav_2026-09.csv</code>(가상, 펀드 120개 중 3개의 월말 기준가 결측)</li>
+    <li>기존 출력 파일: <code>out/monthly_2026-01.xlsx</code>~<code>out/monthly_2026-08.xlsx</code>(가상)</li>
+    <li>배포 스크립트: <code>deploy.py</code>(가상, <code>monthly_*.xlsx</code> 형식의 파일을 찾음)</li>
     <li>결정 기록: <code>docs/decisions.md</code>(가상)</li>
     <li>설정 파일: <code>config.yaml</code>(가상)</li>
   </ul>
@@ -386,8 +400,8 @@ footer p{margin:0 0 4px}
   <p class="sec">검증 범위</p>
   <h2>자동 시험 18건은 모두 통과했고 PDF 화면은 확인하지 않았다</h2>
   <ul class="pts">
-    <li><span class="state" data-state="run">실행으로 확인함</span> 실행으로 확인한 범위는 계산 값과 엑셀 출력까지입니다(<code>logs/verify-1003.txt</code>).</li>
-    <li><span class="state" data-state="infer">추론함</span> PDF 화면과 서버 소요 시간은 남은 일과 겹치므로 별도 검증 없이 해당 작업에서 함께 확인한다고 판단합니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 단위 시험은 결측 기준가와 설정 첫 달 같은 경계 조건의 수익률 계산을 포함합니다(<code>tests/test_returns.py</code>).</li>
+    <li><span class="state" data-state="infer">추론함</span> 실행하지 않은 확인은 남은 일의 PDF 보완과 서버 측정 때 함께 하므로 별도 검증 작업을 두지 않는다고 판단합니다.</li>
     <li><span class="state" data-state="assume">가정함</span> 9월 수작업 수정본의 값이 올바르다고 가정하고 대조 기준으로 썼습니다.</li>
   </ul>
   <p class="blk"><b>근거</b></p>
@@ -411,7 +425,8 @@ footer p{margin:0 0 4px}
   <p class="blk"><b>출처</b></p>
   <ul class="pts src-list">
     <li>검증 기록: <code>logs/verify-1003.txt</code>(가상)</li>
-    <li>시험 폴더: <code>tests/</code>(가상)</li>
+    <li>수익률 계산 시험: <code>tests/test_returns.py</code>(가상)</li>
+    <li>남은 일 일정: <code>logs/worklog.md</code>(가상, PDF 보완 10월 15일, 서버 측정 11월 3일)</li>
   </ul>
 </section>
 </main>
