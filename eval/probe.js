@@ -100,13 +100,14 @@
   function under(e, x, y) { // 글자 중심점 아래에 그려진 도형의 채움색. 없으면 undefined, 반투명이면 null
     if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return undefined;
     var st = document.elementsFromPoint(x, y), i = st.indexOf(e);
+    if (i < 0) return undefined;
     for (var k = i + 1; k < st.length; k++) {
       var s = st[k];
       if (s.contains(e)) { if (s.tagName.toLowerCase() === 'svg') break; continue; }
       if (!(s instanceof SVGElement)) break;
       if (!SHAPE.test(s.tagName)) continue;
       var c = cs(s);
-      if (c.fill === 'none' || alpha(c.fill) === 0) continue;
+      if (c.fill === 'none' || alpha(c.fill) === 0 || opac(s) * parseFloat(c.fillOpacity) <= 0.001) continue;
       return opac(s) * parseFloat(c.fillOpacity) >= 0.999 && alpha(c.fill) >= 0.999 ? c.fill : null;
     }
     return undefined;

@@ -85,6 +85,13 @@ class Browser(unittest.TestCase):
                 return {i["id"]: i for i in layout.dark_items(s, "doc.html", facts, wanted, None)}
             return {i["id"]: i for i in layout.light_items(s, "doc.html", facts, wanted, None)}
 
+    def test_text_over_fully_transparent_shape_is_measured_on_page(self):
+        svg = ('<figure><svg viewBox="0 0 700 100" width="100%"><rect x="0" y="0" width="700" height="100" fill="#111418" fill-opacity="0"/>'
+               '<text x="10" y="50" font-size="30" style="fill:#3F4650">글자</text></svg></figure>')
+        r = self.items(doc(svg), {"contrast-text"})
+        self.assertEqual(r["contrast-text"]["status"], "pass")
+        self.assertEqual(r["contrast-text"]["value"]["unmeasurable"], 0)
+
     def test_svg_text_and_foreign_object_fonts_at_390(self):
         svg = ('<figure><svg viewBox="0 0 700 100" width="100%"><text x="0" y="20" font-size="14">글자</text>'
                '<foreignObject x="0" y="40" width="300" height="40"><div style="font-size:14px">이름표</div></foreignObject></svg></figure>')

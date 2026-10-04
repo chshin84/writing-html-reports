@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 from urllib.parse import quote
 
+from playwright.sync_api import Error as PWError
 from playwright.sync_api import TimeoutError as PWTimeout
 from playwright.sync_api import sync_playwright
 
@@ -71,7 +72,7 @@ def open_doc(context, url, demo_calls, page_id=None, notes=None):
     def failed(u, text):
         if _ignored(u):
             return
-        (same if u.startswith(local) else external).append(text)
+        (same if u.startswith(local + "/") else external).append(text)
 
     page.on("requestfailed", lambda r: failed(r.url, r.url) if r.resource_type in WATCHED else None)
     page.on("response", lambda r: failed(r.url, f"{r.status} {r.url}")
@@ -86,12 +87,17 @@ def open_doc(context, url, demo_calls, page_id=None, notes=None):
         if external:
             raise EnvFail("외부 요청 실패: " + ", ".join(external[:3]))
         page.wait_for_function(BASE_READY, timeout=left())
+        if external:
+            raise EnvFail("외부 요청 실패: " + ", ".join(external[:3]))
     except PWTimeout:
         page.close()
         raise EnvFail("15초 안에 글꼴·도식·네트워크가 준비되지 않았다") from None
     except EnvFail:
         page.close()
         raise
+    except PWError as x:
+        page.close()
+        raise EnvFail(f"문서를 열지 못했다: {str(x).splitlines()[0]}") from None
     page.add_script_tag(content=PROBE)
     if page_id and not page.evaluate("id => __c0.shown(id)", page_id):
         page.close()
