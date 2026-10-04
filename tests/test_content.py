@@ -97,5 +97,89 @@ class PageName(unittest.TestCase):
         self.assertEqual(content.page_violations(html), ["근거 없는 페이지(표·도표·핵심 수치 없음): 구조 A"])
 
 
+SEC = '<p class="sec">절</p>'
+MSG = "(.gloss 용어나 처음 나온 곳의 괄호 풀이를 둔다)"
+
+
+def new_doc(body):
+    """새 규약 문서(.sec 사용)."""
+    return page(body=SEC + body)
+
+
+class Abbr(unittest.TestCase):
+    def test_glossed_ok(self):
+        html = new_doc('<p>API를 쓴다.</p><dl class="gloss"><div><dt>API</dt><dd>응용 프로그램 인터페이스</dd></div></dl>')
+        self.assertEqual(content.abbr_violations(html), [])
+
+    def test_paren_ok(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p>API(응용 프로그램 인터페이스)를 쓴다. API는 빠르다.</p>")), [])
+
+    def test_paren_around_ok(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p>상장지수펀드(ETF)와 상장지수증권 (ETN)을 산다.</p>")), [])
+
+    def test_bare_paren_is_not_gloss(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p>(ETF)를 산다.</p>")), ["약어 풀이 없음: ETF" + MSG])
+
+    def test_unglossed(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p>API를 쓴다. 그 뒤 API(설명)를 본다.</p>")),
+                         ["약어 풀이 없음: API" + MSG])
+
+    def test_reported_once_in_order(self):
+        self.assertEqual(content.unglossed(new_doc("<p>SDK와 API와 SDK를 쓴다.</p>")), ["SDK", "API"])
+
+    def test_abbr_with_period_and_particle(self):
+        self.assertEqual(content.unglossed(new_doc("<p>끝은 API.</p><p>ETF를 산다.</p>")), ["API", "ETF"])
+
+    def test_paren_after_tag(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p><b>API</b>(응용 프로그램 인터페이스)</p>")), [])
+
+    def test_old_has_same(self):
+        old = new_doc("<p>API를 쓴다.</p>")
+        new = new_doc("<p>API를 쓴다. ETF도 쓴다.</p>")
+        self.assertEqual(content.abbr_violations(new, old), ["약어 풀이 없음: ETF" + MSG])
+
+    def test_old_not_new_convention_still_subtracts(self):
+        self.assertEqual(content.abbr_violations(new_doc("<p>API</p>"), page(body="<p>API</p>")), [])
+
+    def test_not_new_convention(self):
+        self.assertEqual(content.abbr_violations(page(body="<p>API를 쓴다.</p>")), [])
+
+    def test_wrapup_mark_is_new_convention(self):
+        html = page(body="<p>API</p>").replace('<main class="doc">', '<main class="doc" data-kind="wrapup">')
+        self.assertEqual(content.abbr_violations(html), ["약어 풀이 없음: API" + MSG])
+
+
+class AbbrExcluded(unittest.TestCase):
+    def ok(self, body):
+        self.assertEqual(content.abbr_violations(new_doc(body)), [], body)
+
+    def test_code(self):
+        self.ok("<p><code>API</code></p>")
+
+    def test_pre(self):
+        self.ok("<pre>API CLI</pre>")
+
+    def test_mermaid(self):
+        self.ok('<pre class="mermaid">flowchart LR\n A --> B</pre>')
+
+    def test_script(self):
+        self.ok("<script>var s = 'API';</script>")
+
+    def test_svg(self):
+        self.ok("<svg><text>API</text></svg>")
+
+    def test_digit_tokens(self):
+        self.ok("<p>G1과 Q4와 HTML5</p>")
+
+    def test_file_name_piece(self):
+        self.ok("<p>SKILL.md와 README.txt를 읽는다.</p>")
+
+    def test_hyphen_identifier_piece(self):
+        self.ok("<p>lens-API와 PR-12와 X-API-KEY</p>")
+
+    def test_length_bounds(self):
+        self.ok("<p>A와 ABCDEFG</p>")
+
+
 if __name__ == "__main__":
     unittest.main()

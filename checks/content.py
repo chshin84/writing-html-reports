@@ -1,7 +1,7 @@
-"""페이지 근거·핵심 페이지(별) 표시·점수표 규칙. C3(보고서 내용 규격) 소유."""
+"""페이지 근거·핵심 페이지(별) 표시·점수표·새 규약 문서(약어 풀이·마무리 보고서) 규칙. C3(보고서 내용 규격) 소유."""
 import re
 
-from checks.common import PAGE_ID, TOC
+from checks.common import PAGE_ID, TOC, TextOnly, visible_text
 
 PAGE = re.compile(r'<section class="(page[^"]*)"[^>]*>(.*?)</section>', re.S)
 EVIDENCE = re.compile(r'<table|<figure|<svg|class="keyfig"|class="bars"')
@@ -126,8 +126,69 @@ def score_violations(html, show=False):
     return out
 
 
+BREAK = "¶"  # 블록 경계 표지
+WRAPUP = re.compile(r'<main\b[^>]*\bdata-kind="wrapup"')  # 마무리 보고서 표시
+TOKEN = re.compile(r"[A-Za-z0-9_](?:[A-Za-z0-9_./\\-]*[A-Za-z0-9_])?")
+ABBR = re.compile(r"[A-Z]{2,6}")
+GLOSS = re.compile(r'<dl\b[^>]*\bclass="(?:[^"]*\s)?gloss(?:\s[^"]*)?"[^>]*>(.*?)</dl>', re.S)
+PAREN_AFTER = re.compile(r"\s?[(（]")  # 약어(풀이)
+PAREN_BEFORE = re.compile(r"[^\s()（）¶]\s?[(（]\s?$")  # 풀이(약어)의 여는 괄호까지
+PAREN_CLOSE = re.compile(r"\s?[)）]")
+
+
+def is_new_doc(html):
+    """새 규약 문서: 절 이름(p.sec)을 쓰거나 마무리 보고서 표시가 있다. 새 검사는 이 문서에만 적용한다."""
+    return bool(SEC.search(html) or WRAPUP.search(html))
+
+
+class ProseText(TextOnly):
+    """code·pre·script·svg·style·title 밖의 글. 약어 검사용이다."""
+    SKIP = ("code", "pre", "script", "svg", "style", "title")
+    BLOCK = ("p", "div", "li", "dt", "dd", "td", "th", "tr", "section", "h1", "h2", "h3", "h4", "figcaption", "br")
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.SKIP:
+            self.skip += 1
+        elif tag in self.BLOCK:
+            self.chunks.append(BREAK)  # 블록이 바뀌면 앞 글의 괄호가 뒤 약어로 이어지지 않게 한다
+
+    def handle_endtag(self, tag):
+        if tag in self.SKIP and self.skip:
+            self.skip -= 1
+
+
+def abbrs(text):
+    """(약어, 시작, 끝) 목록. 숫자·점·하이픈이 섞인 토큰 전체는 약어가 아니다."""
+    return [(m.group(), m.start(), m.end()) for m in TOKEN.finditer(text) if ABBR.fullmatch(m.group())]
+
+
+def unglossed(html):
+    """풀이 없는 약어를 처음 나온 순서로 한 번씩 돌려준다. 새 규약 판별은 하지 않는다."""
+    text = visible_text(html, ProseText)
+    glossed = {a for block in GLOSS.findall(html) for dt in re.findall(r"<dt\b[^>]*>(.*?)</dt>", block, re.S)
+               for a, _, _ in abbrs(strip_tags(dt))}
+    seen, out = set(), []
+    for a, start, end in abbrs(text):
+        if a in seen:
+            continue
+        seen.add(a)
+        around = PAREN_BEFORE.search(text[max(0, start - 4):start]) and PAREN_CLOSE.match(text, end)
+        if a not in glossed and not PAREN_AFTER.match(text, end) and not around:
+            out.append(a)
+    return out
+
+
+def abbr_violations(html, old_html=None):
+    """새 규약 문서에서 풀이 없는 영문 약어(대문자 2~6자)를 검출한다. 수정 전 문서에도 풀이 없던 약어는 뺀다."""
+    if not is_new_doc(html):
+        return []
+    old = set(unglossed(old_html)) if old_html is not None else set()
+    return [f"약어 풀이 없음: {a}(.gloss 용어나 처음 나온 곳의 괄호 풀이를 둔다)" for a in unglossed(html) if a not in old]
+
+
 RULES = [
     (star_violations, "plain"),
     (score_violations, "drop"),
     (page_violations, "plain"),
+    (abbr_violations, "old"),
 ]
