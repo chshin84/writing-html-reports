@@ -380,6 +380,17 @@
   };
 
   /* 애니메이션 */
+  var SCEN = /^(시나리오 [^·]+?) · (.+)$/;
+  function scenarioGroups(steps) { // '시나리오 X · Y' 단계를 이어진 구간끼리 X로 묶는다. 다른 이름은 묶지 않는다
+    var of = [], list = [];
+    steps.forEach(function (s, i) {
+      var m = SCEN.exec(s.name || ''), g = list[list.length - 1];
+      if (!m) { of.push(null); return; }
+      if (!g || g.name !== m[1] || g.to !== i - 1) { g = { name: m[1], from: i, to: i }; list.push(g); } else g.to = i;
+      of.push(g);
+    });
+    return { of: of, list: list };
+  }
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -395,8 +406,16 @@
       li.appendChild(document.createTextNode(' ' + s.text));
       list.appendChild(li);
     });
+    var groups = scenarioGroups(steps), scen = null;
+    if (groups.list.length >= 2 && steps.length > 12) { // 조작 줄 아래 별도 줄. 조작 버튼 순서를 바꾸지 않는다
+      scen = el('div', 'demo-scen');
+      [null].concat(groups.list).forEach(function (g) {
+        var b = el('button', g ? null : 'on', g ? g.name : '전체');
+        b.type = 'button'; b._rcGroup = g; scen.appendChild(b);
+      });
+    }
     var src = fig.querySelector('.src');
-    [ctl, cap, list].forEach(function (n) { fig.insertBefore(n, src); });
+    [ctl, scen, cap, list].forEach(function (n) { if (n) fig.insertBefore(n, src); });
     var mode = playMode(); fig.dataset.rcMode = mode;
     if (typeof gsap === 'undefined') { fig.classList.add('demo-static'); return null; }
 
@@ -464,7 +483,11 @@
       var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;
       function stepAt(t) { if (t <= 1e-6) return -1; var i = 0; while (i < last && ends[i] < t - 1e-6) i++; return i; }
       function startOf(i) { return i > 0 ? ends[i - 1] : 0; }
-      function label(i) { return i < 0 ? '0/' + steps.length : (i + 1) + '/' + steps.length; } // Task 3이 시나리오 표시로 바꾼다
+      function label(i) {
+        if (i < 0) return '0/' + steps.length;
+        var g = groups.of[i];
+        return g ? g.name + ' ' + (i - g.from + 1) + '/' + (g.to - g.from + 1) : (i + 1) + '/' + steps.length;
+      }
       function show(i) {
         at = i;
         cnt.textContent = label(i);
@@ -510,9 +533,21 @@
       tl.eventCallback('onUpdate', sync);
       bPrev.onclick = function () { go(at - 1, false); };
       bNext.onclick = function () { go(Math.min(last, at + 1), true); };
-      bReset.onclick = function () { /* Task 3: whole() */ go(-1); };
+      bReset.onclick = function () { whole(); go(-1); };
       bPlay.onclick = function () { if (tw || timer || tl.isActive()) stop(); else play(); };
-      /* Task 3: 시나리오 버튼 */
+      function whole() { // 시나리오 범위를 '전체'로 되돌린다
+        from = 0; to = last;
+        if (scen) [].forEach.call(scen.children, function (x) { x.classList.toggle('on', !x._rcGroup); });
+      }
+      if (scen) [].forEach.call(scen.children, function (b) {
+        b.onclick = function () { // 시나리오를 고르면 첫 단계부터 재생해 그 시나리오 끝에서 멈춘다. '전체'는 처음 상태로 돌아간다
+          var g = b._rcGroup;
+          if (!g) { whole(); go(-1); return; }
+          [].forEach.call(scen.children, function (x) { x.classList.toggle('on', x === b); });
+          from = g.from; to = g.to;
+          stop(); seekTo(startOf(from)); play();
+        };
+      });
       new ResizeObserver(function () { if (fig.clientWidth === 0) stop(); }).observe(fig); // 다른 페이지로 넘기면 멈춘다
       addEventListener('beforeprint', function () { saved = at; stop(); quiet = true; seekTo(ends[last]); });
       addEventListener('afterprint', function () { go(saved, false); quiet = false; });

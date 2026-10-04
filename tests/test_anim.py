@@ -234,5 +234,57 @@ class EngineDwell(EngineCase):
         self.assertGreater(r, 0.9)
 
 
+def many(prefix_a="시나리오 A", prefix_b="시나리오 B", n_a=7, n_b=6):
+    nodes = ["A", "B", "C", "D"]
+    return ([(f"{prefix_a} · 단계{k}", f"가 단계 {k}입니다.", nodes[k % 4], None) for k in range(n_a)]
+            + [(f"{prefix_b} · 단계{k}", f"나 단계 {k}입니다.", nodes[k % 4], None) for k in range(n_b)])
+
+
+class EngineScenario(EngineCase):
+    def test_counter_and_row(self):
+        p = self.open(MMD, mmd_steps(many()), mode="auto")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e1', false);
+          f.querySelectorAll('.demo-ctl button')[0].click();
+          return {cnt: f.querySelector('.demo-ctl .cnt').textContent,
+                  scen: [...f.querySelectorAll('.demo-scen button')].map(x => x.textContent),
+                  ctl: [...f.querySelectorAll('.demo-ctl button')].map(x => x.textContent),
+                  inCtl: !!f.querySelector('.demo-ctl .demo-scen')}; }""")
+        self.assertEqual(r["cnt"], "시나리오 A 1/7")
+        self.assertEqual(r["scen"], ["전체", "시나리오 A", "시나리오 B"])
+        self.assertEqual(r["ctl"], ["이전", "재생", "다음", "처음부터"])
+        self.assertFalse(r["inCtl"])
+
+    def test_select_scenario_stops_at_its_end_and_reset_returns_all(self):
+        p = self.open(MMD, mmd_steps(many(n_a=7, n_b=6)), mode="step")
+        r = self.js(p, """async () => { const f = document.getElementById('d1'), tl = f._rcTl, b = f.querySelectorAll('.demo-ctl button');
+          [...f.querySelectorAll('.demo-scen button')].find(x => x.textContent === '시나리오 B').click();
+          const first = tl.time();
+          for (let k = 0; k < 400 && b[1].textContent !== '재생'; k++) await new Promise(r => setTimeout(r, 100));
+          const out = {first, t: tl.time(), e: __c0.ends(tl), cnt: f.querySelector('.demo-ctl .cnt').textContent};
+          b[3].click();
+          out.after = {t: tl.time(), on: f.querySelector('.demo-scen button.on').textContent};
+          return out; }""")
+        self.assertAlmostEqual(r["first"], r["e"][6], places=3)
+        self.assertAlmostEqual(r["t"], r["e"][12], places=3)
+        self.assertEqual(r["cnt"], "시나리오 B 6/6")
+        self.assertEqual(r["after"], {"t": 0, "on": "전체"})
+
+    def test_no_row_when_12_steps_or_less(self):
+        p = self.open(MMD, mmd_steps(many(n_a=3, n_b=3)))
+        self.assertEqual(self.js(p, "() => document.querySelectorAll('#d1 .demo-scen').length"), 0)
+
+    def test_x_dot_y_without_prefix_not_grouped(self):
+        p = self.open(MMD, mmd_steps(many("전후 전환 A", "전후 전환 B")), mode="auto")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e1', false);
+          f.querySelectorAll('.demo-ctl button')[0].click();
+          return {cnt: f.querySelector('.demo-ctl .cnt').textContent, row: f.querySelectorAll('.demo-scen').length}; }""")
+        self.assertEqual(r, {"cnt": "1/13", "row": 0})
+
+    def test_print_hides_row(self):  # 인쇄에서는 시나리오 줄을 숨긴다
+        p = self.open(MMD, mmd_steps(many()))
+        p.emulate_media(media="print")
+        self.assertEqual(self.js(p, "() => getComputedStyle(document.querySelector('#d1 .demo-scen')).display"), "none")
+
+
 if __name__ == "__main__":
     unittest.main()

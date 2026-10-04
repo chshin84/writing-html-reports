@@ -7,9 +7,12 @@
 .demo-cap{min-height:1.5em}
 .demo-cap.rc-off{visibility:hidden}
 .demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
-.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-scen{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:13px}
+.demo-scen button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink-2);border:1px solid var(--hair);padding:2px 10px;cursor:pointer}
+.demo-scen button.on{color:var(--ink);border-color:var(--ink-3)}
+.demo-static .demo-ctl,.demo-static .demo-cap,.demo-static .demo-scen{display:none}
 .demo-static .demo-steps{display:block}
 @media print{
-  .demo-ctl,.demo-cap{display:none}
+  .demo-ctl,.demo-cap,.demo-scen{display:none}
   .demo-steps{display:block}
 }
