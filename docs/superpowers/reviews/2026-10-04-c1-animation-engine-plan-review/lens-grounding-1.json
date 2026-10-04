@@ -1,0 +1,45 @@
+{
+ "lens": "lens-grounding",
+ "target": "docs/superpowers/plans/2026-10-04-c1-animation-engine.md",
+ "issues": [
+  {
+   "where": "설계 결정 범위 넓히기",
+   "type": "unsupported",
+   "claim": "04-rules 위쪽 노드에 원래 범위 안 자리가 없다는 단정은 근거가 없다. 노드 S는 한 줄 글이면 아래 왼쪽(x 약 4.5, y 67)에 자리가 있다. 확실히 안 들어가는 것은 스틱맨 폭이 더해지는 마름모다."
+  },
+  {
+   "where": "설계 결정 판정 스틱맨 색, Task 6",
+   "type": "contradiction",
+   "claim": "spec은 '이번 단계의 강조 색'으로만 판정 색을 정한다. plan은 마름모 단계 색이 neg여도 실패로 정하고 리포트 기재 표시가 없다."
+  },
+  {
+   "where": "설계 결정 현재 노드 표시 범위, Task 4",
+   "type": "contradiction",
+   "claim": "spec은 무대 종류를 가리지 않는데 plan은 Mermaid 노드에만 표시를 적용하고 리포트 기재 표시가 없다."
+  },
+  {
+   "where": "Task 10 SampleSelfCheck.check",
+   "type": "mismatch",
+   "claim": "문서 전체에서 'RC.demo('를 세면 관리 블록 주석까지 세어 실제 호출 수보다 하나 많다. harness 준비 조건이 끝내 충족되지 않아 15초를 기다린다. measure.source_facts로 세야 한다."
+  },
+  {
+   "where": "Task 3 시나리오 버튼",
+   "type": "unsupported",
+   "claim": "spec은 선택 시 재생을 시작하라고 하지 않는다. plan은 선택과 동시에 play를 부르고 해석이라고 밝히지 않는다."
+  },
+  {
+   "where": "설계 결정 n의 계산, Task 2 seen()",
+   "type": "mismatch",
+   "claim": "'C0 하네스와 같은 정의'라 했으나 seen()은 visibility, 면적, clip-path, 루트까지의 불투명도를 보지 않는다. 엔진 n이 C0 n보다 커져 체류 상한을 넘을 수 있다."
+  }
+ ],
+ "principles_applied": [
+  "NO-ASSUME",
+  "STATE-ASSUME",
+  "FOCUSED",
+  "NO-FLEET",
+  "WRITTEN-ONLY",
+  "SPECIFIC-NAME"
+ ],
+ "notes": "harness·probe·measure의 이름과 반환 키, GSAP API(endTime, timeScale, tweenTo, getChildren, vars), 행 번호, 견본 좌표, CLI 인자는 실제와 맞다. Mermaid 11.17.2가 마름모를 polygon으로 그리는지는 브라우저에서 확인하지 못했다. maxWidth 비례 확대는 넓힌 폭이 880px 이하일 때만 배율을 유지한다. (원본 보고의 evidence·counterpart 칸은 줄여 옮겼다)"
+}

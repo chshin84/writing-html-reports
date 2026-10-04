@@ -1,0 +1,65 @@
+{
+ "lens": "lens-adversarial",
+ "target": "docs/superpowers/plans/2026-10-04-c1-animation-engine.md",
+ "issues": [
+  {
+   "where": "설계 결정 하위 타임라인·n의 계산, Task 2 sampleStep, Task 5 tl.seek(animEnd)",
+   "type": "failure-mode",
+   "claim": "빌드 도중 단계마다 seek하면 RC.fx.pop·RC.fx.draw의 빌드 시점 gsap.set이 렌더 사이에 끼어, 같은 요소를 여러 단계에서 pop·draw하면 '이전'으로 돌아갈 때 그 요소가 사라질 수 있다. 되감기 시험은 설명 상자 글만 본다."
+  },
+  {
+   "where": "Task 5 배치 코드와 Task 1 try/catch, reveal 탈출 조건",
+   "type": "failure-mode",
+   "claim": "자동 상자 계산 예외가 작성자 play와 같은 try에 있어 figure 전체가 demo-static으로 물러난다. display:none이 아닌 숨김에서 getScreenCTM()이 null이면 TypeError가 난다."
+  },
+  {
+   "where": "Task 5 배치 시점과 obstacles 간선 처리",
+   "type": "failure-mode",
+   "claim": "장애물을 단계 끝 한 시점에서만 모으지만 상자는 단계 시작부터 보여, 초점 틀 이동·아이콘 사라짐 프레임에 겹친다. 엔진은 fill 없는 path를 점으로 보지만 RC.check는 경계 상자로 보아 직접 그린 무대에서 판정이 어긋난다."
+  },
+  {
+   "where": "설계 결정 범위 넓히기, Task 5 viewBox 넓히기",
+   "type": "failure-mode",
+   "claim": "viewBox를 넓히면 1280 폭에서도 배율이 줄어 글자가 작아진다. maxWidth 보정은 Mermaid에만 걸리고 880px을 넘으면 축소된다."
+  },
+  {
+   "where": "설계 결정 범위 넓히기",
+   "type": "risk",
+   "claim": "spec과 다른 동작을 사용자 확인 없이 구현한다. 근거는 고정 견본 하나다."
+  },
+  {
+   "where": "설계 결정 n의 계산, Task 2 seen()",
+   "type": "failure-mode",
+   "claim": "엔진 보임 판정이 C0와 같은 정의가 아니다(visibility, clip-path, 면적). n이 커져 체류 상한을 넘을 수 있다."
+  },
+  {
+   "where": "Task 7 keepInView",
+   "type": "risk",
+   "claim": "behavior:'smooth'가 C0의 scroll-behavior:auto를 무시하고, figure가 1px만 겹쳐도 발동해 사용자 스크롤을 끌어온다. 조건을 바꾸려면 spec 결정이 필요하다."
+  },
+  {
+   "where": "설계 결정 하위 타임라인, Task 11",
+   "type": "failure-mode",
+   "claim": "'<' 차이는 0.02초뿐이고, 실제로 바뀌는 것은 숫자 절대 위치와 단계 사이 라벨이다. 시각화.md의 at 설명을 고치지 않는다."
+  },
+  {
+   "where": "Task 10 Step 4, Task 12 Step 1",
+   "type": "failure-mode",
+   "claim": "실패 처리에 멈출 조건이 없어 고정 견본 맞춤 조정으로 흐를 수 있다."
+  }
+ ],
+ "principles_applied": [
+  "NO-ASSUME",
+  "STATE-ASSUME",
+  "CHECKABLE",
+  "FOCUSED",
+  "YAGNI",
+  "REVERSIBLE",
+  "ASK-OPTIONS",
+  "TELL-NOW",
+  "SPECIFIC-NAME",
+  "WRITTEN-ONLY",
+  "NAME-ITEMS"
+ ],
+ "notes": "단계 넘김 timeScale 압축은 결함을 찾지 못했다(압축 비율 상한은 없다). 빌드 중 seek로 tl.call 콜백이 여러 번 실행된다. 시나리오 줄·선 차트 이름표·두 재생 방식은 spec 요구라 과설계로 보지 않았다. 되돌리기 어려운 결정은 없다. 빌드 시간이 15초 제한에 가까워지는지 실측해야 한다. (원본 보고의 evidence·counterpart 칸은 줄여 옮겼다)"
+}
