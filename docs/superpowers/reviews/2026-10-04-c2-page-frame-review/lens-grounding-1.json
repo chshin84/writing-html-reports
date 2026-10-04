@@ -1,0 +1,15 @@
+{"lens":"lens-grounding","target":"docs/superpowers/specs/2026-10-04-c2-page-frame-design.md","issues":[
+{"where":"제목 틀 검사, 검증 1","type":"contradiction","claim":"고정 견본 다섯 개가 모두 페이지형이고 h2가 명사구라 결론 문장 검사를 걸면 rules-layout이 실패한다(whr-c0 eval/rules.py, known-defects.json)."},
+{"where":"제목 틀, 검증 3","type":"contradiction","claim":"template-paged.html 729행 .gist 안 h2 '요약'이 새 규칙에서 위반된다."},
+{"where":"제목 틀 검사","type":"contradiction","claim":"결론 없는 페이지 예외(TITLE-LAYERS)가 없다."},
+{"where":"제목 틀 검사·문서","type":"omission","claim":"C3 병합 전까지 SKILL.md(h2 명사구)와 검사기가 반대로 말한다."},
+{"where":"제목 틀 검사","type":"omission","claim":"페이지형 판별 방법이 없다(PAGE_ID 또는 class=\"pager\")."},
+{"where":"색 막대","type":"mismatch","claim":"2.58·2.71은 --paper 기준이고 --tint에서는 2.34·2.47. 밝은 --s4는 --tint에서 2.95."},
+{"where":"색 계열","type":"omission","claim":"어두운 테마 s2–s4 색차 11.14도 미달."},
+{"where":"검증 1","type":"omission","claim":"gates.py는 --judge-hash-nav가 없으면 hash-nav를 기록만 한다."},
+{"where":"넓은 표","type":"omission","claim":"table-col-390 기준선 실패(03-groups min 39.6px, session-report 34.5px)인데 셀 폭 확보 항목이 없다."},
+{"where":"용어 목록","type":"omission","claim":"체크리스트 glossary-layout은 목록 제목도 요구한다."},
+{"where":"함정","type":"contradiction","claim":"rebuild가 CSS를 넣으므로 '고정 견본에 C2 변경이 안 들어간다'는 과장. 빠지는 것은 문서 스크립트뿐."},
+{"where":"넓은 표·함정","type":"omission","claim":"넓은 표 판정 코드도 문서 코드라 고정 견본의 table-scroll-cue-390 결함이 남는다."}],
+"principles_applied":["NO-ASSUME","CHECKABLE","TITLE-LAYERS","FOCUSED","YAGNI","WRITTEN-ONLY","NO-MIRROR"],
+"notes":"--ink-3 밝은 테마 tint 4.39(어두운 5.34). pno 인쇄 전용 규칙 없음. hashchange 없음. .gloss 1fr 1fr, 견본은 dt·dd 직접 나열. 760px 이하 이미 한 열. 그라데이션·그림자·둥근 모서리 금지는 checks/style.py. 결론 40자 셀 때 괄호 제외 여부 미정. eval/는 whr-c0에만 있음."}

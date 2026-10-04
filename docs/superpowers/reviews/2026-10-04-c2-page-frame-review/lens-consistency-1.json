@@ -1,0 +1,17 @@
+{"lens":"lens-consistency","target":"docs/superpowers/specs/2026-10-04-c2-page-frame-design.md","issues":[
+{"where":"제목 틀 검사","type":"contradiction","claim":"L1 공식 측정의 --base-checks는 기준 커밋 라벨 규칙(h2 18자 명사구)으로도 위반 0을 요구해 결론 h2가 반드시 위반된다."},
+{"where":"제목 틀 검사","type":"contradiction","claim":"모든 페이지형 h2에 결론 문장 검사를 걸면 결론 없는 페이지(요약·절차·목록·부록)와 충돌한다(template-paged 729행 '요약')."},
+{"where":"제목 틀 계약","type":"gap","claim":"페이지형 판별 기준, .sec 필수 여부, 목차 글 일치 여부가 없다."},
+{"where":"넓은 표","type":"gap","claim":"셀 폭 확보 설계가 없다(table width:100%라 셀이 먼저 줄어듦). table-col-390과 이어지지 않는다."},
+{"where":"넓은 표·함정","type":"contradiction","claim":"넓은지 판정 코드가 템플릿 문서 코드라 고정 견본에 반영되지 않는다."},
+{"where":"검증 1","type":"contradiction","claim":"고정 견본 hash-nav는 C2 변경과 무관하게 실패해 gates가 종료 코드 1로 끝난다."},
+{"where":"산출 계약 없음","type":"gap","claim":"plan 위치·이름, 마커, 브랜치까지만, 리포트 위치·내용이 없다."},
+{"where":"검증 3","type":"gap","claim":"템플릿 관리 블록 재빌드 단계가 없다."},
+{"where":"검증","type":"gap","claim":"하락 금지, 판정 차례 3번, --base-checks가 빠졌다."},
+{"where":"머리·범위","type":"gap","claim":"이름 절과 상위 설계 우선 문장이 없다."},
+{"where":"확인 상태","type":"drift","claim":"표시 글이 상위 설계와 다르고 CSS 생성인지 작성자 글인지 미정."},
+{"where":"대체됨 배너","type":"gap","claim":"경고 색 토큰 미정(--neg는 C1이 거부·오류 뜻으로 씀)."},
+{"where":"C3 화면 요소 검증","type":"gap","claim":"세 요소의 견본 배치·대비 측정·시험이 없다."},
+{"where":"검증 4","type":"gap","claim":"자가 점검의 입력 견본과 '3회' 뜻이 없다."}],
+"principles_applied":["NO-ASSUME","TITLE-LAYERS","TITLE-CLAIM","CHECKABLE","TERM-ONE","SPECIFIC-NAME","EDIT-DISCIPLINE","WRITTEN-ONLY"],
+"notes":"--accent-2는 ECharts 5번째 계열 색(46행)과 지나온 노드 테두리(244행)에 쓰임 — cvd 대상에 포함 여부 확인 필요. 그라데이션 규칙은 checks/style.py에 있음. #p2 처음 열기는 이미 처리되고 hashchange만 없음."}
