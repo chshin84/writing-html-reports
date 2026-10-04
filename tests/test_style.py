@@ -8,6 +8,61 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from checks import style  # noqa: E402
 from helpers import cdn, has, page  # noqa: E402
+import re  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "eval"))
+from measure import contrast, cvd_pairs, parse_color  # noqa: E402
+
+CSS = (Path(__file__).resolve().parent.parent / "report-base.css").read_text(encoding="utf-8")
+HEADS = (r":root\{", r':root:not\(\[data-theme="light"\]\)\{', r':root\[data-theme="dark"\]\{')
+NAMES = {"paper", "ink", "ink-2", "ink-3", "rule", "hair", "tint", "accent", "accent-2", "neg", "s1", "s2", "s3", "s4"}
+
+
+def token_blocks():
+    """토큰 정의(밝음, prefers 어두움, data-theme 어두움)의 {이름: #rrggbb}."""
+    out = []
+    for head in HEADS:
+        body = re.search(head + r"([^}]*)\}", CSS).group(1)
+        out.append(dict(re.findall(r"--([\w-]+):\s*(#[0-9A-Fa-f]{6})\b", body)))
+    return out
+
+
+def cr(a, b):
+    return contrast(parse_color(a), parse_color(b))
+
+
+class Tokens(unittest.TestCase):
+    def test_names_kept_and_dark_blocks_equal(self):
+        light, dark, dark2 = token_blocks()
+        for block in (light, dark):
+            self.assertLessEqual(NAMES, set(block))
+        self.assertEqual(dark, dark2)
+
+    def test_accent_2(self):
+        for t in token_blocks()[:2]:
+            for bg in ("paper", "tint"):
+                self.assertGreaterEqual(cr(t["accent-2"], t[bg]), 3.0, bg)
+            self.assertGreaterEqual(cr(t["accent-2"], t["accent"]), 1.5)
+
+    def test_series_contrast(self):
+        for t in token_blocks()[:2]:
+            self.assertEqual(t["s1"].upper(), t["accent"].upper())
+            for s in ("s2", "s3", "s4"):
+                for bg in ("paper", "tint"):
+                    self.assertGreaterEqual(cr(t[s], t[bg]), 3.0, (s, bg))
+
+    def test_series_cvd_with_accent_2(self):
+        for t in token_blocks()[:2]:
+            pairs = cvd_pairs({s: parse_color(t[s]) for s in ("s1", "s2", "s3", "s4", "accent-2")})
+            self.assertGreaterEqual(min(de for _, _, de in pairs), 15, pairs)
+
+    def test_baseline_grey_vs_s1(self):
+        light = token_blocks()[0]
+        self.assertGreaterEqual(cr(light["s4"], light["s1"]), 3.0)
+
+    def test_ink_3_on_tint(self):
+        light = token_blocks()[0]
+        self.assertGreaterEqual(cr(light["ink-3"], light["tint"]), 4.5)
 
 
 class Movement(unittest.TestCase):
