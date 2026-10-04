@@ -288,8 +288,10 @@ class EngineScenario(EngineCase):
 
 class EngineActive(EngineCase):
     def active_at(self, p, i):
-        return self.js(p, """([i]) => { const f = document.getElementById('d1'); f._rcTl.seek('e' + i, false);
+        r = self.js(p, """([i]) => { const f = document.getElementById('d1'); f._rcTl.seek('e' + i, false);
           return [...f.querySelectorAll('[data-rc-active]')].map(e => (e.closest('g.node') || e).id.replace(/.*flowchart-/, '').replace(/-\\d+$/, '')); }""", [i])
+        self.assertEqual(len(r), 1, f"단계 {i} 끝에 data-rc-active가 정확히 하나여야 한다: {r}")  # C0는 하나만 허용한다
+        return r
 
     def test_last_lookup_and_mark_priority(self):
         script = ("RC.demo(document.getElementById('d1'),["
@@ -326,12 +328,34 @@ class EngineActive(EngineCase):
         self.assertEqual((r["pastA"], r["pastAW"]), (r["accent2"], "1.5px"))  # 작성자 색이 없던 노드는 보조 강조색
         self.assertEqual((r["pastB"], r["pastBW"]), (r["neg"], "1.5px"))     # 작성자가 준 neg 색은 유지한다
 
+    def test_spot_unspot_keep_engine_highlight(self):  # spot·unspot 트윈은 작성자 색으로 보지 않는다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="a" x="20" y="80" width="80" height="40" fill="none" stroke="currentColor"/>'
+                '<rect id="b" x="200" y="80" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),fr=RC.focus(st);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 단계입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('a'));}},"
+                  "{name:'나',text:'둘째 단계입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('b'));}},"
+                  "{name:'다',text:'셋째 단계입니다.',play:function(tl,$){RC.fx.unspot(tl,fr,[$('a'),$('b')]);RC.fx.spot(tl,fr,$('a'));}},"
+                  "{name:'라',text:'넷째 단계입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('b'));}}]);")
+        p = self.open(body, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'), cs = id => getComputedStyle(document.getElementById(id));
+          const col = n => { const d = document.createElement('i'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--' + n); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+          const out = [];
+          for (let i = 0; i < 4; i++) { f._rcTl.seek('e' + i, false);
+            out.push([cs('a').stroke, cs('a').strokeWidth, cs('b').stroke, cs('b').strokeWidth]); }
+          return {out, A: col('accent'), A2: col('accent-2')}; }""")
+        A, A2 = r["A"], r["A2"]
+        self.assertEqual(r["out"][0][:2], [A, "2px"])
+        self.assertEqual(r["out"][1], [A2, "1.5px", A, "2px"])
+        self.assertEqual(r["out"][2][:2], [A, "2px"])
+        self.assertEqual(r["out"][3], [A2, "1.5px", A, "2px"])
+
     def test_active_moves_at_step_end(self):  # data-rc-active는 단계 끝 시각에 옮긴다
         p = self.open(MMD, mmd_steps(FLOW))
         r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl;
           const id = () => [...f.querySelectorAll('[data-rc-active]')].map(e => e.closest('g.node').id.replace(/.*flowchart-/, '').replace(/-\\d+$/, ''));
-          tl.seek(tl.labels.e0 + 0.05, false); const mid = id(); tl.seek('e1', false); return [mid, id()]; }""")
-        self.assertEqual(r, [["A"], ["B"]])
+          tl.seek(tl.labels.e0 + 0.05, false); const mid = id(); tl.seek('e1', false); const e1 = id(); tl.seek('e2', false); return [mid, e1, id()]; }""")
+        self.assertEqual(r, [["A"], ["B"], ["C"]])  # 단계 끝마다 정확히 하나
 
 
 if __name__ == "__main__":

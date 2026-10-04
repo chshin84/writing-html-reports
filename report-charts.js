@@ -296,9 +296,10 @@
     }
     return tl;
   }
+  var FX = 'rc-fx'; // spot·unspot가 도형에 주는 트윈의 표시. 현재 노드 표시는 이 트윈을 작성자 색으로 보지 않는다
   RC.fx = {
     mark: function (tl, e, color, at) {
-      if (demoStep) demoStep.mark = e && e.length != null && !e.tagName ? e[e.length - 1] : e;
+      if (demoStep) demoStep.mark = e && typeof e !== 'string' && e.length != null && !e.tagName ? e[e.length - 1] : e;
       return tl.to(e, { stroke: tok(color || 'accent'), strokeWidth: 2, duration: 0.3 }, at);
     },
     unmark: function (tl, els, at) { return tl.set(els, { stroke: tok('ink'), strokeWidth: 1 }, at); },
@@ -306,7 +307,7 @@
       if (demoStep) demoStep.mark = e;
       var c = tok(color || 'accent'), b = geom(e), P = 6;
       var pts = [[b.x - P, b.y - P], [b.x + b.width + P, b.y - P], [b.x + b.width + P, b.y + b.height + P], [b.x - P, b.y + b.height + P]];
-      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3 }, at);
+      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3, data: FX }, at);
       else tl.to({}, { duration: 0 }, at);
       if (!frame.cur) { // 처음에는 크게 나타났다가 조여진다
         pts.forEach(function (p, i) { var o = [[-1, -1], [1, -1], [1, 1], [-1, 1]][i]; tl.set(frame.c[i], { x: p[0] + o[0] * 14, y: p[1] + o[1] * 14 }, '<'); });
@@ -314,14 +315,14 @@
       }
       tl.to(frame.g, { opacity: 1, stroke: c, duration: 0.3 }, '<');
       pts.forEach(function (p, i) { tl.to(frame.c[i], { x: p[0], y: p[1], duration: 0.45, ease: 'power3.inOut' }, '<'); });
-      tl.set(e, { fill: c, fillOpacity: 0 }, '<');
-      tl.to(e, { stroke: c, strokeWidth: 2, fillOpacity: 0.08, duration: 0.35 }, '<0.1');
+      tl.set(e, { fill: c, fillOpacity: 0, data: FX }, '<');
+      tl.to(e, { stroke: c, strokeWidth: 2, fillOpacity: 0.08, duration: 0.35, data: FX }, '<0.1');
       frame.cur = e;
       return tl;
     },
     unspot: function (tl, frame, els, at) { // 시나리오를 다시 시작할 때 도형과 초점 틀을 처음 상태로 돌린다
       els = [].concat(els || []);
-      if (els.length) { tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0 }, at); at = '<'; }
+      if (els.length) { tl.set(els, { stroke: tok('ink'), strokeWidth: 1, fillOpacity: 0, data: FX }, at); at = '<'; }
       tl.set(frame.g, { opacity: 0 }, at); // 도형 없이 부르면 초점 틀만 숨겨, 다음 spot이 틀을 끌고 가지 않고 새로 나타난다
       frame.cur = null;
       return tl;
@@ -397,7 +398,7 @@
     if (!e) return null;
     var hit = null;
     sub.getChildren(true, true, false).forEach(function (t) {
-      if (t.targets().indexOf(e) < 0) return;
+      if (t.vars.data === FX || t.targets().indexOf(e) < 0) return;
       keys.forEach(function (k) {
         var v = t.vars[k] != null ? t.vars[k] : t.vars.attr && t.vars.attr[k];
         if (v != null) { hit = hit || {}; hit[k] = v; }
@@ -428,6 +429,7 @@
       tl.to(cur, w, at);
     }
     sub.getChildren(true, true, false).forEach(function (t) { // 작성자가 tl.to·tl.set으로 테두리 색을 준 요소를 기억한다
+      if (t.vars.data === FX) return;
       var v = t.vars.stroke != null ? t.vars.stroke : t.vars.attr && t.vars.attr.stroke;
       if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
     });
