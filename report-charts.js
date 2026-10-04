@@ -526,12 +526,12 @@
     var div = document.createElement('div'), t = document.createElement('span');
     div.style.cssText = 'padding:6px 8px;font:12.5px/1.45 var(--sans);color:var(--ink);word-break:keep-all';
     div.appendChild(t); fo.appendChild(div);
-    return { g: g, rect: rect, fo: fo, div: div, t: t, text: '' };
+    return { g: g, rect: rect, fo: fo, div: div, t: t, cur: null };
   }
   function noteHeight(box, text) {
     box.t.textContent = text;
     var h = box.div.offsetHeight;
-    box.t.textContent = box.text;
+    box.t.textContent = box.cur ? box.cur.text : '';
     return h ? Math.ceil(h) + 1 : 18 * Math.ceil(chars(text) * 13 / 204) + 13;
   }
   function userBox(inv, e) { // 화면 경계 상자를 무대 좌표로 바꾼다
@@ -561,12 +561,9 @@
     for (var k = 0; k < obs.pts.length; k++) { var p = obs.pts[k]; if (p.x >= l && p.x <= r && p.y >= t && p.y <= b) return false; }
     return true;
   }
-  function placeUnit(a, nh, peepW, obs, vb, lim) { // 자동 상자(폭 220, 높이 nh)와 스틱맨 칸(peepW가 0이 아니면 56×56)의 위치를 찾는다
-    // 쪽은 오른쪽·왼쪽·아래·위 순서로 보고, 한 쪽 안에서는 노드와의 상자 간 거리, 그다음 옆으로 비킨 정도가 작은 위치를 먼저 본다.
-    // 상자는 표시 범위 vb 안, 노드 경계에서 lim(무대 단위) 안에만 둔다. 대각선 위치도 상자 간 거리로 잰다
-    lim = lim || 40;
-    var h = nh, P = peepW ? PEEP : 0, R = lim + NOTE_W + P + h + 8, seenPt = {};
-    var near = { // 탐색 범위 밖 장애물과 겹친 간선 점을 미리 덜어 낸다
+  function nearObs(a, obs, R) { // 탐색 범위 밖 장애물과 겹친 간선 점을 미리 덜어 낸다
+    var seenPt = {};
+    return {
       boxes: obs.boxes.filter(function (o) { return o.r >= a.l - R && o.l <= a.r + R && o.b >= a.t - R && o.t <= a.b + R; }),
       pts: obs.pts.filter(function (q) {
         if (q.x < a.l - R || q.x > a.r + R || q.y < a.t - R || q.y > a.b + R) return false;
@@ -575,50 +572,115 @@
         seenPt[key] = 1; return true;
       })
     };
-    function rect(x, y, w, hh) { return { l: x, t: y, r: x + w, b: y + hh }; }
-    function inVb(u) { return u.l >= vb.l && u.t >= vb.t && u.r <= vb.r && u.b <= vb.b; }
-    function ok(u) { return inVb(u) && freeAt(u, near); }
+  }
+  function urect(x, y, w, hh) { return { l: x, t: y, r: x + w, b: y + hh }; }
+  function noteCands(a, h, lim) { // 자동 상자 후보를 먼저 볼 순서대로 돌려준다
+    // 쪽은 오른쪽·왼쪽·아래·위 순서로 보고, 한 쪽 안에서는 노드와의 상자 간 거리, 그다음 옆으로 비킨 정도가 작은 위치를 먼저 본다.
+    // 노드 경계에서 lim(무대 단위) 안의 위치만 낸다. 대각선 위치도 상자 간 거리로 계산한다
     function dist(n) { var dx = Math.max(0, n.l - a.r, a.l - n.r), dy = Math.max(0, n.t - a.b, a.t - n.b); return Math.sqrt(dx * dx + dy * dy); }
     function sweep(lo, hi, mid) { var v = [mid]; for (var d = 4; mid - d >= lo || mid + d <= hi; d += 4) { if (mid + d <= hi) v.push(mid + d); if (mid - d >= lo) v.push(mid - d); } return v; }
-    function peeps(side, n) { // 스틱맨 칸 후보: 노드에서 먼 쪽 옆, 또는 노드에서 먼 쪽 위·아래
-      var far = side === 1 ? n.l - 4 - P : n.r + 4, end = side === 1 ? n.l : n.r - P, out = [rect(far, n.t, P, P)];
-      if (side !== 3) out.push(rect(end, n.b + 4, P, P));
-      if (side !== 2) out.push(rect(end, n.t - 4 - P, P, P));
-      return out;
-    }
-    var cy = (a.t + a.b - h) / 2, cx = (a.l + a.r - NOTE_W) / 2;
+    var cy = (a.t + a.b - h) / 2, cx = (a.l + a.r - NOTE_W) / 2, out = [];
     for (var side = 0; side < 4; side++) {
       var cands = [];
       for (var g = GAP; g <= lim + 1e-9; g += 4) {
         var room = Math.sqrt(Math.max(0, lim * lim - g * g)); // 이 간격에서 옆으로 비킬 수 있는 거리
         if (side < 2) {
           var x = side === 0 ? a.r + g : a.l - g - NOTE_W;
-          sweep(a.t - h - room, a.b + room, cy).forEach(function (y) { cands.push({ n: rect(x, y, NOTE_W, h), off: Math.abs(y - cy) }); });
+          sweep(a.t - h - room, a.b + room, cy).forEach(function (y) { cands.push({ side: side, n: urect(x, y, NOTE_W, h), off: Math.abs(y - cy) }); });
         } else {
           var y0 = side === 2 ? a.b + g : a.t - g - h;
-          sweep(a.l - NOTE_W - room, a.r + room, cx).forEach(function (x2) { cands.push({ n: rect(x2, y0, NOTE_W, h), off: Math.abs(x2 - cx) }); });
+          sweep(a.l - NOTE_W - room, a.r + room, cx).forEach(function (x2) { cands.push({ side: side, n: urect(x2, y0, NOTE_W, h), off: Math.abs(x2 - cx) }); });
         }
       }
       cands.forEach(function (c) { c.d = dist(c.n); });
-      cands = cands.filter(function (c) { return c.d <= lim + 1e-9; }).sort(function (p, q) { return p.d - q.d || p.off - q.off; });
-      for (var i = 0; i < cands.length; i++) {
-        var n = cands[i].n;
-        if (!ok(n)) continue;
-        var pk = P ? peeps(side, n).filter(ok)[0] : rect(n.r + 4, n.t, 0, 0);
-        if (!pk) continue;
-        return { side: side, u: { l: Math.min(n.l, pk.l), t: Math.min(n.t, pk.t), r: Math.max(n.r, pk.r), b: Math.max(n.b, pk.b) },
-                 note: { x: n.l, y: n.t }, peep: { x: pk.l, y: pk.t } };
-      }
+      out = out.concat(cands.filter(function (c) { return c.d <= lim + 1e-9; }).sort(function (p, q) { return p.d - q.d || p.off - q.off; }));
+    }
+    return out;
+  }
+  function placeUnit(a, nh, peepW, obs, vb, lim) { // 자동 상자(폭 220, 높이 nh)와 스틱맨 칸(peepW가 0이 아니면 56×56)의 위치를 찾는다
+    // 상자는 표시 범위 vb 안, 노드 경계에서 lim(무대 단위) 안에만 둔다
+    lim = lim || 40;
+    var P = peepW ? PEEP : 0, near = nearObs(a, obs, lim + NOTE_W + P + nh + 8);
+    function inVb(u) { return u.l >= vb.l && u.t >= vb.t && u.r <= vb.r && u.b <= vb.b; }
+    function ok(u) { return inVb(u) && freeAt(u, near); }
+    function peeps(side, n) { // 스틱맨 칸 후보: 노드에서 먼 쪽 옆, 또는 노드에서 먼 쪽 위·아래
+      var far = side === 1 ? n.l - 4 - P : n.r + 4, end = side === 1 ? n.l : n.r - P, out = [urect(far, n.t, P, P)];
+      if (side !== 3) out.push(urect(end, n.b + 4, P, P));
+      if (side !== 2) out.push(urect(end, n.t - 4 - P, P, P));
+      return out;
+    }
+    var cands = noteCands(a, nh, lim);
+    for (var i = 0; i < cands.length; i++) {
+      var n = cands[i].n, side = cands[i].side;
+      if (!ok(n)) continue;
+      var pk = P ? peeps(side, n).filter(ok)[0] : urect(n.r + 4, n.t, 0, 0);
+      if (!pk) continue;
+      return { side: side, u: { l: Math.min(n.l, pk.l), t: Math.min(n.t, pk.t), r: Math.max(n.r, pk.r), b: Math.max(n.b, pk.b) },
+               note: { x: n.l, y: n.t }, peep: { x: pk.l, y: pk.t } };
     }
     return null;
   }
+  function roomNeeds(a, nh, obs, vb, lim) { // 표시 범위를 빼고 보면 상자가 들어가는 후보마다 vb를 네 쪽으로 넓혀야 하는 양을 구해, 다른 후보보다 모든 쪽에서 크지 않은 것만 돌려준다
+    var near = nearObs(a, obs, lim + NOTE_W + nh + 8), out = [];
+    noteCands(a, nh, lim).forEach(function (c) {
+      if (!freeAt(c.n, near)) return;
+      var n = c.n, q = { l: Math.max(0, Math.ceil(vb.l - n.l)), t: Math.max(0, Math.ceil(vb.t - n.t)), r: Math.max(0, Math.ceil(n.r - vb.r)), b: Math.max(0, Math.ceil(n.b - vb.b)) };
+      for (var k = out.length - 1; k >= 0; k--) {
+        var o = out[k];
+        if (o.l <= q.l && o.t <= q.t && o.r <= q.r && o.b <= q.b) return; // 같거나 더 작은 요구가 이미 있다
+        if (q.l <= o.l && q.t <= o.t && q.r <= o.r && q.b <= o.b) out.splice(k, 1);
+      }
+      out.push(q);
+    });
+    return out;
+  }
+  function widenFor(lists) { // 단계마다 요구 하나씩을 고를 때 넓힐 양 {l,t,r,b}가 가장 작은 조합을 찾는다. 폭(배율)을 먼저, 높이를 그다음으로 줄인다
+    function uniq(f) { var v = [0]; lists.forEach(function (ls) { ls.forEach(function (c) { if (v.indexOf(f(c)) < 0) v.push(f(c)); }); }); return v.sort(function (x, y) { return x - y; }); }
+    var Ls = uniq(function (c) { return c.l; }), Rs = uniq(function (c) { return c.r; }), Ts = uniq(function (c) { return c.t; }), best = null;
+    Ls.forEach(function (l) {
+      Rs.forEach(function (r) {
+        if (best && l + r > best.l + best.r) return;
+        var fit = lists.map(function (ls) { return ls.filter(function (c) { return c.l <= l && c.r <= r; }); });
+        if (fit.some(function (ls) { return !ls.length; })) return;
+        Ts.forEach(function (t) {
+          var b = 0;
+          for (var i = 0; i < fit.length && b < Infinity; i++) {
+            var m = Infinity;
+            fit[i].forEach(function (c) { if (c.t <= t && c.b < m) m = c.b; });
+            b = Math.max(b, m);
+          }
+          if (b === Infinity) return;
+          if (!best || l + r < best.l + best.r || (l + r === best.l + best.r && t + b < best.t + best.b)) best = { l: l, t: t, r: r, b: b };
+        });
+      });
+    });
+    return best;
+  }
+  function widenStage(svg, vb, e) { // viewBox를 e만큼 넓히고, 숫자로 준 폭·높이 속성과 max-width도 같은 비율로 늘려 데스크톱 배율을 지킨다
+    var n = { l: vb.l - e.l, t: vb.t - e.t, r: vb.r + e.r, b: vb.b + e.b };
+    var kw = (n.r - n.l) / (vb.r - vb.l), kh = (n.b - n.t) / (vb.b - vb.t);
+    svg.setAttribute('viewBox', [n.l, n.t, n.r - n.l, n.b - n.t].join(' '));
+    [['width', kw], ['height', kh]].forEach(function (z) {
+      var v = svg.getAttribute(z[0]);
+      if (z[1] !== 1 && v && /^[\d.]+(px)?$/.test(v)) svg.setAttribute(z[0], +(parseFloat(v) * z[1]).toFixed(2));
+    });
+    if (kw !== 1 && /^[\d.]+px$/.test(svg.style.maxWidth)) svg.style.maxWidth = +(parseFloat(svg.style.maxWidth) * kw).toFixed(2) + 'px';
+    return n;
+  }
+  function noteState(box, c) { // 자동 상자에 한 단계의 위치·높이·글을 그린다. c가 null이면 글만 비운다
+    if (!c) { box.t.textContent = ''; return; }
+    box.g.style.visibility = c.p.hide ? 'hidden' : ''; // 넓히기에 실패한 대기 단계
+    gsap.set(box.g, { x: c.p.x, y: c.p.y });
+    box.rect.setAttribute('height', c.h); box.fo.setAttribute('height', c.h);
+    box.t.textContent = c.text;
+  }
   function showNote(tl, box, at, p, text, h) { // 단계 시작에 자동 상자의 글과 위치를 바꾼다. p가 null이면 숨긴다
+    // 위치는 그릴 때 p에서 읽는다. 그래서 viewBox를 넓힌 뒤 p를 고쳐도 재생과 되감기가 고친 위치를 쓴다
     if (!p) { tl.set(box.g, { opacity: 0 }, at); return; }
-    var prev = box.text, o = { v: 0 };
-    tl.set(box.g, { x: p.x, y: p.y, opacity: 1 }, at);
-    tl.set([box.rect, box.fo], { attr: { height: h } }, at);
-    tl.to(o, { v: 1, duration: 0.01, onUpdate: function () { box.t.textContent = o.v > 0 ? text : prev; } }, at); // 되감으면 앞 단계 글로 돌아간다
-    box.text = text;
+    var prev = box.cur, cur = { p: p, text: text, h: h }, o = { v: 0 };
+    tl.set(box.g, { opacity: 1 }, at);
+    tl.to(o, { v: 1, duration: 0.01, onUpdate: function () { noteState(box, o.v > 0 ? cur : prev); } }, at); // 되감으면 앞 단계 상태로 돌아간다
+    box.cur = cur;
   }
   function keepInView(fig, it, reduce) { // 현재 노드와 설명 상자가 창 밖이면 가장 가까운 위치로 옮긴다. figure가 화면과 겹칠 때만 한다
     var f = fig.getBoundingClientRect(), H = innerHeight, M = 16;
@@ -688,7 +750,7 @@
       var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
-      var hideNext = [], prevIt = null, NEG = tok('neg');
+      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], widened = false;
       tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 모든 설정(작성자 tl.set, 자동 상자·스틱맨)을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
@@ -727,6 +789,10 @@
               it.note = peepW && placeUnit(a, nh, peepW, obs, vb, lim); // 스틱맨 칸까지 들어갈 위치가 없으면 상자만 둔다
               if (it.note) it.note.think = true;
               else it.note = placeUnit(a, nh, 0, obs, vb, lim);
+              if (!it.note) { // 표시 범위 안에 자리가 없다. viewBox를 넓혀 자리가 생기면 모든 단계를 본 뒤 한 번에 넓히고 위치를 정한다
+                var need = roomNeeds(a, nh, obs, vb, lim);
+                if (need.length) { it.note = { note: { x: vb.l, y: vb.t }, wait: { a: a, nh: nh, obs: obs, lim: lim, need: need } }; waits.push(it); }
+              }
               showNote(tl, box, start, it.note && it.note.note, s.text, nh);
             } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
             rewindTo(pre);
@@ -760,7 +826,25 @@
         fig.classList.add('demo-static');
         return;
       }
+      if (waits.length) {
+        try { // 자리 없는 단계 모두에 자리가 생기는 최소 양만큼 viewBox를 한 번 넓힌다. 넓힌 viewBox는 첫 장면부터 끝까지 그대로다
+          var keep = ['viewBox', 'width', 'height'].map(function (k) { return [k, stage.getAttribute(k)]; }).concat([['mw', stage.style.maxWidth]]);
+          vb = widenStage(stage, vb, widenFor(waits.map(function (w) { return w.note.wait.need; })));
+          widened = true;
+          waits.forEach(function (w) {
+            var q = w.note.wait, got = placeUnit(q.a, q.nh, 0, q.obs, vb, q.lim);
+            if (got) { w.note.note.x = got.note.x; w.note.note.y = got.note.y; }
+            delete w.note.wait;
+          });
+        } catch (err) { // 넓히기 전 크기로 되돌리고, 대기 단계는 상자를 숨기고 자막을 보인다
+          console.error('RC.demo: viewBox 넓히기', err);
+          if (keep) keep.forEach(function (k) { if (k[0] === 'mw') stage.style.maxWidth = k[1]; else if (k[1] == null) stage.removeAttribute(k[0]); else stage.setAttribute(k[0], k[1]); });
+          widened = false;
+          waits.forEach(function (w) { w.note.note.hide = true; w.noteOn = false; });
+        }
+      }
       } finally { if (restore) restore(); }
+      if (widened) fitSvg(fig); // 넓혀 390 폭 글자가 11px보다 작아지면 스크롤 상자 규칙을 다시 적용한다
       rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
       var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, last = steps.length - 1;
       var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;

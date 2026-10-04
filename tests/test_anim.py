@@ -447,6 +447,7 @@ class EngineNote(EngineCase):
           const n = f.querySelector('.rc-note');
           return {note: n ? +getComputedStyle(n).opacity : 0, cap: getComputedStyle(f.querySelector('.demo-cap')).visibility}; }""")
         self.assertEqual(r, {"note": 0, "cap": "visible"})
+        self.assertEqual(self.js(p, "() => document.querySelector('#d1 svg').getAttribute('viewBox')"), "0 0 810 450")  # 넓혀도 자리가 없으면 넓히지 않는다
 
     def test_hidden_page_figure_gets_note_when_shown(self):
         body = f'<section class="page" id="p1"><p>첫 페이지</p></section><section class="page core" id="p2">{MMD_WIDE}</section>'
@@ -454,6 +455,61 @@ class EngineNote(EngineCase):
         self.js(p, "() => { showPage(1); scrollTo(0, 0); }")
         for s in self.judged(p):
             self.assertTrue(s["near"], s)
+
+
+VB_JS = """id => { const s = document.querySelector('#' + id + ' svg');
+  return {vb: s.getAttribute('viewBox'), mw: s.style.maxWidth, w: s.getAttribute('width'), h: s.getAttribute('height')}; }"""
+VB_STEPS_JS = """id => { const f = document.getElementById(id), tl = f._rcTl, s = f.querySelector('svg'), out = [];
+  tl.seek(0, false); out.push(s.getAttribute('viewBox'));
+  Object.keys(tl.labels).filter(k => /^e\\d+$/.test(k)).forEach(k => { tl.seek(k, false); out.push(s.getAttribute('viewBox')); });
+  tl.seek(0, false); return out; }"""
+FLAT = """<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 60" width="400" height="60">
+<rect id="a" x="170" y="10" width="60" height="40" fill="none" stroke="currentColor"/></svg></figure>"""
+
+
+class EngineWiden(EngineCase):
+    """자리 없는 단계가 있으면 빌드할 때 viewBox를 한 번만 넓힌다."""
+
+    def judged(self, p):
+        r = self.js(p, "id => __c0.noteSteps(id)", "d1")
+        return measure.note_steps(r["steps"], r["view"])
+
+    def test_widen_once_for_narrow_mermaid(self):  # 220px 상자가 들어갈 폭이 없는 Mermaid 도식도 모든 단계에 상자를 둔다
+        before = self.js(self.open_file("widen_plain.html", engine_doc(MMD, "")), VB_JS, "d1")
+        p = self.open(MMD, mmd_steps(FLOW))
+        after = self.js(p, VB_JS, "d1")
+        for s in self.judged(p):
+            self.assertTrue(s["near"] and s["visible"], s)
+        b, a = [float(v) for v in before["vb"].split()], [float(v) for v in after["vb"].split()]
+        self.assertNotEqual(a, b)
+        self.assertTrue(a[0] <= b[0] and a[1] <= b[1] and a[0] + a[2] >= b[0] + b[2] and a[1] + a[3] >= b[1] + b[3], (before, after))
+        self.assertAlmostEqual(float(after["mw"][:-2]) / a[2], float(before["mw"][:-2]) / b[2], places=3)  # 데스크톱 배율을 지킨다
+        self.assertEqual(set(self.js(p, VB_STEPS_JS, "d1")), {after["vb"]})  # 첫 장면부터 끝까지 같은 viewBox
+
+    def test_rewind_restores_widened_positions(self):  # 넓힌 뒤 정한 위치·글이 되감기에서도 그 단계 상태로 돌아온다
+        p = self.open(MMD, mmd_steps(FLOW))
+        r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl, n = f.querySelector('svg .rc-note');
+          const st = k => { tl.seek(k, false); const b = n.getBoundingClientRect();
+            return [Math.round(b.left), Math.round(b.top), Math.round(b.height), n.textContent.trim(), +getComputedStyle(n).opacity]; };
+          const fwd = ['e0', 'e1', 'e2'].map(st), back = ['e2', 'e1', 'e0'].map(st).reverse(); tl.seek(0, false); return [fwd, back]; }""")
+        self.assertEqual(r[0], r[1])
+        self.assertEqual([s[3] for s in r[0]], [t for _, t, _, _ in FLOW])
+        self.assertEqual(len({(s[0], s[1]) for s in r[0]}), 3, r[0])  # 단계마다 제 노드 옆으로 옮긴다
+
+    def test_height_only_when_width_not_needed(self):  # 위아래로 넓혀 자리가 생기면 폭(배율)은 그대로 둔다
+        p = self.open(FLAT, "RC.demo(document.getElementById('d1'),[{name:'가',text:'아래에 둡니다.',play:function(tl,$){$('a');}}]);")
+        r = self.js(p, VB_JS, "d1")
+        x, y, w, h = [float(v) for v in r["vb"].split()]
+        self.assertEqual((x, w), (0, 400))
+        self.assertTrue(60 < h < 110 and y <= 0 and y + h >= 60, r)
+        self.assertAlmostEqual(float(r["h"]) / h, 1, places=3)  # 높이 속성도 같은 비율로 늘려 배율을 지킨다
+        self.assertAlmostEqual(float(r["w"]) / w, 1, places=3)
+        for s in self.judged(p):
+            self.assertTrue(s["near"] and s["visible"], s)
+
+    def test_no_widen_when_room(self):
+        p = self.open(SIDE, "RC.demo(document.getElementById('d1'),[{name:'가',text:'오른쪽에 둡니다.',play:function(tl,$){$('a');}}]);")
+        self.assertEqual(self.js(p, VB_JS, "d1"), {"vb": "0 0 600 300", "mw": "", "w": "600", "h": "300"})
 
 
 class EnginePeep(EngineCase):
