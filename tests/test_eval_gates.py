@@ -193,5 +193,170 @@ class Rules(unittest.TestCase):
             rules.rule_items(self.html, {"rules-all"}, base_checks=base)
 
 
+FAKE_RC = r"""
+window.RC = { demo: function (fig, steps) {
+  var cfg = window.FAKE, ends = [], t = 0;
+  cfg.steps.forEach(function (s) { t += s.dur; ends.push(t); });
+  var note = fig.querySelector('.rc-note'), nt = note && note.querySelector('span'), cap = document.createElement('p');
+  cap.className = 'demo-cap'; fig.appendChild(cap);
+  function render(x) {
+    var i = 0; while (i < ends.length - 1 && x > ends[i] + 1e-9) i++;
+    var s = cfg.steps[i], start = i ? ends[i - 1] : 0;
+    cap.textContent = s.cap || '';
+    if (nt) nt.textContent = x >= start + (s.textAt || 0) - 1e-9 ? (s.note || '') : '';
+    if (note) { note.setAttribute('opacity', s.at ? 1 : 0); if (s.at) note.setAttribute('transform', 'translate(' + s.at[0] + ',' + s.at[1] + ')'); }
+    [].forEach.call(fig.querySelectorAll('[data-rc-active]'), function (e) { e.removeAttribute('data-rc-active'); });
+    if (s.active) document.getElementById(s.active).setAttribute('data-rc-active', '');
+  }
+  var tl = { _t: 0, labels: {}, duration: function () { return ends[ends.length - 1]; }, time: function () { return this._t; },
+    seek: function (x) { if (typeof x === 'string') x = this.labels[x]; this._t = x; render(x); return this; } };
+  ends.forEach(function (e, i) { tl.labels['e' + i] = e; });
+  var raf = null;
+  function run(to) { cancelAnimationFrame(raf); var t0 = performance.now(), from = tl._t;
+    (function f() { var x = Math.min(to, from + (performance.now() - t0) / 1000); tl.seek(x); if (x < to) raf = requestAnimationFrame(f); })(); }
+  var ctl = document.createElement('div'); ctl.className = 'demo-ctl';
+  ['이전', '재생', '다음', '처음부터'].forEach(function (n) { var b = document.createElement('button'); b.textContent = n; ctl.appendChild(b); });
+  fig.appendChild(ctl);
+  var b = ctl.querySelectorAll('button'), cur = function () { var i = 0; while (i < ends.length - 1 && tl._t > ends[i] + 1e-9) i++; return i; };
+  b[1].onclick = function () { run(tl.duration()); };
+  b[2].onclick = function () { var i = tl._t < ends[0] - 1e-9 ? 0 : Math.min(ends.length - 1, cur() + 1); run(ends[i]); };
+  b[3].onclick = function () { cancelAnimationFrame(raf); tl.seek(cfg.startAt); };
+  tl.seek(cfg.startAt);
+  fig._rcTl = tl; fig.dataset.rcReady = '1';
+} };
+"""
+STAGE = ('<figure id="d"><svg viewBox="0 0 600 300" width="600" height="300">'
+         '<rect id="n1" x="20" y="20" width="120" height="40" fill="#fff" stroke="#111"/>'
+         '<rect id="n2" x="20" y="200" width="120" height="40" fill="#fff" stroke="#111"/>'
+         '<g class="rc-note" opacity="0"><rect width="160" height="40" fill="#fff"/>'
+         '<foreignObject width="160" height="40"><div style="font-size:13px"><span></span></div></foreignObject></g>'
+         '</svg><p class="src">자료</p></figure>')
+
+
+def fake_doc(cfg, extra_body=""):
+    return doc(STAGE + extra_body, "window.FAKE = " + json.dumps(cfg, ensure_ascii=False) + ";" + FAKE_RC
+               + "RC.demo(document.getElementById('d'), []);")
+
+
+GOOD = {"startAt": 0, "steps": [
+    {"dur": 3.5, "textAt": 0.3, "cap": "", "note": "첫 단계 글", "at": [160, 20], "active": "n1"},
+    {"dur": 3.5, "textAt": 0.3, "cap": "", "note": "둘째 글", "at": [160, 200], "active": "n2"}]}
+
+
+class Motion(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def items(self, html, wanted, mode=None):
+        import motion
+        Path(self.tmp.name, "doc.html").write_text(html, encoding="utf-8")
+        facts = measure.source_facts(html)
+        with harness.Session(self.tmp.name) as s:
+            return {i["id"]: i for i in motion.motion_items(s, "doc.html", facts, wanted, mode)}
+
+    def test_good_fake_passes(self):
+        r = self.items(fake_doc(GOOD), {"dwell", "step1", "note-near", "active-visible"})
+        self.assertEqual({k: v["status"] for k, v in r.items()}, dict.fromkeys(r, "pass"), json.dumps(r, ensure_ascii=False)[:800])
+
+    def test_short_dwell_and_skipped_step1_fail(self):
+        cfg = {"startAt": 0.32, "steps": [dict(s, dur=0.32, textAt=0.0) for s in GOOD["steps"]]}
+        cfg["steps"][0]["cap"], cfg["steps"][1]["cap"] = "시나리오 가 · 후보: 실행할지 정합니다.", "시나리오 가 · 요청: 직접 요청이 있습니다."
+        r = self.items(fake_doc(cfg), {"dwell", "step1"})
+        self.assertEqual(r["dwell"]["status"], "fail")
+        self.assertEqual(r["step1"]["status"], "fail")
+
+    def test_note_missing_or_far_fails(self):
+        cfg = json.loads(json.dumps(GOOD))
+        cfg["steps"][0]["at"] = None
+        cfg["steps"][1]["at"] = [200, 200]  # 현재 노드 오른쪽 끝(140)에서 60px
+        r = self.items(fake_doc(cfg), {"note-near"})
+        self.assertEqual(r["note-near"]["status"], "fail")
+        steps = r["note-near"]["detail"]["d"]
+        self.assertEqual(steps[0]["why"], "보이는 설명 상자 없음")
+        self.assertEqual(steps[1]["distance"], 60)
+
+    def test_active_offscreen_fails(self):
+        r = self.items(fake_doc(GOOD, '<div style="height:10px"></div>').replace('height="300"', 'height="300" style="margin-top:0"')
+                       .replace('y="200" width="120"', 'y="900" width="120"').replace('viewBox="0 0 600 300"', 'viewBox="0 0 600 1000"')
+                       .replace('height="300"', 'height="1000"').replace("[160, 200]", "[160, 900]"), {"active-visible"})
+        self.assertEqual(r["active-visible"]["status"], "fail")
+
+    def test_no_active_attribute_is_unmeasurable(self):
+        cfg = json.loads(json.dumps(GOOD))
+        for s in cfg["steps"]:
+            s["active"] = None
+        r = self.items(fake_doc(cfg), {"note-near", "active-visible"})
+        self.assertEqual({k: v["status"] for k, v in r.items()}, {"note-near": "unmeasurable", "active-visible": "unmeasurable"})
+
+    def test_static_fallback_unmeasurable_and_no_demo_na(self):
+        engine = (ROOT / "report-charts.js").read_text(encoding="utf-8")
+        html = doc('<figure id="d"><svg></svg><p class="src">자료</p></figure>',
+                   engine + "\nRC.demo(document.getElementById('d'), [{name: '가', text: '나', play: function () {}}]);")
+        r = self.items(html, {"dwell", "step1", "note-near"})
+        self.assertEqual({v["status"] for v in r.values()}, {"unmeasurable"})
+        r = self.items(doc("<p>글</p>"), {"dwell", "step1"})
+        self.assertEqual({v["status"] for v in r.values()}, {"n/a"})
+
+    def test_step_mode(self):
+        cfg = json.loads(json.dumps(GOOD))
+        r = self.items(fake_doc(cfg), {"step-anim", "dwell"}, mode="step")
+        self.assertEqual(r["dwell"]["status"], "n/a")
+        self.assertEqual(r["step-anim"]["status"], "fail")  # 가짜의 '다음' 연출이 3.5초라 2.5초를 넘는다
+        self.assertTrue(r["step-anim"]["value"]["d"]["held"])
+
+
+class Cli(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_gates(self, *args):
+        return subprocess.run([sys.executable, "-B", str(ROOT / "eval/gates.py"), *map(str, args)],
+                              capture_output=True, text=True, encoding="utf-8", env=ENV)
+
+    def test_env_fail_in_one_file_still_measures_other(self):
+        good = Path(self.tmp.name, "good.html")
+        bad = Path(self.tmp.name, "bad.html")
+        good.write_text(doc("<p>글</p>"), encoding="utf-8")
+        bad.write_text(doc('<script src="http://127.0.0.1:9/x.js"></script><p>글</p>'), encoding="utf-8")
+        out = Path(self.tmp.name, "r.json")
+        r = self.run_gates(good, bad, "--only", "layout", "--out", out)
+        self.assertEqual(r.returncode, 2, r.stderr)
+        recs = json.loads(out.read_text(encoding="utf-8"))
+        envs = {(Path(x["file"]).name, x["theme"]): x["env"] for x in recs}
+        self.assertEqual(envs[("good.html", "light")], "ok")
+        self.assertEqual(envs[("bad.html", "light")], "env-fail")
+        self.assertTrue(all(i["target"] == "layout" for x in recs for i in x["items"]))
+
+    def test_record_shape_and_exit_code(self):
+        p = Path(self.tmp.name, "a.html")
+        p.write_text(doc("<p>글</p>"), encoding="utf-8")
+        r = self.run_gates(p, "--mode", "auto")
+        recs = json.loads(r.stdout)
+        self.assertEqual([(x["mode"], x["theme"]) for x in recs], [("auto", "light"), ("auto", "dark")])
+        light = recs[0]
+        self.assertEqual([i["id"] for i in light["items"]], measure.ORDER)
+        self.assertEqual({i["id"] for i in recs[1]["items"]}, measure.THEMED)
+        for i in light["items"]:
+            self.assertIn(i["status"], ("pass", "fail", "unmeasurable", "n/a"))
+        import gates
+        self.assertEqual(r.returncode, gates.exit_code(recs))
+
+    def test_exit_code_rules(self):
+        import gates
+        ok = {"env": "ok", "items": [{"status": "pass", "value": {}}], "load_errors": [], "render_fail": []}
+        hn = dict(ok, items=[{"status": "fail", "value": {"recorded_only": True}}])
+        self.assertEqual(gates.exit_code([ok]), 0)
+        self.assertEqual(gates.exit_code([hn]), 0)  # 기록만 하는 hash-nav 실패는 빼고 센다
+        self.assertEqual(gates.exit_code([dict(ok, render_fail=["pre: 시각화를 불러오지 못했습니다"])]), 1)
+        self.assertEqual(gates.exit_code([dict(ok, env="error", items=[]), dict(ok, env="env-fail", items=[])]), 2)
+        self.assertEqual(gates.exit_code([dict(ok, env="error", items=[])]), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
