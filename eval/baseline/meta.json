@@ -1,0 +1,35 @@
+{
+ "base_commit": "512d30809d84c4cba29c96335072bbe14e502954",
+ "worktree_head": "6ee35708e4ff78e3fc03158f65cdd56b50c30f24",
+ "measured_at": "2026-10-04T14:32:03",
+ "playwright": "1.63.0",
+ "rebuilt_sha256": {
+  "03-groups.html": "90102093fcf98c1da0049ebef109ea74bfa0f690d33354b2259c1437f09e481c",
+  "04-rules.html": "8af4eb74e539a166645dc25e2475595939e006395aa532c283f8038a7958e06d",
+  "sample-anim.html": "7a5620ee616a154d906c87a37999a0897aa112b453d291219ff10dc885a18380",
+  "sample-viz.html": "63f9b7258074a7695bed5972eccb3649a5c8758303eb915827be659bc39b15e9",
+  "session-report.html": "639ecb9880348eb702656b7c434343e1e57c6fc3f3c4654cbe09c3ebc28f403c"
+ },
+ "files": [
+  "checklist-majority.json",
+  "feasibility-minimal-anim.json",
+  "gates-auto-1.json",
+  "gates-auto-2.json",
+  "gates-auto-3.json",
+  "gates-step-1.json",
+  "gates-step-2.json",
+  "gates-step-3.json",
+  "gates-template-extra.json",
+  "known-defects.json"
+ ],
+ "run_agreement": {
+  "auto": {
+   "same": 105,
+   "differ": []
+  },
+  "step": {
+   "same": 105,
+   "differ": []
+  }
+ }
+}

@@ -1,0 +1,184 @@
+[
+ {
+  "file": "D:\\projects\\Structure\\whr-c0\\template.html",
+  "mode": "default",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 69,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "checked": 8,
+     "unmeasurable": 1,
+     "fails": 1,
+     "min_ratio": 2.58
+    },
+    "detail": [
+     {
+      "kind": "fill",
+      "name": "",
+      "fg": "rgb(143, 163, 188)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 2.58,
+      "need": 3.0
+     }
+    ]
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 43,
+     "min_px": 12.5,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "cells": 4,
+     "min_w": 113.2
+    },
+    "detail": null
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "n/a",
+    "value": null,
+    "detail": "페이지형 문서가 아니다"
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "n/a",
+    "value": null,
+    "detail": "페이지형 문서가 아니다"
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "D:\\projects\\Structure\\whr-c0\\template.html",
+  "mode": "default",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 69,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "checked": 8,
+     "unmeasurable": 1,
+     "fails": 1,
+     "min_ratio": 2.71
+    },
+    "detail": [
+     {
+      "kind": "fill",
+      "name": "",
+      "fg": "rgb(75, 94, 120)",
+      "bg": "rgb(21, 23, 26)",
+      "ratio": 2.71,
+      "need": 3.0
+     }
+    ]
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ }
+]
