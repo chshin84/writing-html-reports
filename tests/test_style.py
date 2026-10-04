@@ -11,7 +11,7 @@ from helpers import cdn, has, page  # noqa: E402
 import re  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "eval"))
-from measure import contrast, cvd_pairs, parse_color  # noqa: E402
+from measure import contrast, cvd_pairs, delta_e76, parse_color  # noqa: E402
 
 CSS = (Path(__file__).resolve().parent.parent / "report-base.css").read_text(encoding="utf-8")
 HEADS = (r":root\{", r':root:not\(\[data-theme="light"\]\)\{', r':root\[data-theme="dark"\]\{')
@@ -37,6 +37,12 @@ class Tokens(unittest.TestCase):
         for block in (light, dark):
             self.assertLessEqual(NAMES, set(block))
         self.assertEqual(dark, dark2)
+
+    def test_chg_background(self):
+        for t in token_blocks()[:2]:
+            self.assertGreaterEqual(delta_e76(parse_color(t["chg"]), parse_color(t["tint"])), 5)
+            for ink in ("ink", "ink-2"):
+                self.assertGreaterEqual(cr(t[ink], t["chg"]), 4.5, ink)
 
     def test_accent_2(self):
         for t in token_blocks()[:2]:
@@ -192,6 +198,26 @@ class ConclusionTitle(unittest.TestCase):
 
     def test_registered_as_old(self):
         self.assertIn((style.conclusion_violations, "old"), style.RULES)
+
+TEMPLATE_PAGED = (Path(__file__).resolve().parent.parent / "template-paged.html").read_text(encoding="utf-8")
+
+
+class PagedTemplate(unittest.TestCase):
+    def test_title_frame(self):
+        self.assertEqual(len(style.conclusion_titles(TEMPLATE_PAGED)), 1)
+        self.assertEqual(style.conclusion_violations(TEMPLATE_PAGED), [])
+        self.assertIn('<a href="#p2" class="core">2. 절 이름</a>', TEMPLATE_PAGED)
+        self.assertIn('<p class="sec">절 이름</p>', TEMPLATE_PAGED)
+
+    def test_c3_elements(self):
+        for state, text in (("run", "실행으로 확인함"), ("infer", "추론함"), ("assume", "가정함")):
+            self.assertIn(f'<span class="state" data-state="{state}">{text}</span>', TEMPLATE_PAGED)
+            self.assertIn(f'.state[data-state="{state}"]', CSS)
+        self.assertRegex(TEMPLATE_PAGED, r'<td class="[^"]*\bchg\b')
+        self.assertIn('<div class="superseded"><b>대체됨</b>', TEMPLATE_PAGED)
+
+    def test_hashchange_handler(self):
+        self.assertIn("addEventListener('hashchange'", TEMPLATE_PAGED)
 
 
 if __name__ == "__main__":
