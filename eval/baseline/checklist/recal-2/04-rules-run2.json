@@ -1,0 +1,12 @@
+[
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 상단 불릿 네 줄(직접 요청, L2, 발동 기준, 기록)이 아래 도식의 분기와 '공통 규칙' 표의 행(직접 요청, L2, 판정 기록)에 새 정보 없이 되풀이된다. p1-1280.png의 요약 불릿도 같은 처리 순서를 다시 적는다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p3-1280.png: 상단 불릿은 review-docs와 audit-repo-docs만 적고, 표에 있는 review-specs(리뷰 결과 전달 때 묻습니다)와 L2는 불릿 목록에서 빠져 있다."
+ }
+]

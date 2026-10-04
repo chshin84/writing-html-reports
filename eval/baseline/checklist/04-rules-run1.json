@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png~d-flow-s28.png: 단계마다 seconds가 0.3~0.32초인데, 그림 아래 자막(예: '시나리오 A · 후보: 선행연구 렌즈를 실행할지 정합니다.', 약 30자)은 초당 8자 기준 약 4초가 필요하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png, s10.png, s20.png, s28.png: 강조된 노드 옆에 설명 상자가 없고 도형과 화살표만 보이며, 설명은 그림 아래 자막에만 있다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png~s28.png: 1280x800 장면에 도식 위쪽만 보이고 자막과 아래쪽 노드(판정과 이유 기록 등)는 화면 밖이라 강조 노드와 설명이 함께 보이지 않는다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-flow-s10.png와 d-flow-s20.png: 이미 지나온 노드와 현재 노드가 모두 같은 굵은 남색 테두리여서 현재와 과거가 구분되지 않는다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "d-flow 단계 장면: 전후 비교 애니메이션이 아니라 흐름도 재생이다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png: 흐름도가 폭에 맞춰 축소되어 노드와 분기 라벨 글자가 약 7~8px 크기로 확대 없이는 읽기 어렵다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png: 표 열이 단어 단위로 줄바꿈되어 읽히고 한두 글자 폭으로 잘린 열이 없다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "p2-390.png, p3-390.png: 표가 화면 폭 안에 모두 들어가 오른쪽으로 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png, p2-1280.png, p3-1280.png: 상단 이전/다음 줄의 '1 / 3'과 제목 위의 '1 / 3'으로 페이지 번호가 두 번 보인다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 용어 풀이(차수, L2)에 제목이 없고 용어는 왼쪽 끝, 풀이는 약 450px 떨어진 오른쪽에 있어 짝이 붙어 읽히지 않는다. p1-390.png도 제목이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "p1-1280.png~p3-1280.png: 제목이 '필요할 때 렌즈의 공통 규칙', '제안과 승인의 흐름', '호출자별 제안 시점'으로 주제 이름이며 결론 문장이 아니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿 네 줄, 흐름도, 공통 규칙 표가 직접 요청, L2, 발동 기준, 기록의 같은 규칙을 반복한다. p1-1280.png의 요약 불릿도 본문 첫 문장과 겹친다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "p1~p3: 독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p3-1280.png: 불릿의 review-docs와 audit-repo-docs 제안 시점이 표 내용과 일치한다. p2-1280.png: 불릿의 분기와 흐름도, 표의 규칙이 서로 모순되지 않는다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '판단 분기 4개', 'readability 발동 기준 1개'와 요약 주장에 표나 출처 목록이 같은 페이지에 없다. p2와 p3에는 출처 목록이 있다."
+ }
+]

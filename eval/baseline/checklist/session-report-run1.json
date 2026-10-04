@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 모든 장면이 page 장면이다. p2-1280.png의 순서도는 정지 도식이다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "단계 장면과 설명 상자가 없다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "p2-1280.png의 순서도는 정지 도식이고 차례 강조가 없다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 애니메이션이 없다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "p2-390.png: 순서도 상자 안의 글자가 본문과 비슷한 크기로 확대 없이 읽힌다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p4-390.png: '변경 내용' 열이 두세 글자 폭으로 잘려 「렌즈 / 그룹」 같은 줄바꿈이 생긴다. p5-390.png와 p6-390.png, p8-390.png에서는 열이 화면 밖으로 잘린다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "아니오",
+  "evidence": "p5-390.png, p6-390.png, p8-390.png: 표가 오른쪽에서 잘리는데 그림자, 안내 문구, 잘린 열 표시가 보이지 않는다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png 등 모든 페이지 장면: 상단 이전/다음 줄의 '1 / 8'과 제목 위의 '1 / 8'이 두 번 보인다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 렌즈, 호출자, e4 풀이 목록에 제목이 없고, 용어가 왼쪽 끝에 풀이가 가운데 오른쪽에 떨어져 있어 짝이 한눈에 붙지 않는다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "절 제목이 '작업 흐름', '바뀐 규칙', '남은 일' 같은 주제 이름이라 제목만 읽어서는 결론이 이어지지 않는다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 단계가 불릿, 순서도, 표에서 되풀이된다. p3과 p4 등에서도 불릿이 표 내용을 되풀이한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "아니오",
+  "evidence": "p8-1280.png: '원격 푸시 여부'와 '삭제 또는 재생성'을 결정 사항으로 두면서 권장안과 이유가 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 '9단계'라고 하지만 순서도와 표에는 8단계만 있다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '14개 커밋'과 '612개 통과'의 근거가 같은 페이지에 없다. p2-1280.png: '9단계'도 표나 도식에서 확인되지 않는다."
+ }
+]

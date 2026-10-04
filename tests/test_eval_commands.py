@@ -137,8 +137,10 @@ class Checklist(unittest.TestCase):
         for i in items:
             self.assertIn(i["category"], {"사용자 만족도", "심미성", "구성", "이해 용이성", "논리 전개"})
             self.assertIn(i["target"], {"motion", "layout", "content"})
-        for d in DEFECTS:
-            self.assertTrue(any(d in i["defect"] for i in items), d)
+        removed = (ROOT / "eval/checklist.md").read_text(encoding="utf-8").split("## 뺀 항목", 1)
+        removed = removed[1] if len(removed) == 2 else ""
+        for d in DEFECTS:  # 판별력 확인에서 뺀 항목의 결함은 '뺀 항목' 절에 이유와 함께 적혀 있어야 한다
+            self.assertTrue(any(d in i["defect"] for i in items) or d in removed, d)
 
     def test_majority_and_coverage(self):
         import checklist_vote as cv

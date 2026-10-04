@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-order-s1.png: 단계 시간 3.2초인데 자막 약 34자와 설명 상자 약 28자가 새로 나와 8자/초 기준 약 8초가 필요하다. d-order-s3.png(2.62초)와 d-mmd-s1~s3.png(0.4초대)도 자막 길이에 비해 시간이 짧다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-order-s1~s7.png는 설명 상자가 인물 그림 옆에 있어 강조 노드와 떨어져 있는 경우가 있다(s1 상자는 주문 접수 위쪽 인물 옆). d-mmd-s1~s3.png는 설명 상자 없이 그림 아래 자막만 있다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "예",
+  "evidence": "d-order-s1~s7.png와 d-mmd-s1~s3.png 모두 1280x800 안에 강조 노드와 자막(설명 상자)이 함께 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-order-s2.png 등에서는 지나온 노드가 옅은 테두리로 구분되지만, d-mmd-s3.png는 세 노드가 모두 굵은 진한 테두리라 현재 노드(결제)와 지나온 노드가 구분되지 않는다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 막대 애니메이션이 없다. 두 애니메이션은 처리 흐름 단계 강조다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "아니오",
+  "evidence": "p4-390.png: 주문 처리 애니메이션 안의 노드 글자와 설명 상자 글자가 약 5px로 줄어 확대 없이 읽기 어렵다. p3-390.png: 도넛 라벨이 '...'로 잘리거나 한쪽이 잘려 있다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png: 월·거래대금·3개월 이동평균 세 열이 모두 단어 단위로 읽힌다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "p2-390.png: 표가 화면 폭 안에 모두 들어와 오른쪽으로 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png, p2-1280.png 등 모든 페이지에서 상단 내비게이션의 '1 / 5'와 본문 위의 '1 / 5'가 두 번 보인다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "해당 없음",
+  "evidence": "모든 페이지 장면에 용어 풀이 목록이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "p2~p5의 제목은 '거래대금 추이', '시장별 구성', '주문 처리 구조', '정산 과정' 같은 주제 이름이고, 결론은 그 아래 불릿에만 있다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿의 6월 24.9조원과 25.9조원이 차트와 표에 같은 수치로 되풀이된다. p1-1280.png의 요약은 뒤 페이지의 내용을 다시 말한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿의 24.9와 25.9가 표와 같고 3월 이동평균 21.43도 맞다. p3-1280.png: 58%가 도넛과 같다. p4-1280.png: 불릿의 네 단계와 한도 조건이 도식과 같다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 요약의 T+2 결제, 58%, 이동평균 하회 주장에 대한 표나 그림이나 출처가 같은 페이지에 없다. 다른 페이지는 '자료: 시험용 가상 자료'가 있으나 가상 자료라는 표기뿐이다."
+ }
+]

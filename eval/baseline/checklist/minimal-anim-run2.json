@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-req-s1.png: 단계 1은 3.65초(약 29자 분량)인데 설명 상자 '접수: 요청서 1건'과 자막 '흐름 · 접수: 요청서를 접수 칸에 넣습니다.'를 합치면 공백 포함 약 35자라 시간이 모자란다. s2(6.29초, 약 39자)와 s3(6.17초, 약 41자)는 충분하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "예",
+  "evidence": "d-req-s1/s2/s3.png: 설명 상자가 강조된 노드(접수, 검토, 승인) 바로 오른쪽에 같은 높이로 나온다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "예",
+  "evidence": "d-req-s1/s2/s3.png: 1280x800 화면 안에 강조 노드, 설명 상자, 자막이 모두 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "예",
+  "evidence": "d-req-s2.png: 현재 노드 검토는 굵은 실선 테두리이고 지나온 접수는 점선이다. d-req-s3.png: 승인은 굵은 실선과 체크 표시이고 접수와 검토는 점선이다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 애니메이션이 없다. 순서 강조 애니메이션만 있다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "v1-390.png: 노드 글자(접수, 검토, 승인)와 설명 상자 글자가 본문과 비슷한 크기로 확대 없이 읽힌다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png: 표가 없다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png: 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png: 페이지 번호가 없다. '1/3'은 애니메이션 단계 표시다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png: 용어 풀이 목록이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "v1-1280.png: 제목 '요청 처리 흐름'은 주제 이름이고 결론 문장이 아니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "v1-1280.png: 도식, 설명 상자, 자막이 같은 단계를 다루지만 불릿과 표가 없고 도입 문장이 세 단계를 한 번만 소개한다. 3중 반복은 아니다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png: 결정 요청이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "v1-1280.png: 도입 문장의 접수, 검토, 승인 순서와 도식의 노드 순서가 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "예",
+  "evidence": "v1-1280.png: 하단에 '자료: 요청 처리 절차(가상 예시)'가 있고 수치 주장은 없다."
+ }
+]

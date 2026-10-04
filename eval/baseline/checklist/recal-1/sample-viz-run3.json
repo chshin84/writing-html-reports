@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-order-s1.png: 자막(약 30자)과 설명 상자(약 17자)를 합해 약 47자로 읽는 데 약 6.9초가 필요하나 index.json의 seconds는 3.2초다. d-order-s3.png 등 다른 단계도 2.6~3.2초로 모자란다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "p5의 d-mmd-s1~s3.png에는 설명 상자 없이 그림 아래 자막만 있다. d-order-s1.png에서도 설명 상자가 인물 옆 상단에 있어 강조된 '주문 접수' 노드와 떨어져 있다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-mmd-s2.png는 '체결 확정'과 '대금 계산'이 같은 진한 테두리로 보이고, d-mmd-s3.png는 세 노드가 모두 같은 모양이라 현재와 지나온 노드가 구분되지 않는다. d-order 단계는 구분된다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png: 월별 거래대금 표의 월·거래대금·3개월 이동평균 열이 모두 낱말 중간에서 끊기지 않고 읽힌다. 표는 p2에만 있다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png와 p2-390.png: 6월 24.9조원과 이동평균 25.9조원이 불릿, 차트, 표에 모두 되풀이된다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-390.png: 불릿의 24.9와 25.9가 표 6월 행과 일치한다. p3의 58%, p4의 접수·검증·체결·정산 단계도 각 도식과 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 요약의 T+2 정산, 한도 초과 거부, 6월 거래대금 하회, 58% 비중이 같은 페이지에 표·그림·출처 없이 단정되어 있다. 근거는 다른 페이지에만 있다."
+ }
+]

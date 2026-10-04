@@ -1,0 +1,804 @@
+{
+ "samples": {
+  "03-groups": {
+   "anim-readable": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   }
+  },
+  "04-rules": {
+   "anim-readable": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   }
+  },
+  "minimal-anim": {
+   "anim-readable": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   }
+  },
+  "sample-anim": {
+   "anim-readable": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   }
+  },
+  "sample-viz": {
+   "anim-readable": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   }
+  },
+  "session-report": {
+   "anim-readable": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "note-beside": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "focus-note-one-screen": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "current-vs-past": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "baseline-kept": {
+    "runs": [
+     "해당 없음",
+     "해당 없음",
+     "해당 없음"
+    ],
+    "majority": "해당 없음",
+    "stable": true
+   },
+   "svg-text-390": {
+    "runs": [
+     "예",
+     "예",
+     "예"
+    ],
+    "majority": "예",
+    "stable": true
+   },
+   "table-cols-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "table-scroll-cue-390": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "single-page-number": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "glossary-layout": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "titles-tell-story": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "no-triple-repeat": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "decision-recommend": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   },
+   "claims-sourced": {
+    "runs": [
+     "아니오",
+     "아니오",
+     "아니오"
+    ],
+    "majority": "아니오",
+    "stable": true
+   }
+  }
+ },
+ "coverage": {
+  "03-groups": {
+   "motion": 0.0,
+   "layout": 0.0,
+   "content": 0.0
+  },
+  "04-rules": {
+   "motion": 0.0,
+   "layout": 0.333,
+   "content": 0.0
+  },
+  "minimal-anim": {
+   "motion": 0.8,
+   "layout": null,
+   "content": 0.667
+  },
+  "sample-anim": {
+   "motion": 0.167,
+   "layout": 0.5,
+   "content": 0.0
+  },
+  "sample-viz": {
+   "motion": 0.2,
+   "layout": 0.5,
+   "content": 0.0
+  },
+  "session-report": {
+   "motion": 1.0,
+   "layout": 0.0,
+   "content": 0.0
+  }
+ }
+}

@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "index.json의 d-flow 단계는 모두 0.3초 안팎이고, d-flow-s1.png 등 단계 장면에 읽을 글(자막·설명 상자)이 아예 보이지 않아 초당 8자 기준으로 읽을 수 없다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-flow-s2.png, d-flow-s8.png, d-flow-s14.png, d-flow-s28.png: 강조된 노드 옆에 설명 상자가 없다. 설명은 그림 아래 자막뿐이고 그것도 장면에 보이지 않는다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "아니오",
+  "evidence": "d-flow-s28.png: 1280×800 안에 도식 윗부분만 있고 아래쪽 노드와 자막 줄이 화면 밖이다. 강조된 노드와 설명이 함께 보이지 않는다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-flow-s14.png: 현재 노드(발동 기준 해당 앞)와 지나온 노드(필요할 때 렌즈 후보, 사용자 직접 요청, L2 실행자)가 모두 같은 굵은 테두리로, 색이나 채움 차이가 없다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "d-flow-s28.png: 흐름도 재생이며 전후 비교 막대 애니메이션이 아니다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png: 흐름도가 390폭에 맞게 축소되어 노드 글자와 아니오·예 라벨이 약 7px 크기로 확대 없이는 읽기 어렵다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png: 표 열이 모두 단어 단위로 줄바꿈되어 읽히고 한두 글자 폭으로 잘린 열이 없다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "p2-390.png, p3-390.png: 표가 화면 폭 안에 모두 들어가 오른쪽으로 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png, p2-1280.png, p3-1280.png: 상단 이전/다음 줄에 '1 / 3'이 있고 제목 위에 '1 / 3'이 한 번 더 있어 번호가 두 번 보인다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 맨 아래 차수·L2 용어 풀이 목록에 제목이 없고, 용어(x=200)와 풀이(x=655)가 멀리 떨어져 있다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "p1-1280.png~p3-1280.png: 절 제목이 '제안과 승인의 흐름', '호출자별 제안 시점' 같은 주제 이름이라 제목만 읽어서는 결론이 이어지지 않는다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿, 흐름도, 공통 규칙 표가 직접 요청, L2, 발동 기준, 기록을 같은 말로 세 번 되풀이한다. p3-1280.png도 불릿과 표가 같은 시점 내용을 반복한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "p1~p3 장면: 독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png, p3-1280.png: 불릿과 표·도식이 같은 규칙과 같은 호출자 시점을 말하며 빠진 항목이나 다른 수치가 없다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 4개, 1개 같은 수치와 요약 주장에 대해 같은 페이지에 표나 출처 목록이 없다. 근거는 다른 페이지에 있다."
+ }
+]

@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-req-s1.png: 설명 상자 '접수: 요청서 1건'과 자막 '흐름 · 접수: 요청서를 접수 칸에 넣습니다.'를 합쳐 공백 포함 약 36자라서 8자/초 기준 4.5초가 필요한데 index.json의 seconds는 3.65초다. s2(6.29초)와 s3(6.17초)는 글이 약 37자라 충분하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "예",
+  "evidence": "d-req-s1.png, d-req-s2.png, d-req-s3.png: 강조된 노드(접수, 검토, 승인) 바로 오른쪽에 설명 상자가 나온다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "예",
+  "evidence": "d-req-s1.png~d-req-s3.png: 1280x800 화면 안에 강조 노드, 설명 상자, 자막이 모두 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "예",
+  "evidence": "d-req-s2.png: 현재 노드(검토)는 굵은 파란 실선이고 지난 노드(접수)는 회색 점선이다. d-req-s3.png: 접수와 검토가 점선, 승인이 굵은 실선과 체크 표시다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "d-req-s1.png~d-req-s3.png: 단계를 차례로 따라가는 흐름도이고 전후 비교 애니메이션이 아니다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "v1-390.png: 접수, 검토, 승인 노드 글자와 설명 상자 글자가 본문과 비슷한 크기라 확대 없이 읽힌다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png: 표가 없다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png: 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png: 단일 문서이고 '1/3'은 애니메이션 단계 표시라 페이지 번호가 없다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png: 용어 풀이 목록이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "v1-1280.png: 제목이 '요청 처리 흐름'이라는 주제 이름이고 결론 문장이 아니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "v1-1280.png: 본문 첫 문장의 접수·검토·승인 순서를 도식이 다시 보이고, 설명 상자와 자막이 같은 단계 내용을 두 번 적는다(d-req-s2.png의 '검토: 담당자 확인'과 '검토: 담당자가 요청 내용을 확인합니다')."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png: 독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "v1-1280.png: 불릿과 표가 없고 본문과 도식 모두 접수, 검토, 승인 세 단계로 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "예",
+  "evidence": "v1-1280.png: 수치 주장은 '요청서 1건' 정도이고 하단에 '자료: 요청 처리 절차(가상 예시)'가 있다."
+ }
+]

@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 p2-1280.png의 작업 단계 도식도 정적이다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "단계 장면과 설명 상자가 있는 애니메이션이 없다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "차례로 강조하는 애니메이션이 없다. p2-1280.png의 도식은 모든 노드가 같은 모양인 정적 그림이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p3-390.png에서 'lens-grounding'이 'lens-/grounding'으로 낱말 중간에서 줄이 바뀐다. p4-390.png의 '변경 내용' 열은 한두 글자 폭으로 좁다. p6-390.png와 p8-390.png는 표가 오른쪽에서 잘려 변경 후와 필요한 결정 열이 읽히지 않는다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "p2-390.png에서 작업 단계는 도식과 표에 두 번 나오지만, 불릿은 9단계라는 요약만 말한다. 다른 페이지(p3~p8)는 불릿과 표만 겹치고 도식은 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p7-390.png의 불릿은 plan 리뷰가 검사 실패 3가지와 규칙 소실 1가지를 찾았다고 하지만, 표의 plan 리뷰 행은 3개(소유 선언 검사 실패, 규칙 소실, 제안 시점 불일치)뿐이라 검사 실패 3가지가 표에 없다. p4의 줄 수 합계(추가 117, 삭제 57)와 p2의 9단계는 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png의 고친 파일 9개, 커밋 14개, 검사 612개(test_audit 136, test_docs_drift 476)는 같은 페이지에 표나 출처가 없다. p4는 612개 통과 근거로 git diff 출처만 있고 검사 실행 결과가 없다."
+ }
+]

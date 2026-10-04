@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 애니메이션이 없다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다. p2의 흐름도는 정적 도식이다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "p2-1280.png의 흐름도는 정적이며 차례로 강조하는 애니메이션이 없다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 애니메이션이 없다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "p2-390.png: 흐름도 노드 글자('사용 실적 분석' 등)가 본문과 비슷한 크기로 확대 없이 읽힌다. 차트와 다른 도식은 없다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p4-390.png: '변경 내용' 열이 한두 글자 폭으로 줄바꿈된다. p5-390.png, p6-390.png, p8-390.png: 변경 전·상태 열도 한두 글자 폭으로 잘린다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "아니오",
+  "evidence": "p5-390.png, p6-390.png, p8-390.png: 표가 오른쪽으로 잘리고 그림자나 안내 문구가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "모든 페이지 장면: 상단 이동줄의 '1 / 8'과 본문 위의 '1 / 8'이 두 번 나온다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 하단 용어 목록(렌즈, 호출자, e4)에 제목이 없고, 용어와 풀이가 화면 폭만큼 떨어져 있다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "p2~p8 제목('작업 흐름', '바뀐 규칙', '남은 일' 등)이 주제 이름이고 결론 문장이 아니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 단계를 불릿, 흐름도, 표 세 곳이 되풀이한다. p1-1280.png 요약도 이후 페이지 불릿을 되풀이한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "아니오",
+  "evidence": "p8-1280.png: '원격 푸시 여부', '삭제 또는 재생성' 결정에 권장안과 이유가 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 '9단계'인데 흐름도 노드와 표 행은 8개다. p7-1280.png: 불릿의 '검사 실패 3가지'에 맞는 표 항목이 하나뿐이다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '14개 커밋', '612개 통과'에 출처가 없다. p2-1280.png: 'spec 렌즈 리뷰 28건'의 출처가 git 기록뿐이다."
+ }
+]

@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "index.json: d-flow-s1~s28 모두 seconds가 0.3~0.32초이다. p2-1280.png의 자막 '시나리오 A · 후보: 선행연구 렌즈를 실행할지 정합니다.'만 해도 읽는 데 약 3.5초가 필요하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png, d-flow-s2.png, d-flow-s10.png, d-flow-s20.png, d-flow-s28.png: 강조된 노드 옆에 설명 상자가 없고 그림 아래 자막(p2-1280.png의 '시나리오 A · 후보…')만 있다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-flow-s10.png, d-flow-s20.png, d-flow-s28.png: 지나온 노드와 현재 노드가 모두 같은 굵은 남색 테두리여서 구분되지 않는다. s28에서는 모든 노드가 같은 모양이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png의 공통 규칙 표와 p3-390.png의 호출자별 표에서 review-docs, audit-repo-docs, readability 발동 기준 같은 식별자와 낱말이 중간에서 끊기지 않고 읽힌다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 직접 요청, L2, 발동 기준, 판정 기록의 같은 규칙을 상단 불릿, 흐름도, 공통 규칙 표가 세 형식으로 되풀이한다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p3-390.png의 review-docs, audit-repo-docs 불릿이 표 행과 일치한다. p2-1280.png의 불릿 네 항목도 표와 도식의 규칙과 같고 빠뜨리거나 다른 수치를 적은 곳이 없다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '판단 분기 4개', '조용한 생략을 차단합니다' 같은 수치와 단정 주장이 있으나 같은 페이지에 표나 그림이나 출처 목록이 없다. 근거는 다른 페이지(p2, p3)에만 있다."
+ }
+]

@@ -1,0 +1,12 @@
+[
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 상단 불릿 4개(직접 요청, L2, 발동 기준, 기록)가 아래 흐름도의 분기와 같은 내용이고, 공통 규칙 표의 직접 요청·L2·판정 기록 행도 같은 내용을 다시 보인다. p3-1280.png: 상단 불릿이 호출자별 표의 review-docs·audit-repo-docs 행을 되풀이한다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p1-1280.png: 요약 불릿의 제안 시점(review-docs 검진 전 질문, audit-repo-docs 감사 시작, review-specs 리뷰 결과 전달)이 p3-1280.png 표와 일치한다. p2-1280.png: 불릿과 표, 흐름도의 분기 내용이 서로 다르지 않고 빠진 항목이나 다른 수치도 없다."
+ }
+]

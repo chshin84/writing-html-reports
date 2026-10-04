@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 p1~p8 페이지 장면만 있다. p2-1280.png의 흐름도는 정적 도식이다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면과 설명 상자가 없다. 모든 장면이 정적 페이지다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "노드를 차례로 강조하는 애니메이션이 없다. p2-1280.png의 흐름도는 모든 상자가 같은 모양인 정적 도식이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p3-390.png: 'lens-grounding'이 'lens-/grounding'으로 낱말 중간에서 줄이 바뀌고 'audit-/repo-/docs'도 하이픈에서 끊긴다. p4-390.png: 변경 내용 열이 한두 글자 폭으로 잘린다. p5-390.png: 변경 전 열이 오른쪽에서 잘리고 '변경 후' 열이 보이지 않는다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿은 단계 수만 요약하고 도식과 표가 단계를 두 형식으로 겹친다. p3-1280.png와 p4-1280.png: 불릿과 표만 겹치고 도식이 없다. 세 형식이 모두 되풀이하는 페이지는 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 '9단계'라고 하지만 도식 상자와 표 행은 모두 8개다. p7-1280.png: 불릿은 '검사 실패 3가지와 규칙 소실 1가지'라고 하지만 plan 리뷰 행은 검사 실패 1건, 규칙 소실 1건, 시점 불일치 1건이다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 고친 파일 9개, 커밋 14개, 검사 612개 통과 같은 수치와 단정 주장이 있지만 같은 페이지에 근거 표나 출처 목록이 없다."
+ }
+]

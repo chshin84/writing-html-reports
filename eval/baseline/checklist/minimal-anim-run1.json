@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "예",
+  "evidence": "d-req-s1.png: 새 글은 설명 상자 '접수: 요청서 1건'과 자막 한 줄로 공백 제외 약 27자이고 3.65초 안에 읽힌다. d-req-s2.png, d-req-s3.png: 약 30자 안팎이고 6초 이상이라 충분하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "예",
+  "evidence": "d-req-s1.png, d-req-s2.png, d-req-s3.png: 설명 상자가 강조된 노드(접수, 검토, 승인) 바로 오른쪽에 붙어 있다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "예",
+  "evidence": "d-req-s1.png~d-req-s3.png: 1280x800 화면 안에 강조 노드, 설명 상자, 자막이 모두 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "예",
+  "evidence": "d-req-s2.png: 현재 검토는 굵은 실선 테두리이고 지나온 접수는 점선이다. d-req-s3.png: 승인만 굵은 실선과 체크 표시이고 앞의 두 노드는 점선이다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "d-req-s1.png~d-req-s3.png: 전후 비교 애니메이션이 아니라 단계 순서 강조 애니메이션이다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "v1-390.png: 도식 노드 글자(접수, 검토, 승인)와 설명 상자 글자가 본문과 비슷한 크기로 확대 없이 읽힌다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png, doc.txt: 표가 없다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png: 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png: 페이지 번호가 없다. '1/3'은 애니메이션 단계 표시다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "해당 없음",
+  "evidence": "doc.txt: 용어 풀이 목록이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "v1-1280.png: 제목 '요청 처리 흐름'은 주제 이름에 그치고 결론 문장이 아니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "v1-1280.png: 도입 문장, 도식, 설명 상자와 자막이 서로 다른 수준의 정보를 주며 같은 사실을 세 번 되풀이하지는 않는다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "doc.txt: 독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "v1-1280.png: 불릿과 표가 없고 도입 문장의 세 단계(접수, 검토, 승인)가 도식과 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "예",
+  "evidence": "v1-1280.png: 세 단계 주장이 같은 화면의 도식과 '자료: 요청 처리 절차(가상 예시)'로 뒷받침된다. 수치 주장은 없다."
+ }
+]

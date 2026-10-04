@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "index.json: d-flow-s1~s28의 seconds가 0.3~0.32초이고, p2에 시나리오 문장 자막(예: '시나리오 A · 후보: 선행연구 렌즈를 실행할지 정합니다.')이 있어 읽는 데 필요한 시간(1초 + 글자 수/8초)에 못 미칩니다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png~s28.png: 강조된 노드 옆에 설명 상자가 보이지 않고, p2-1280.png에는 그림 아래 자막 줄만 있습니다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-flow-s2.png와 d-flow-s3.png가 같은 모양이고, d-flow-s28.png에서는 지나온 노드와 현재 노드가 모두 같은 굵은 테두리여서 색이나 채움으로 구분되지 않습니다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png와 p3-390.png: 표 칸의 낱말과 식별자(review-docs, audit-repo-docs, review-specs, L2, readability)가 중간에서 끊기지 않고 읽힙니다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 직접 요청, L2, 발동 기준, 판정 기록의 같은 규칙이 상단 불릿, 흐름도, '공통 규칙' 표에 모두 되풀이됩니다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p3-390.png와 p2-1280.png: 불릿이 나열한 review-docs, audit-repo-docs, L2와 직접 요청, 발동 기준 항목이 표·도식의 행과 일치하며 다른 수치가 없습니다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '4개', '1개', '호출자별' 같은 수치와 처리 순서 주장에 대한 표나 출처 목록이 같은 페이지에 없고, 근거는 p2와 p3에만 있습니다."
+ }
+]
