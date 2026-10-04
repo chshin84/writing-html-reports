@@ -5,6 +5,18 @@ from checks.common import PAGE_ID, TOC
 
 PAGE = re.compile(r'<section class="(page[^"]*)"[^>]*>(.*?)</section>', re.S)
 EVIDENCE = re.compile(r'<table|<figure|<svg|class="keyfig"|class="bars"')
+SEC = re.compile(r'<p\b[^>]*\bclass="(?:[^"]*\s)?sec(?:\s[^"]*)?"[^>]*>(.*?)</p>', re.S)  # 절 이름(C2 계약)
+HEAD = re.compile(r"<h[12][^>]*>(.*?)</h[12]>", re.S)
+
+
+def strip_tags(s):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", s)).strip()
+
+
+def page_name(body):
+    """페이지 이름: 절 이름(p.sec)이 있으면 그 글, 없으면 첫 h1·h2의 글이다."""
+    m = SEC.search(body) or HEAD.search(body)
+    return strip_tags(m.group(1)) if m else ""
 
 
 def page_violations(html):
@@ -14,8 +26,7 @@ def page_violations(html):
     for cls, body in PAGE.findall(html):
         if "list" in cls.split() or EVIDENCE.search(body):
             continue
-        h = re.search(r"<h[12][^>]*>(.*?)</h[12]>", body, re.S)
-        name = re.sub(r"<[^>]+>", "", h.group(1)).strip() if h else body[:40]
+        name = page_name(body) or body[:40]
         out.append(f"근거 없는 페이지(표·도표·핵심 수치 없음): {name[:40]}")
     return out
 
@@ -44,7 +55,7 @@ ANIM_FIG = re.compile(r'<figure\b[^>]*\bdata-anim="[^"]*"[^>]*>.*?</figure>', re
 
 
 def page_scores(html):
-    """핵심 페이지 평가. 요약·결론·부록 페이지는 후보에서 뺀다.
+    """핵심 페이지 평가. 요약·결론·부록 페이지는 후보에서 뺀다. 페이지 이름은 p.sec, 없으면 첫 h1·h2에서 읽는다.
     N 필수도: 이 페이지만을 근거로 하는 결론 문장 수(이 페이지가 없으면 그 결론을 이해할 수 없다).
     R 관련도: 이 페이지를 근거에 포함하는 결론 문장 수.
     B 구조 복잡도: 이 페이지 정지 도식의 판단 분기 수(polygon 마름모, Mermaid {…} 노드). 애니메이션 figure는 세지 않는다.
@@ -62,8 +73,7 @@ def page_scores(html):
     ksrcs = [s.split() for s in KEY_SRC.findall(keyfig)]
     rows = []
     for order, (cls, pid, body) in enumerate(pages):
-        h = re.search(r"<h[12][^>]*>(.*?)</h[12]>", body, re.S)
-        title = re.sub(r"<[^>]+>", "", h.group(1)).strip() if h else ""
+        title = page_name(body)
         excluded = (bool({"summary", "conclusion", "list"} & set(cls.split()))
                     or 'class="doc-head"' in body or 'class="gist"' in body
                     or re.match(r"(요약|결론|부록)", title) is not None)

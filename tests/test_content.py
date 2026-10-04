@@ -7,7 +7,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from checks import content  # noqa: E402
-from helpers import paged, toc  # noqa: E402
+from helpers import ROOT, page, paged, toc  # noqa: E402
 
 
 class Scores(unittest.TestCase):
@@ -71,6 +71,30 @@ class Stars(unittest.TestCase):
     def test_key_without_core(self):
         self.assertTrue(any("★이 없다" in f for f in content.star_violations(toc("key"))))
 
+
+
+class PageName(unittest.TestCase):
+    def test_sec_read_first(self):
+        body = '<p class="sec">구조 A</p><h2>요약 기준이 A보다 12% 낮다</h2>'
+        self.assertEqual(content.page_name(body), "구조 A")
+
+    def test_h2_without_sec(self):
+        self.assertEqual(content.page_name("<h2>구조 <b>A</b></h2>"), "구조 A")
+
+    def test_sec_name_overrides_h2(self):
+        html = paged('<li data-src="p2">가</li>', {}).replace(
+            "<h2>구조 A</h2>", '<p class="sec">구조 A</p><h2>요약하면 A가 12% 빠르다</h2>')
+        rows = {x["id"]: x for x in content.page_scores(html)}
+        self.assertEqual((rows["p2"]["title"], rows["p2"]["excluded"], rows["p2"]["expect"]), ("구조 A", False, "core"))
+
+    def test_h2_summary_still_excluded_without_sec(self):
+        html = paged('<li data-src="p2">가</li>', {}).replace("<h2>구조 A</h2>", "<h2>요약 A</h2>")
+        rows = {x["id"]: x for x in content.page_scores(html)}
+        self.assertTrue(rows["p2"]["excluded"])
+
+    def test_violation_names_sec(self):
+        html = page(body='<section class="page" id="p1"><p class="sec">구조 A</p><h2>A가 빠르다</h2><p>글</p></section>')
+        self.assertEqual(content.page_violations(html), ["근거 없는 페이지(표·도표·핵심 수치 없음): 구조 A"])
 
 
 if __name__ == "__main__":
