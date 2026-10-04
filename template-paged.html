@@ -110,20 +110,12 @@ svg text{font-family:var(--sans);fill:var(--ink)}
 .ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
 .brow .n{text-align:right;font-weight:600}
 
-/* 시각화: 차트 상자, Mermaid 도식, 애니메이션. 규칙은 SKILL.md '시각화' 절에 있다 */
+/* 시각화: 차트 상자, Mermaid 도식. 규칙은 시각화.md에 있다. 애니메이션 조작 UI는 report-demo.css에 있다 */
 .viz{height:320px;margin-top:12px}
 .viz-fail{display:flex;align-items:center;font-size:13px;color:var(--ink-3);border:1px solid var(--hair);padding:0 12px;min-height:48px}
 pre.mermaid{margin:12px 0 0;font:inherit;font-size:13px;white-space:pre;overflow-x:auto;color:var(--ink-3)}
 pre.mermaid.rendered{white-space:normal;text-align:center;color:var(--ink)}
 pre.mermaid rect{rx:0;ry:0}
-.demo-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-3)}
-.demo-ctl button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
-.demo-ctl button:disabled{color:var(--ink-3);cursor:default}
-.demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
-.demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
-.demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
-.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
-.demo-static .demo-steps{display:block}
 
 /* 번호 목록 형태의 단계 */
 .steps{list-style:none;margin:0;padding:0;counter-reset:st}
@@ -185,11 +177,22 @@ footer p{margin:0 0 4px}
   section,figure,table,.gist{break-inside:avoid}
   h2,h3{break-after:avoid}
   a{color:inherit;text-decoration:none}
-  .demo-ctl,.demo-cap{display:none}
-  .demo-steps{display:block}
   .viz{height:auto}
   .viz>div{width:100%!important}
   pre.mermaid svg{width:100%;max-width:100%;height:auto}
+}
+/* 애니메이션 조작 UI(RC.demo의 버튼·자막·단계 목록). C1 소유. build.py가 report-base.css 뒤에 이어 넣는다. 규칙은 시각화.md에 있다 */
+.demo-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-3)}
+.demo-ctl button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.demo-ctl button:disabled{color:var(--ink-3);cursor:default}
+.demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
+.demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
+.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-static .demo-steps{display:block}
+@media print{
+  .demo-ctl,.demo-cap{display:none}
+  .demo-steps{display:block}
 }
 /* END report-base */
 /* 이 문서 전용: 토큰(var(--…))만 쓴다 */

@@ -1,7 +1,7 @@
 """개선본 HTML의 BEGIN/END 표시 사이를 기준 파일로 다시 채운다.
 
 사용법: python build.py <html>...  (여러 번 실행해도 결과가 같다)
-- report-base: <style> 안의 표시를 report-base.css로 채운다. 이 표시는 필수다.
+- report-base: <style> 안의 표시를 report-base.css와 report-demo.css(애니메이션 조작 UI)로 채운다. 이 표시는 필수다.
 - report-charts: <script> 안의 표시를 report-charts.js로 채운다. 표시가 있는 문서만 채운다.
   문서의 CDN 주소 버전이 report-charts.js 첫 줄의 대상 버전과 다르면 채우지 않고 멈춘다.
   문서가 RC 함수를 호출하는데 이 표시가 없어도 멈춘다.
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).parent
-BASE = (HERE / "report-base.css").read_text(encoding="utf-8")
+BASE = (HERE / "report-base.css").read_text(encoding="utf-8") + (HERE / "report-demo.css").read_text(encoding="utf-8")
 CHARTS = (HERE / "report-charts.js").read_text(encoding="utf-8")
 PEEPS = (HERE / "report-peeps.js").read_text(encoding="utf-8")
 LIBS = dict(re.findall(r"(echarts|mermaid|gsap)@([\d.]+)", CHARTS.splitlines()[0]))

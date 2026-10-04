@@ -1,0 +1,13 @@
+/* 애니메이션 조작 UI(RC.demo의 버튼·자막·단계 목록). C1 소유. build.py가 report-base.css 뒤에 이어 넣는다. 규칙은 시각화.md에 있다 */
+.demo-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-3)}
+.demo-ctl button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.demo-ctl button:disabled{color:var(--ink-3);cursor:default}
+.demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
+.demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
+.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-static .demo-steps{display:block}
+@media print{
+  .demo-ctl,.demo-cap{display:none}
+  .demo-steps{display:block}
+}
