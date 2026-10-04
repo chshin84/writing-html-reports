@@ -1,0 +1,15 @@
+{"lens":"lens-fit","target":"docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md","doc_type":"설계 (spec·plan) 행","issues":[
+{"where":"「인터페이스」 첫 문장(77행)과 목록(79~83행)","type":"constraint","principle":"COUNT-EARNS","claim":"첫 문장은 계약을 '네 가지'라고 예고하나 목록에는 다섯 번째 '평가 실행'이 있다.","consequence":"첫 문장만 읽는 독자에게 '평가 실행' 계약이 빠진다."},
+{"where":"「목적과 범위」 9행, 「L1 사전 정리」 68행","type":"constraint","principle":"COUNT-EARNS","claim":"목록 바로 앞에서 개수를 예고한다('근거는 세 가지다', '구조 변경 두 가지').","consequence":"같은 사실이 개수와 목록 두 곳에 적혀 어긋날 수 있다."},
+{"where":"13행, 58행, 90·91행","type":"constraint","principle":"COUNT-EARNS","claim":"'세 층', '렌즈 4개', '견본 세 개'처럼 대상을 개수로 가리키거나 결론에 쓰이지 않는 개수를 적었다.","consequence":"층이나 견본이 바뀌면 숫자가 신호 없이 틀린다."},
+{"where":"3, 17, 18, 21, 53, 113행","type":"style","principle":"TERM-EXPLAIN","claim":"L1·L2·L3, 네스티드 오케스트레이션, BLOCKED를 풀지 않았고 C0~C3이 53행 정의 전에 17·18행에서 쓰인다.","consequence":"독자가 C1~C3이 무엇인지 모르고 조건을 읽는다."},
+{"where":"61, 62, 68, 77, 80, 90, 93, 103행","type":"style","principle":"TERM-EXPLAIN","claim":"RC, 주소의 #p 이동, superseded, 팬아웃, g = 0.63, spec 잠금, plan 리뷰 마커의 풀이가 없다.","consequence":"C2·C3 구현자가 요구를 이 문서만으로 알 수 없다."},
+{"where":"「실행 순서」 92·94행","type":"constraint","principle":"CHECKABLE","claim":"4단계와 6단계에 확인 방법이 없고 5단계의 '점수가 높다'는 약한 기준이다.","consequence":"끝났는지 판정할 기준이 없다."},
+{"where":"「실행 순서」 90·93행","type":"format","principle":"FULL-SENTENCE, ONE-ENDING","claim":"2단계는 화살표로 문장을 대신하고 5단계는 명사구 나열이며 다른 단계와 말끝이 다르다.","consequence":"각 구간의 담당자가 지워졌다."},
+{"where":"「측정 체계」 표 머리(29행)","type":"style","principle":"LABEL-NOUN, ONE-ENDING","claim":"'무엇을 보는가'가 의문문이다.","consequence":"표 머리 하나만 의문문이다."},
+{"where":"18, 35, 49, 68, 111행","type":"style","principle":"NO-MID-MOD","claim":"관형절이 문장 중간에 끼어 있다.","consequence":"35행은 어느 요약이 주어인지 다시 읽어야 한다."},
+{"where":"32·33, 64행","type":"style","principle":"NO-STACK-MOD","claim":"명사 앞 수식어가 둘 이상 겹친다.","consequence":"체크리스트 항목의 상위 기준이 구문에서 드러나지 않는다."},
+{"where":"「완료 기준」 첫 문장(39행)","type":"style","principle":"COMMA-CUT","claim":"연결어미 '-고' 뒤 쉼표가 두 번 온다.","consequence":"결론 문장이 조건 셋을 쉼표 둘로 잇는다."},
+{"where":"11, 70, 79·80, 103행","type":"format","principle":"BULLET-SCOPE, ONE-IDEA","claim":"불릿 한 항목이 여러 문장으로 길고 서로 다른 생각이 섞인다.","consequence":"함정 주입 때 어느 제약이 어느 컴포넌트에 해당하는지 가를 수 없다."}],
+"principles_applied":["DOC-TYPE","TITLE-LAYERS","TITLE-CLAIM","LABEL-NOUN","NO-MID-MOD","NO-STACK-MOD","COMMA-CUT","ANTI-LIMIT","WRITTEN-ONLY","FULL-SENTENCE","ONE-ENDING","BOTTOM-LINE","BULLET-SCOPE","ONE-IDEA","TERM-EXPLAIN","TERM-ONE","NO-ANALOGY","COUNT-EARNS","NAME-ITEMS","CHECKABLE","YAGNI"],
+"notes":"TITLE-LAYERS 위반 없음. 13행 근거 파일이 세션 스크래치에 있어 사라질 수 있음(consistency·grounding 몫). 57행 표 머리 '컴포넌트'에 'L1 사전 정리' 행이 있어 이름 드리프트 의심. 21행 '(설치 완료)'는 상태 표기."}

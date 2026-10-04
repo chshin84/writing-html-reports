@@ -1,0 +1,13 @@
+{"lens":"lens-grounding","target":"docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md","issues":[
+{"where":"목적과 범위 > 사용자 지적과 실측","type":"mismatch","claim":"원문은 28단계 8.96초라 적었으나 실측 기준선 파일은 8.7초다. 8.96은 계산값으로 보인다.","consequence":"실측 수치가 실측 파일과 다르다."},
+{"where":"목적과 범위 > 사용자 지적과 실측","type":"unsupported","claim":"RC.check가 04-rules를 통과시킨다는 단정의 출처가 주입 파일에 없다.","consequence":"측정 체계 핵심 근거가 출처 없는 단정에 기댄다."},
+{"where":"위험 > 비용","type":"unsupported","claim":"'약 40k 토큰 실측'의 출처가 주입 파일에 없다.","consequence":"비용 크기를 출처 없는 수치로 말한다."},
+{"where":"L1 사전 정리 > check.py 분할","type":"contradiction","claim":"집계기만 남기면 tests/test_check.py의 check.* 직접 참조 46회(script_violations 19, anim_violations 7, page_scores 5, ANIM_TYPES 등)가 깨진다. 재수출 여부·시험 수정 여부를 정하지 않았고 tests/test_check.py는 소유 표에 없다.","consequence":"'같은 개수로 통과' 확인이 성립하지 않는다."},
+{"where":"L1 사전 정리 > check.py 분할, 인터페이스 > check 모듈","type":"omission","claim":"banned_violations와 preservation이 어느 모듈에도 배정되지 않았고, main()의 원본 대조 분기(원본 위반을 참고로 돌림, 점수 위반 제거, 유사도 출력)는 RULES 계약 형태가 아니다.","consequence":"check.py 421-444행이 배정과 계약 밖에 있다."},
+{"where":"L1 사전 정리 > check.py 분할","type":"mismatch","claim":"파일당 애니메이션 3개 상한은 별 상한과 함께 star_violations 한 함수에 있어 anim(C1)·content(C3) 배정이 겹친다.","consequence":"함수를 쪼개야 하지만 원문에 없다."},
+{"where":"L1 사전 정리 > SKILL.md 분할","type":"omission","claim":"보고서-규격.md 32행과 check.py 280행 주석이 'SKILL.md 애니메이션 절'을 가리키는데 갱신 대상이 아니다. 보고서-규격.md는 C2 소유다.","consequence":"분할 직후 없어진 절을 가리킨다."},
+{"where":"컴포넌트와 소유 파일 > 표 아래, 실행 순서 > 통합","type":"omission","claim":"template.html·template-paged.html에는 build.py가 채운 report-charts.js 전체 사본(관리 블록)이 있어 C1 변경 뒤 낡는데, 재빌드가 통합 단계에 없다. 애니메이션 견본 블록은 template.html 747-787행에만 있다.","consequence":"템플릿 엔진 사본이 낡는다."},
+{"where":"컴포넌트와 소유 파일 > C3","type":"omission","claim":"examples/**는 없는 경로인데 새로 만든다는 사실과 내용, 기존 견본(template·tests/sample-*)과의 관계를 정하지 않았다.","consequence":"C3가 무엇을 만들지 모호하다."},
+{"where":"인터페이스 > RC 호출 호환","type":"omission","claim":"공개 함수 RC.focus가 호환 목록에서 빠졌다.","consequence":"RC.focus 인자가 바뀌어도 계약 위반이 아니다."}],
+"principles_applied":["NO-ASSUME","STATE-ASSUME","CHECKABLE","EDIT-DISCIPLINE","FOCUSED","NO-FLEET","WRITTEN-ONLY"],
+"notes":"맞는 주장: report-charts.js 356-372, 430, 388, 계측 지점 전부, 차트 기본값 52·55행, holdFor 4초 218행, SKILL.md 애니메이션 절 131-217행, ListSync 267행, Playwright 1.63.0, 렌즈 수치. tests/test_check.py와 tests/test_build.py는 소유 표에 없다."}
