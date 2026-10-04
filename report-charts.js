@@ -496,20 +496,54 @@
     for (var k = 0; k < obs.pts.length; k++) { var p = obs.pts[k]; if (p.x >= l && p.x <= r && p.y >= t && p.y <= b) return false; }
     return true;
   }
-  function placeUnit(a, nh, peepW, obs, vb) { // 상자 묶음(상자 폭 220, 높이 nh, 스틱맨 칸 폭 peepW)의 위치를 오른쪽·왼쪽·아래·위 순서로 찾는다. 표시 범위 vb 안에서만 찾는다
-    var w = NOTE_W + peepW, h = Math.max(nh, peepW ? PEEP : 0);
-    function sweep(lo, hi, mid) { var v = [mid]; for (var d = 6; mid - d >= lo || mid + d <= hi; d += 6) { if (mid + d <= hi) v.push(mid + d); if (mid - d >= lo) v.push(mid - d); } return v; }
-    function at(side, ux, uy, nx) { return { side: side, u: { l: ux, t: uy, r: ux + w, b: uy + h }, note: { x: nx, y: uy }, peep: { x: nx === ux ? ux + NOTE_W + 4 : ux, y: uy } }; }
-    var ys = sweep(a.t - h + 10, a.b - 10, (a.t + a.b - h) / 2), xs = sweep(a.l - NOTE_W + 10, a.r - 10, (a.l + a.r - NOTE_W) / 2);
-    var sides = [
-      ys.map(function (y) { return at(0, a.r + GAP, y, a.r + GAP); }),                   // 오른쪽: 노드 | 상자 | 스틱맨
-      ys.map(function (y) { return at(1, a.l - GAP - w, y, a.l - GAP - NOTE_W); }),      // 왼쪽: 스틱맨 | 상자 | 노드
-      xs.map(function (x) { return at(2, x, a.b + GAP, x); }),                          // 아래: 상자 | 스틱맨
-      xs.map(function (x) { return at(3, x, a.t - GAP - h, x); })                       // 위
-    ];
-    for (var s = 0; s < 4; s++) for (var i = 0; i < sides[s].length; i++) {
-      var c = sides[s][i];
-      if (c.u.l >= vb.l && c.u.t >= vb.t && c.u.r <= vb.r && c.u.b <= vb.b && freeAt(c.u, obs)) return c;
+  function placeUnit(a, nh, peepW, obs, vb, lim) { // 자동 상자(폭 220, 높이 nh)와 스틱맨 칸(peepW가 0이 아니면 56×56)의 위치를 찾는다
+    // 쪽은 오른쪽·왼쪽·아래·위 순서로 보고, 한 쪽 안에서는 노드와의 상자 간 거리, 그다음 옆으로 비킨 정도가 작은 위치를 먼저 본다.
+    // 상자는 표시 범위 vb 안, 노드 경계에서 lim(무대 단위) 안에만 둔다. 대각선 위치도 상자 간 거리로 잰다
+    lim = lim || 40;
+    var h = nh, P = peepW ? PEEP : 0, R = lim + NOTE_W + P + h + 8, seenPt = {};
+    var near = { // 탐색 범위 밖 장애물과 겹친 간선 점을 미리 덜어 낸다
+      boxes: obs.boxes.filter(function (o) { return o.r >= a.l - R && o.l <= a.r + R && o.b >= a.t - R && o.t <= a.b + R; }),
+      pts: obs.pts.filter(function (q) {
+        if (q.x < a.l - R || q.x > a.r + R || q.y < a.t - R || q.y > a.b + R) return false;
+        var key = Math.round(q.x * 2) + ',' + Math.round(q.y * 2);
+        if (seenPt[key]) return false;
+        seenPt[key] = 1; return true;
+      })
+    };
+    function rect(x, y, w, hh) { return { l: x, t: y, r: x + w, b: y + hh }; }
+    function inVb(u) { return u.l >= vb.l && u.t >= vb.t && u.r <= vb.r && u.b <= vb.b; }
+    function ok(u) { return inVb(u) && freeAt(u, near); }
+    function dist(n) { var dx = Math.max(0, n.l - a.r, a.l - n.r), dy = Math.max(0, n.t - a.b, a.t - n.b); return Math.sqrt(dx * dx + dy * dy); }
+    function sweep(lo, hi, mid) { var v = [mid]; for (var d = 4; mid - d >= lo || mid + d <= hi; d += 4) { if (mid + d <= hi) v.push(mid + d); if (mid - d >= lo) v.push(mid - d); } return v; }
+    function peeps(side, n) { // 스틱맨 칸 후보: 노드에서 먼 쪽 옆, 또는 노드에서 먼 쪽 위·아래
+      var far = side === 1 ? n.l - 4 - P : n.r + 4, end = side === 1 ? n.l : n.r - P, out = [rect(far, n.t, P, P)];
+      if (side !== 3) out.push(rect(end, n.b + 4, P, P));
+      if (side !== 2) out.push(rect(end, n.t - 4 - P, P, P));
+      return out;
+    }
+    var cy = (a.t + a.b - h) / 2, cx = (a.l + a.r - NOTE_W) / 2;
+    for (var side = 0; side < 4; side++) {
+      var cands = [];
+      for (var g = GAP; g <= lim + 1e-9; g += 4) {
+        var room = Math.sqrt(Math.max(0, lim * lim - g * g)); // 이 간격에서 옆으로 비킬 수 있는 거리
+        if (side < 2) {
+          var x = side === 0 ? a.r + g : a.l - g - NOTE_W;
+          sweep(a.t - h - room, a.b + room, cy).forEach(function (y) { cands.push({ n: rect(x, y, NOTE_W, h), off: Math.abs(y - cy) }); });
+        } else {
+          var y0 = side === 2 ? a.b + g : a.t - g - h;
+          sweep(a.l - NOTE_W - room, a.r + room, cx).forEach(function (x2) { cands.push({ n: rect(x2, y0, NOTE_W, h), off: Math.abs(x2 - cx) }); });
+        }
+      }
+      cands.forEach(function (c) { c.d = dist(c.n); });
+      cands = cands.filter(function (c) { return c.d <= lim + 1e-9; }).sort(function (p, q) { return p.d - q.d || p.off - q.off; });
+      for (var i = 0; i < cands.length; i++) {
+        var n = cands[i].n;
+        if (!ok(n)) continue;
+        var pk = P ? peeps(side, n).filter(ok)[0] : rect(n.r + 4, n.t, 0, 0);
+        if (!pk) continue;
+        return { side: side, u: { l: Math.min(n.l, pk.l), t: Math.min(n.t, pk.t), r: Math.max(n.r, pk.r), b: Math.max(n.b, pk.b) },
+                 note: { x: n.l, y: n.t }, peep: { x: pk.l, y: pk.t } };
+      }
     }
     return null;
   }
@@ -598,9 +632,10 @@
               for (var ot = start; ot < animEnd - 1e-9; ot += 0.25) ots.push(ot);
               ots.push(animEnd);
               ots.forEach(function (t) { tl.seek(t, false); obstacles(stage, fig, obs); });
-              var a = userBox(stage.getScreenCTM().inverse(), it.active), nh = noteHeight(box, s.text);
+              var cm = stage.getScreenCTM(), a = userBox(cm.inverse(), it.active), nh = noteHeight(box, s.text);
+              var lim = Math.min(40, 44 / (Math.sqrt(Math.abs(cm.a * cm.d - cm.b * cm.c)) || 1)); // 화면 거리 44px(판정 48px) 안에 들도록 무대 단위로 바꾼다
               var peepW = usePeep && it.diamond ? PEEP + 4 : 0;
-              it.note = placeUnit(a, nh, peepW, obs, vb);
+              it.note = placeUnit(a, nh, peepW, obs, vb, lim);
               showNote(tl, box, start, it.note && it.note.note, s.text, nh);
             } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
             rewindTo(pre);

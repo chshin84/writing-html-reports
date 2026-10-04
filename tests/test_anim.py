@@ -387,6 +387,21 @@ class EngineNote(EngineCase):
           return [f.querySelector('.rc-note').getBoundingClientRect().left, document.getElementById('a').getBoundingClientRect().right]; }""")
         self.assertGreater(r[0], r[1])
 
+    def test_wider_gap_when_gap_8_blocked(self):  # 노드 바로 옆이 막히면 48px 안의 더 먼 간격에 둔다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 600 300" width="600" height="300">'
+                '<rect id="a" x="40" y="120" width="100" height="40" fill="none" stroke="currentColor"/>'
+                '<rect id="blk" x="148" y="100" width="4" height="80" fill="none" stroke="currentColor"/></svg></figure>')
+        p = self.open(body, "RC.demo(document.getElementById('d1'),[{name:'가',text:'막대 너머에 둡니다.',play:function(tl,$){$('a');}}]);")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          const n = f.querySelector('.rc-note'), nb = n.getBoundingClientRect(), b = document.getElementById('blk').getBoundingClientRect(),
+                a = document.getElementById('a').getBoundingClientRect();
+          return {op: +getComputedStyle(n).opacity, clear: nb.left - b.right, gap: nb.left - a.right}; }""")
+        self.assertEqual(r["op"], 1)
+        self.assertGreaterEqual(r["clear"], 2)
+        self.assertTrue(8 < r["gap"] <= 44, r)
+        for s in self.judged(p):
+            self.assertTrue(s["near"], s)
+
     def test_author_note_means_no_auto_note(self):
         body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
                 '<rect id="a" x="20" y="120" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
