@@ -71,7 +71,8 @@ def shoot(path, out, mode=None):
                     name = f"{d['id']}-s{i + 1}.png"
                     page.screenshot(path=str(out / name))
                     index.append({"file": name, "kind": "step", "page": d["page"], "width": 1280, "figure": d["id"],
-                                  "step": i + 1, "seconds": round(e - (ends[i - 1] if i else 0), 2)})
+                                  "step": i + 1, "seconds": round(e - (ends[i - 1] if i else 0), 2),
+                                  "mode": page.evaluate("id => document.getElementById(id).dataset.rcMode || null", d["id"])})
             finally:
                 page.close()
     (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
