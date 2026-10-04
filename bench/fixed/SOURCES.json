@@ -1,0 +1,29 @@
+[
+ {
+  "file": "04-rules.html",
+  "source": "D:/projects/Structure/lens-groups-report/04-rules.html",
+  "sha256": "de34818c4021f26ffb8f93bc945924f0fa7854cfd411c984790a2f4e2eb8c33a"
+ },
+ {
+  "file": "03-groups.html",
+  "source": "D:/projects/Structure/lens-groups-report/03-groups.html",
+  "sha256": "940440438772e30d311d07d620d5211f385831ec48901f0558814fa645e26900"
+ },
+ {
+  "file": "session-report.html",
+  "source": "D:/projects/Structure/lens-groups-report/session-report.html",
+  "sha256": "bd6b78978b44808a277c701c16ff7b59b9deebba9035565891357156e6450237"
+ },
+ {
+  "file": "sample-anim.html",
+  "source": "tests/sample-anim.html",
+  "sha256": "1185c6a9e5c5ba443d9dc6e38b8d6ff6eec6b7bd93b06507ee3ada71bc1abc9b",
+  "commit": "512d308"
+ },
+ {
+  "file": "sample-viz.html",
+  "source": "tests/sample-viz.html",
+  "sha256": "50f2503a8d68bb32fb1304e6f1981fb2bf192696a46bc6eab4182f5812e85d01",
+  "commit": "512d308"
+ }
+]
