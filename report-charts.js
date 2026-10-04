@@ -326,7 +326,7 @@
   function chars(s) { return String(s).replace(/\d[\d,.]*/g, '#').replace(/\s/g, '').length; }
   function holdFor(n) { return 1 + n / 8; } // 글이 다 나온 뒤 머무는 시간의 하한(초). 상한은 이 값 + 3초다
   var HOLD_PAD = 0.3; // 측정 간격(0.05초)과 반올림을 흡수하는 여유
-  var DEFAULT_MODE = 'step'; // 주소에 ?rc-mode가 없을 때의 재생 방식. L1이 실측 뒤 바꿀 수 있다
+  var DEFAULT_MODE = 'step'; // 주소에 ?rc-mode가 없을 때의 재생 방식. 2026-10-04 실측 동률 뒤 사용자가 단계 넘김으로 정했다
   var STEP_MIN = 0.43, STEP_MAX = 2.43; // 단계 넘김의 단계 연출 길이. 사이 띄움 0.02초를 더하면 0.45~2.45초다
   function playMode() { var m = /[?&]rc-mode=(auto|step)(?:&|$)/.exec(location.search); return m ? m[1] : DEFAULT_MODE; }
   var demoStep = null; // RC.demo가 단계를 만드는 동안 $로 마지막에 조회한 요소(last)와 mark·spot이 받은 요소(mark)를 적는다
@@ -478,25 +478,42 @@
       return t.vars.stroke != null || t.vars.strokeWidth != null || a.stroke != null || a['stroke-width'] != null;
     });
   }
-  function closedShape(e) { return !!(e && /^(rect|polygon|circle|ellipse)$/i.test(e.tagName) && !e.closest('.rc-note, .rc-icon, .rc-focus')); }
   function mmdShape(e) { return !!(e && e.closest && e.closest('pre.mermaid svg g.node')); }
+  function closedShape(e) { // 닫힌 도형: rect·polygon·circle·ellipse와, Mermaid 노드이거나 채움이 있는 path
+    if (!e || !e.tagName || e.closest('.rc-note, .rc-icon, .rc-focus')) return false;
+    var tag = e.tagName.toLowerCase();
+    return /^(rect|polygon|circle|ellipse)$/.test(tag) || (tag === 'path' && (mmdShape(e) || alpha(getComputedStyle(e).fill) > 0));
+  }
   function ownFill(e) { var f = e.style.fill || e.getAttribute('fill'); return !!f && f !== 'none'; } // 작성자가 인라인 스타일·속성으로 준 채움
+  function touchesFill(sub, e) { // 이번 단계의 트윈(spot·unspot 표시 포함)이 요소 e의 채움을 바꾸는지
+    return sub.getChildren(true, true, false).some(function (t) {
+      if (t.targets().indexOf(e) < 0) return false;
+      var a = t.vars.attr || {};
+      return t.vars.fill != null || t.vars.fillOpacity != null || a.fill != null || a['fill-opacity'] != null;
+    });
+  }
   function styleNodes(tl, sub, cur, prev, at, memo) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
     var A = tok('accent'), K = ['stroke', 'strokeWidth', 'fill', 'fillOpacity'];
     if (closedShape(prev) && prev !== cur && !touchesStroke(sub, prev)) { // 이번 단계가 직전 노드 테두리를 바꾸면(unspot 포함) 그 값을 둔다
-      var s = authorSet(sub, prev, K) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
+      var s = authorSet(sub, prev, ['stroke', 'strokeWidth']) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
       if (s.stroke == null && !memo.author.has(prev)) v.stroke = tok('accent-2'); // 작성자가 tl.to로 색을 준 적이 있으면 그 색을 둔다
       if (s.strokeWidth == null) v.strokeWidth = 1.5;
-      if (s.fill == null && s.fillOpacity == null && memo.fill.has(prev)) { v.fill = memo.fill.get(prev).fill; v.fillOpacity = memo.fill.get(prev).op; }
       tl.to(prev, v, at);
     }
+    memo.filled.forEach(function (e) { // 엔진 채움은 노드가 현재 노드에서 벗어나는 즉시 지운다. 테두리를 바꾸는 시나리오 초기화(unmark) 단계도 같다
+      if (e === cur) return;
+      memo.filled.delete(e);
+      if (!touchesFill(sub, e)) tl.to(e, { fill: memo.fill.get(e).fill, fillOpacity: memo.fill.get(e).op, duration: 0.3 }, at); // 이번 단계가 채움을 직접 바꾸면 그 값을 둔다
+    });
     if (closedShape(cur)) {
       var c = authorSet(sub, cur, K) || {}, w = { duration: 0.3, autoRound: false };
       if (c.stroke == null && !memo.author.has(cur)) w.stroke = A;
       if (c.strokeWidth == null) w.strokeWidth = 2;
-      if (c.fill == null && c.fillOpacity == null && !ownFill(cur)) {
+      if (!memo.own.has(cur)) memo.own.set(cur, ownFill(cur)); // 처음 볼 때 판정한다. 엔진 채움 트윈이 남긴 인라인 채움을 작성자 채움으로 보지 않는다
+      if (c.fill != null || c.fillOpacity != null) memo.filled.delete(cur); // 작성자가 채움을 주면 엔진 채움을 되돌리지 않는다
+      else if (!memo.own.get(cur)) {
         if (!memo.fill.has(cur)) { var cs = getComputedStyle(cur); memo.fill.set(cur, { fill: cs.fill, op: +cs.fillOpacity }); }
-        w.fill = A; w.fillOpacity = 0.08;
+        w.fill = A; w.fillOpacity = 0.08; memo.filled.add(cur);
       }
       tl.to(cur, w, at);
     }
@@ -521,12 +538,13 @@
   }
   function autoNote(svg) { // 자동 설명 상자 하나를 만들어 단계마다 글과 위치만 바꾼다
     var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
+    var lead = sv('line', { 'class': 'rc-lead', 'vector-effect': 'non-scaling-stroke', style: 'display:none;stroke:' + tok('ink-3') + ';stroke-width:1' }, g); // 멀리 둔 상자와 현재 노드를 잇는 보조선. 상자 뒤에 그린다
     var rect = sv('rect', { x: 0, y: 0, width: NOTE_W, height: 30, style: 'fill:' + tok('paper') + ';stroke:' + tok('hair') }, g);
     var fo = sv('foreignObject', { x: 0, y: 0, width: NOTE_W, height: 30 }, g);
     var div = document.createElement('div'), t = document.createElement('span');
     div.style.cssText = 'padding:6px 8px;font:12.5px/1.45 var(--sans);color:var(--ink);word-break:keep-all';
     div.appendChild(t); fo.appendChild(div);
-    return { g: g, rect: rect, fo: fo, div: div, t: t, cur: null };
+    return { g: g, lead: lead, rect: rect, fo: fo, div: div, t: t, cur: null };
   }
   function noteHeight(box, text) {
     box.t.textContent = text;
@@ -592,8 +610,10 @@
           sweep(a.l - NOTE_W - room, a.r + room, cx).forEach(function (x2) { cands.push({ side: side, n: urect(x2, y0, NOTE_W, h), off: Math.abs(x2 - cx) }); });
         }
       }
-      cands.forEach(function (c) { c.d = dist(c.n); });
-      out = out.concat(cands.filter(function (c) { return c.d <= lim + 1e-9; }).sort(function (p, q) { return p.d - q.d || p.off - q.off; }));
+      cands.forEach(function (c) { c.d = dist(c.n); c.ov = Math.min(c.n.r, a.r) - Math.max(c.n.l, a.l); c.apart = c.n.t >= a.b || c.n.b <= a.t; });
+      // 노드 아래나 위에 놓이는 상자(세로 범위가 노드와 겹치지 않는 상자)는 가로 범위가 노드와 겹쳐야 하고, 아래·위 쪽에서는 겹침이 큰 위치를 먼저 본다
+      out = out.concat(cands.filter(function (c) { return c.d <= lim + 1e-9 && (!c.apart || c.ov > 0); })
+        .sort(function (p, q) { return (side >= 2 ? Math.round(q.ov) - Math.round(p.ov) : 0) || p.d - q.d || p.off - q.off; }));
     }
     return out;
   }
@@ -619,6 +639,54 @@
                note: { x: n.l, y: n.t }, peep: { x: pk.l, y: pk.t } };
     }
     return null;
+  }
+  function leadOf(a, n) { // 노드 a와 상자 n의 가장 가까운 두 점을 잇는 선분
+    function span(l1, r1, l2, r2) {
+      var lo = Math.max(l1, l2), hi = Math.min(r1, r2);
+      return hi >= lo ? [(lo + hi) / 2, (lo + hi) / 2] : r1 < l2 ? [r1, l2] : [l1, r2];
+    }
+    var sx = span(a.l, a.r, n.l, n.r), sy = span(a.t, a.b, n.t, n.b);
+    return { x1: sx[0], y1: sy[0], x2: sx[1], y2: sy[1] };
+  }
+  function hugLead(L, a, e, stage) { // rect가 아닌 노드(마름모 등)는 경계 상자 대신 실제 윤곽에서 선을 시작한다. 노드 중심에서 상자 쪽 끝으로 가며 처음 도형 밖으로 나오는 점이다
+    if (!e.isPointInFill || /^rect$/i.test(e.tagName)) return L;
+    var m = e.getScreenCTM().inverse().multiply(stage.getScreenCTM()), cx = (a.l + a.r) / 2, cy = (a.t + a.b) / 2;
+    for (var k = 0; k <= 200; k++) {
+      var x = cx + (L.x2 - cx) * k / 200, y = cy + (L.y2 - cy) * k / 200, q = new DOMPoint(x, y).matrixTransform(m);
+      if (k && !e.isPointInFill(new DOMPoint(q.x, q.y))) return { x1: x, y1: y, x2: L.x2, y2: L.y2 };
+    }
+    return L;
+  }
+  function crossings(L, obs) { // 선분이 지나는 무대 요소 상자와 간선 점의 수. 양 끝 2 단위는 뺀다
+    var len = Math.hypot(L.x2 - L.x1, L.y2 - L.y1), hit = new Set(), n = 0;
+    for (var s = 2; s <= len - 2; s += 2) {
+      var x = L.x1 + (L.x2 - L.x1) * s / len, y = L.y1 + (L.y2 - L.y1) * s / len;
+      obs.boxes.forEach(function (o, i) { if (x >= o.l && x <= o.r && y >= o.t && y <= o.b) hit.add(i); });
+      obs.pts.forEach(function (q) { if (Math.abs(q.x - x) <= 2 && Math.abs(q.y - y) <= 2) n++; });
+    }
+    return hit.size + n;
+  }
+  function farPlace(a, nh, obs, vb) { // 48px 안에 자리가 없는 단계: 표시 범위 안에서 무대 요소와 겹치지 않는 가장 가까운 자리를 거리 제한 없이 찾는다
+    // 가장 가까운 자리에서 24 단위 안의 후보 가운데 보조선이 무대 요소를 가장 적게 지나는 자리를 고른다
+    var all = nearObs(a, obs, Infinity), cands = [], picks = [], d0 = null;
+    function xs(lo, hi) { var v = []; for (var k = lo; k <= hi + 1e-9; k += 4) v.push(k); if (hi > lo && v[v.length - 1] < hi) v.push(hi); return v; }
+    xs(vb.l, vb.r - NOTE_W).forEach(function (x) {
+      xs(vb.t, vb.b - nh).forEach(function (y) {
+        var n = urect(x, y, NOTE_W, nh), dx = Math.max(0, n.l - a.r, a.l - n.r), dy = Math.max(0, n.t - a.b, a.t - n.b);
+        n.d = Math.sqrt(dx * dx + dy * dy); cands.push(n);
+      });
+    });
+    cands.sort(function (p, q) { return p.d - q.d; });
+    for (var i = 0; i < cands.length && picks.length < 24; i++) {
+      if (d0 !== null && cands[i].d > d0 + 24) break;
+      if (!freeAt(cands[i], all)) continue;
+      if (d0 === null) d0 = cands[i].d;
+      picks.push({ n: cands[i], L: leadOf(a, cands[i]) });
+    }
+    if (!picks.length) return null;
+    picks.forEach(function (c) { c.x = crossings(c.L, all); });
+    picks.sort(function (p, q) { return p.x - q.x || p.n.d - q.n.d; });
+    return { x: picks[0].n.l, y: picks[0].n.t, lead: picks[0].L };
   }
   function roomNeeds(a, nh, obs, vb, lim) { // 표시 범위를 빼고 보면 상자가 들어가는 후보마다 vb를 네 쪽으로 넓혀야 하는 양을 구해, 다른 후보보다 모든 쪽에서 크지 않은 것만 돌려준다
     var near = nearObs(a, obs, lim + NOTE_W + nh + 8), out = [];
@@ -672,6 +740,9 @@
     box.g.style.visibility = c.p.hide ? 'hidden' : ''; // 넓히기에 실패한 대기 단계
     gsap.set(box.g, { x: c.p.x, y: c.p.y });
     box.rect.setAttribute('height', c.h); box.fo.setAttribute('height', c.h);
+    var L = c.p.lead;
+    box.lead.style.display = L ? '' : 'none';
+    if (L) [['x1', L.x1 - c.p.x], ['y1', L.y1 - c.p.y], ['x2', L.x2 - c.p.x], ['y2', L.y2 - c.p.y]].forEach(function (k) { box.lead.setAttribute(k[0], k[1]); });
     box.t.textContent = c.text;
   }
   function showNote(tl, box, at, p, text, h) { // 단계 시작에 자동 상자의 글과 위치를 바꾼다. p가 null이면 숨긴다
@@ -737,12 +808,12 @@
         }
         return null;
       };
-      var rec = { last: null, mark: null };
-      var $ = function (name) { var e = find(name); if (e && demoStep === rec) rec.last = e; return e; };
+      var rec = { last: null, mark: null, shape: null };
+      var $ = function (name) { var e = find(name); if (e && demoStep === rec) { rec.last = e; if (closedShape(e)) rec.shape = e; } return e; };
       var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
       var capPrev = null;
-      var memo = { author: new Set(), fill: new Map() }, prevActive = null;
+      var memo = { author: new Set(), fill: new Map(), own: new Map(), filled: new Set() }, prevActive = null;
       var stage = fig.querySelector('svg'), restore = null;
       try { // 펼친 figure는 빌드가 어떻게 끝나도 되돌린다
       restore = reveal(fig);
@@ -750,19 +821,19 @@
       var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
-      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], widened = false;
+      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], fars = [], widened = false;
       tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 모든 설정(작성자 tl.set, 자동 상자·스틱맨)을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
           var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
           stepLog = { beats: [], fin: new Map() };
-          rec.last = rec.mark = null; demoStep = rec;
+          rec.last = rec.mark = rec.shape = null; demoStep = rec;
           try { s.play(sub, $); } finally { demoStep = null; }
           var L = stepLog; stepLog = null;
           textRules(L, s, fig);
           tl.add(sub, start);
           if (!auto && sub.duration() > STEP_MAX) sub.timeScale(sub.duration() / STEP_MAX);
-          var it = { start: start, active: rec.mark || rec.last, noteOn: false, n: 0, done: start, pause: 0.3,
+          var it = { start: start, active: rec.mark || rec.shape || rec.last, noteOn: false, n: 0, done: start, pause: 0.3,
                      color: undefined, diamond: false, note: null, think: null };
           var set = authorSet(sub, it.active, ['stroke']);
           it.color = set ? set.stroke : undefined;
@@ -792,6 +863,7 @@
               if (!it.note) { // 표시 범위 안에 자리가 없다. viewBox를 넓혀 자리가 생기면 모든 단계를 본 뒤 한 번에 넓히고 위치를 정한다
                 var need = roomNeeds(a, nh, obs, vb, lim);
                 if (need.length) { it.note = { note: { x: vb.l, y: vb.t }, wait: { a: a, nh: nh, obs: obs, lim: lim, need: need } }; waits.push(it); }
+                else { it.note = { note: { x: vb.l, y: vb.t }, far: { a: a, nh: nh, obs: obs } }; fars.push(it); } // 넓혀도 48px 안에 자리가 없다. 넓히기를 마친 뒤 멀리 둔다
               }
               showNote(tl, box, start, it.note && it.note.note, s.text, nh);
             } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
@@ -828,21 +900,32 @@
       }
       if (waits.length) {
         try { // 자리 없는 단계 모두에 자리가 생기는 최소 양만큼 viewBox를 한 번 넓힌다. 넓힌 viewBox는 첫 장면부터 끝까지 그대로다
-          var keep = ['viewBox', 'width', 'height'].map(function (k) { return [k, stage.getAttribute(k)]; }).concat([['mw', stage.style.maxWidth]]);
+          var vb0 = vb, keep = ['viewBox', 'width', 'height'].map(function (k) { return [k, stage.getAttribute(k)]; }).concat([['mw', stage.style.maxWidth]]);
           vb = widenStage(stage, vb, widenFor(waits.map(function (w) { return w.note.wait.need; })));
           widened = true;
           waits.forEach(function (w) {
             var q = w.note.wait, got = placeUnit(q.a, q.nh, 0, q.obs, vb, q.lim);
             if (got) { w.note.note.x = got.note.x; w.note.note.y = got.note.y; }
+            else { w.note.far = { a: q.a, nh: q.nh, obs: q.obs }; fars.push(w); }
             delete w.note.wait;
           });
         } catch (err) { // 넓히기 전 크기로 되돌리고, 대기 단계는 상자를 숨기고 자막을 보인다
           console.error('RC.demo: viewBox 넓히기', err);
           if (keep) keep.forEach(function (k) { if (k[0] === 'mw') stage.style.maxWidth = k[1]; else if (k[1] == null) stage.removeAttribute(k[0]); else stage.setAttribute(k[0], k[1]); });
-          widened = false;
+          widened = false; vb = vb0;
           waits.forEach(function (w) { w.note.note.hide = true; w.noteOn = false; });
+          fars = fars.filter(function (w) { return waits.indexOf(w) < 0; });
         }
       }
+      fars.forEach(function (w) { // 멀리 둔 상자는 보조선으로 현재 노드와 잇는다. 그 자리도 없으면 상자를 숨기고 자막을 보인다
+        var q = w.note.far, got = null;
+        delete w.note.far;
+        try { got = farPlace(q.a, q.nh, q.obs, vb); } catch (err) { console.error('RC.demo: 멀리 둘 자리 계산', err); }
+        if (got) {
+          try { got.lead = hugLead(got.lead, q.a, w.active, stage); } catch (err) { console.error('RC.demo: 보조선 윤곽 계산', err); }
+          w.note.note.x = got.x; w.note.note.y = got.y; w.note.note.lead = got.lead;
+        } else { w.note.note.hide = true; w.noteOn = false; }
+      });
       } finally { if (restore) restore(); }
       if (widened) fitSvg(fig); // 넓혀 390 폭 글자가 11px보다 작아지면 스크롤 상자 규칙을 다시 적용한다
       rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
@@ -940,6 +1023,12 @@
     if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
     var op = function (e) { return +getComputedStyle(e).opacity; };
     var box = function (e) {
+      if (e.classList.contains('rc-note')) { // 설명 상자는 보조선을 빼고 본다
+        var bs = [].filter.call(e.children, function (c) { return !c.classList.contains('rc-lead'); }).map(function (c) { return c.getBoundingClientRect(); })
+          .filter(function (q) { return q.width || q.height; });
+        if (bs.length) return { l: Math.min.apply(null, bs.map(function (q) { return q.left; })), r: Math.max.apply(null, bs.map(function (q) { return q.right; })),
+                                t: Math.min.apply(null, bs.map(function (q) { return q.top; })), b: Math.max.apply(null, bs.map(function (q) { return q.bottom; })) };
+      }
       var r = e.getBoundingClientRect(), k = /^(path|line)$/.test(e.tagName) ? 1.5 : 0; // 선은 두께만큼 넓혀 본다
       return { l: r.left - k, r: r.right + k, t: r.top - k, b: r.bottom + k };
     };

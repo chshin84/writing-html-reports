@@ -376,6 +376,35 @@ class EngineActive(EngineCase):
           f.querySelectorAll('.demo-ctl button')[3].click(); return [mid, +getComputedStyle(a).opacity]; }""")
         self.assertEqual(r, [0.2, 1])
 
+    def test_engine_fill_only_on_current_node(self):  # 다시 현재 노드가 된 노드에도 채움을 넣고, 시나리오 초기화(unmark) 뒤 앞 노드의 채움을 남기지 않는다
+        nodes = "ABCDABC" + "ABDABC"
+        items = ",".join(
+            "{name:'시나리오 %s · 단계%d',text:'%s 노드입니다.',play:function(tl,$){%sRC.fx.mark(tl,$('%s'));}}"
+            % ("A" if i < 7 else "B", i, n, "RC.fx.unmark(tl,['A','B','C','D'].map($));" if i in (0, 7) else "", n)
+            for i, n in enumerate(nodes))
+        p = self.open(MMD, f"RC.demo(document.getElementById('d1'),[{items}]);")
+        r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl;
+          const shapes = [...f.querySelectorAll('g.node')].map(g => [g.id.replace(/.*flowchart-/, '').replace(/-\\d+$/, ''), g.querySelector('rect, polygon')]);
+          const st = k => { tl.seek(k, false); return shapes.filter(([n, e]) => Math.abs(+getComputedStyle(e).fillOpacity - 0.08) < 0.005).map(([n]) => n).join(''); };
+          const fwd = [...Array(13).keys()].map(i => st('e' + i)), back = [...Array(13).keys()].reverse().map(i => st('e' + i)).reverse();
+          [...f.querySelectorAll('.demo-scen button')].find(x => x.textContent === '시나리오 B').click();
+          f.querySelectorAll('.demo-ctl button')[1].click();  // 재생을 멈춘다
+          const scen = [st('e7'), st('e8')]; return {fwd, back, scen}; }""")
+        self.assertEqual(r["fwd"], list(nodes))
+        self.assertEqual(r["back"], list(nodes))
+        self.assertEqual(r["scen"], ["A", "B"])
+
+    def test_closed_shape_preferred_over_text(self):  # mark·spot이 없으면 그 단계에서 조회한 닫힌 도형 중 마지막 것이 글자보다 우선한다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="bar" x="20" y="80" width="40" height="100" style="fill:#888"/>'
+                '<text id="val" x="20" y="70">31</text><text id="lbl" x="200" y="70">설명</text></svg></figure>')
+        script = ("RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'막대가 자랍니다.',play:function(tl,$){tl.to($('bar'),{attr:{height:90},duration:0.3});$('val');}},"
+                  "{name:'나',text:'글자만 조회합니다.',play:function(tl,$){$('lbl');}}]);")
+        p = self.open(body, script)
+        self.assertEqual(self.active_at(p, 0), ["bar"])
+        self.assertEqual(self.active_at(p, 1), ["lbl"])
+
     def test_active_moves_at_step_end(self):  # data-rc-active는 단계 끝 시각에 옮긴다
         p = self.open(MMD, mmd_steps(FLOW))
         r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl;
@@ -445,9 +474,52 @@ class EngineNote(EngineCase):
         p = self.open(body, script)
         r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
           const n = f.querySelector('.rc-note');
-          return {note: n ? +getComputedStyle(n).opacity : 0, cap: getComputedStyle(f.querySelector('.demo-cap')).visibility}; }""")
-        self.assertEqual(r, {"note": 0, "cap": "visible"})
+          return {note: n && getComputedStyle(n).visibility !== 'hidden' ? +getComputedStyle(n).opacity : 0, cap: getComputedStyle(f.querySelector('.demo-cap')).visibility}; }""")
+        self.assertEqual(r, {"note": 0, "cap": "visible"})  # 멀리 둘 자리도 없으면 상자를 숨긴다(visibility)
         self.assertEqual(self.js(p, "() => document.querySelector('#d1 svg').getAttribute('viewBox')"), "0 0 810 450")  # 넓혀도 자리가 없으면 넓히지 않는다
+
+    def test_below_note_overlaps_node_horizontally(self):  # 아래·위 상자는 현재 노드와 가로 범위가 겹치고, 겹침이 가장 큰 위치에 둔다
+        body = MMD.replace("""flowchart TD
+  A[주문 접수] --> B{한도 검증}
+  B -->|예| C[체결]
+  B -->|아니오| D[거부]""", "flowchart LR\n  P[체결 확정] --> Q[대금 계산] --> R[결제]")
+        spec = [("가", "체결 내역을 확정합니다.", "P", None), ("나", "결제할 대금을 계산합니다.", "Q", None), ("다", "대금과 증권을 주고받습니다.", "R", None)]
+        p = self.open(body, mmd_steps(spec))
+        r = self.js(p, """() => { const f = document.getElementById('d1'), tl = f._rcTl, n = f.querySelector('svg .rc-note');
+          return [0, 1, 2].map(i => { tl.seek('e' + i, false); const a = f.querySelector('[data-rc-active]').getBoundingClientRect(), b = n.getBoundingClientRect();
+            return {apart: b.top >= a.bottom - 0.5 || b.bottom <= a.top + 0.5, ov: Math.min(a.right, b.right) - Math.max(a.left, b.left), w: Math.min(a.width, b.width)}; }); }""")
+        self.assertTrue(any(s["apart"] for s in r), r)  # 적어도 한 단계는 아래·위에 놓인다
+        for s in r:
+            if s["apart"]:
+                self.assertGreater(s["ov"], s["w"] - 1, r)  # 노드 폭이 상자보다 좁으면 노드 전체가 상자 가로 범위 안에 든다
+
+    def test_far_note_with_lead_line(self):  # 넓혀도 48px 안에 자리가 없으면 가장 가까운 빈 자리에 상자를 두고 보조선으로 잇는다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 800 400" width="800" height="400">'
+                '<rect id="wall" x="0" y="100" width="200" height="200" fill="none" stroke="currentColor"/>'
+                '<rect id="a" x="60" y="180" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        p = self.open(body, "RC.demo(document.getElementById('d1'),[{name:'가',text:'멀리 둡니다.',play:function(tl,$){$('a');}}]);")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          const n = f.querySelector('svg .rc-note'), box = n.querySelector('rect').getBoundingClientRect(), ln = n.querySelector('line.rc-lead'),
+                w = document.getElementById('wall').getBoundingClientRect(), a = document.getElementById('a').getBoundingClientRect();
+          const col = k => { const d = document.createElement('i'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--' + k); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+          const lb = ln && ln.getBoundingClientRect(), cs = ln && getComputedStyle(ln);
+          return {op: +getComputedStyle(n).opacity, cap: getComputedStyle(f.querySelector('.demo-cap')).visibility,
+                  clear: box.left - w.right, gap: box.left - a.right, vb: f.querySelector('svg').getAttribute('viewBox'),
+                  lead: ln ? {shown: cs.display !== 'none', stroke: cs.stroke, ink3: col('ink-3'), w: cs.strokeWidth,
+                              x0: Math.round(lb.left), x1: Math.round(lb.right), ar: Math.round(a.right), bl: Math.round(box.left)} : null}; }""")
+        self.assertEqual((r["op"], r["cap"], r["vb"]), (1, "hidden", "0 0 800 400"))
+        self.assertGreaterEqual(r["clear"], 2)
+        self.assertLess(r["gap"], 90)  # 벽 바로 너머의 가장 가까운 자리
+        L = r["lead"]
+        self.assertTrue(L and L["shown"], r)
+        self.assertEqual((L["stroke"], L["w"]), (L["ink3"], "1px"))
+        self.assertEqual((L["x0"], L["x1"]), (L["ar"], L["bl"]))  # 노드 경계에서 상자 경계까지 잇는다
+
+    def test_lead_hidden_on_near_steps(self):  # 48px 안에 둔 단계에서는 보조선을 숨긴다
+        p = self.open(SIDE, "RC.demo(document.getElementById('d1'),[{name:'가',text:'오른쪽에 둡니다.',play:function(tl,$){$('a');}}]);")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          const ln = f.querySelector('svg .rc-note line.rc-lead'); return !ln || getComputedStyle(ln).display === 'none'; }""")
+        self.assertTrue(r)
 
     def test_hidden_page_figure_gets_note_when_shown(self):
         body = f'<section class="page" id="p1"><p>첫 페이지</p></section><section class="page core" id="p2">{MMD_WIDE}</section>'
