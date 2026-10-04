@@ -60,11 +60,15 @@ def contrast_graphic_item(records):
 
 
 def cvd_item(tokens):
-    colors = {k: parse_color(v) for k, v in tokens.items() if parse_color(v)}
+    """정의하지 않은 토큰(빈 값)은 빼고, 값이 있는데 읽지 못한 토큰이 하나라도 있으면 실패로 하고 detail에 그 토큰을 적는다."""
+    given = {k: v for k, v in tokens.items() if v.strip()}
+    colors = {k: parse_color(v) for k, v in given.items() if parse_color(v)}
+    unreadable = {k: v for k, v in given.items() if k not in colors}
     pairs = cvd_pairs(colors)
     bad = [{"a": a, "b": b, "de": de} for a, b, de in pairs if de < 15]
-    return item("cvd", "layout", "fail" if bad or len(colors) < 2 else "pass",
-                {"tokens": tokens, "min_de": min((de for _, _, de in pairs), default=None)}, bad or None)
+    detail = dict({"unreadable": unreadable}, **({"pairs": bad} if bad else {})) if unreadable else bad or None
+    return item("cvd", "layout", "fail" if bad or unreadable or len(colors) < 2 else "pass",
+                {"tokens": tokens, "min_de": min((de for _, _, de in pairs), default=None)}, detail)
 
 
 def overflow_item(layouts):

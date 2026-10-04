@@ -55,6 +55,11 @@ class Pure(unittest.TestCase):
         self.assertEqual(layout.cvd_item({"s1": "#000000", "s2": "#ffffff"})["status"], "pass")
         self.assertEqual(layout.cvd_item({"s1": "#c83c3c", "s2": "#c83c3d"})["status"], "fail")
 
+    def test_cvd_unreadable_token_fails(self):  # F6: 읽지 못한 토큰은 조용히 빠지지 않고 실패로 드러난다
+        r = layout.cvd_item({"s1": "#000000", "s2": "#ffffff", "s3": "oklch(0.5 0.1 250)", "s4": ""})
+        self.assertEqual(r["status"], "fail")
+        self.assertEqual(r["detail"], {"unreadable": {"s3": "oklch(0.5 0.1 250)"}})
+
     def test_overflow_figure_table(self):
         lay = {"p1": {"width": 390, "scrollWidth": 420, "figures": [{"name": "svg", "box": [16, 0, 420, 10], "scroll": False}],
                       "cells": [{"w": 40, "text": "가"}, {"w": 75, "text": "나"}]}}
@@ -153,6 +158,32 @@ class Browser(unittest.TestCase):
                        f'<text x="10" y="50" font-size="16" style="fill:{color}">어두운 바탕 글자</text></svg></figure>')
         self.assertEqual(self.items(page("#3F4650"), {"contrast-text"})["contrast-text"]["status"], "fail")
         self.assertEqual(self.items(page("#FFFFFF"), {"contrast-text"})["contrast-text"]["status"], "pass")
+
+    def test_hidden_svg_icon_glyph_not_counted(self):  # F1: 투명도 0으로 숨긴 아이콘 글자는 측정하지 않는다
+        svg = ('<figure><svg viewBox="0 0 300 100" width="300" height="100"><text x="10" y="30" font-size="14">보이는 글자</text>'
+               '<g opacity="0" transform="scale(0.3)"><text x="10" y="60" font-size="11">₩</text></g></svg></figure>')
+        r = self.items(doc(svg), {"svg-font-390"})
+        self.assertEqual(r["svg-font-390"]["value"]["count"], 1)
+        self.assertEqual(r["svg-font-390"]["status"], "pass")
+
+    def test_modern_color_token_normalized(self):  # F6: oklch 토큰도 rgba로 정규화해 cvd에 넣는다
+        r = self.items(doc("<p>글</p>", css=":root{--s1: oklch(0.5 0.1 250)}"), {"cvd"})
+        self.assertTrue(r["cvd"]["value"]["tokens"]["s1"].startswith("rgba("), r["cvd"]["value"]["tokens"])
+
+    def test_color_mix_text_measured(self):  # F6: color-mix로 만든 글자색도 측정한다
+        r = self.items(doc('<p style="color:color-mix(in srgb, #000 80%, #fff)">섞은 색 글자</p>'), {"contrast-text"})
+        self.assertEqual(r["contrast-text"]["value"]["unmeasurable"], 0)
+        self.assertEqual(r["contrast-text"]["status"], "pass")
+
+    def test_smooth_scroll_disabled_by_probe(self):  # F7: 부드러운 스크롤 문서에서도 scrollTo가 즉시 이동한다
+        Path(self.tmp.name, "doc.html").write_text(doc('<div style="height:3000px">긴 글</div>', css="html{scroll-behavior:smooth}"),
+                                                  encoding="utf-8")
+        with harness.Session(self.tmp.name) as s:
+            page, _ = s.open("doc.html", 0)
+            try:
+                self.assertEqual(page.evaluate("() => { scrollTo(0, 500); return scrollY; }"), 500)
+            finally:
+                page.close()
 
     def test_translucent_text_blended_not_unmeasurable(self):
         r = self.items(doc('<p style="opacity:0.3">흐린 글자</p>'), {"contrast-text"})
@@ -308,6 +339,32 @@ class Motion(unittest.TestCase):
         self.assertTrue(r["step-anim"]["value"]["d"]["held"])
 
 
+class MotionPure(unittest.TestCase):
+    def test_reopen_not_ready_is_unmeasurable(self):  # F2: 다시 연 탭이 준비되지 않으면 그 figure의 항목은 측정 불가다
+        import motion
+        want = ["dwell", "step-anim", "step1", "note-near", "active-visible"]
+        rows = motion.figure_rows("d", "auto", want, lambda script, arg: None)
+        self.assertEqual(rows["step-anim"][1], "n/a")
+        for i in ("dwell", "step1", "note-near", "active-visible"):
+            self.assertEqual(rows[i], ("d", "unmeasurable", None, "다시 연 탭에서 data-rc-ready가 오지 않았다"), i)
+
+    def test_judge_step1_uses_timeline(self):  # F3: 벽시계가 0.3초여도 타임라인 거리가 0.1초면 실패다
+        import motion
+        r = {"initial": 0, "e0": 0.1, "reached": True, "seconds": 0.3, "timeScale": 1}
+        self.assertFalse(motion.judge_step1(r))
+        self.assertTrue(motion.judge_step1(dict(r, e0=0.5)))
+        self.assertFalse(motion.judge_step1(dict(r, e0=0.5, timeScale=4)))  # 4배속이면 실제 0.125초다
+
+    def test_judge_step_anim_uses_timeline(self):  # F3: 단계 길이는 타임라인 기준이고, '다음'을 못 누르면 실패다
+        import motion
+        ok = {"lengths": [1.0, 1.0], "deltas": [1.0, 1.0], "held": True, "steps": 2, "timeScale": 1}
+        self.assertTrue(motion.judge_step_anim(ok)[0])
+        self.assertFalse(motion.judge_step_anim(dict(ok, deltas=[3.5, 1.0]))[0])
+        self.assertFalse(motion.judge_step_anim(dict(ok, deltas=[0.1, 1.0]))[0])  # 벽시계 1.0초여도 타임라인 0.1초면 실패
+        stuck = motion.judge_step_anim({"lengths": [], "deltas": [], "held": None, "steps": 3, "timeScale": 1})
+        self.assertEqual(stuck, (False, "'다음'을 누를 수 없었다"))
+
+
 class Cli(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -346,6 +403,14 @@ class Cli(unittest.TestCase):
             self.assertIn(i["status"], ("pass", "fail", "unmeasurable", "n/a"))
         import gates
         self.assertEqual(r.returncode, gates.exit_code(recs))
+
+    def test_missing_file_is_error_record(self):  # F4: 문서 열기 전 예외도 측정기 오류(3)로 남긴다
+        r = self.run_gates(Path(self.tmp.name, "없는 문서.html"))
+        self.assertEqual(r.returncode, 3, r.stderr)
+        recs = json.loads(r.stdout)
+        self.assertEqual([(Path(x["file"]).name, x["env"], x["theme"], x["items"]) for x in recs],
+                         [("없는 문서.html", "error", "light", [])])
+        self.assertIn("FileNotFoundError", recs[0]["error"])
 
     def test_exit_code_rules(self):
         import gates

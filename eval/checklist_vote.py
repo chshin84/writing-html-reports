@@ -5,6 +5,8 @@
 다수결, 흔들림(세 결과가 모두 같지 않음), 적용 대상별 충족률을 낸다.
 보정 폴더는 문구를 고친 항목만 다시 측정한 결과다. 뒤에 준 폴더일수록 우선하며, 그 폴더에 있는 (견본, 항목)의 세 결과를 통째로 바꾼다.
 현재 checklist.md에 없는 항목(뺀 항목)은 묶지 않는다.
+입력 검사: 결과 폴더는 견본마다 실행 결과가 정확히 3개여야 하고, 보정 폴더는 항목마다 답이 3개여야 한다.
+답은 '예'·'아니오'·'해당 없음' 중 하나여야 한다. 어기면 견본·항목·값을 적은 ValueError로 멈춘다.
 다수결: 둘 이상 같은 답이 다수결이고, 셋이 모두 다르면 '아니오'다('해당 없음'이 끼어 있기 때문이다).
 충족률: 다수결이 '예'인 항목 수 ÷ 다수결이 '해당 없음'이 아닌 항목 수. 분모가 0이면 null.
 """
@@ -74,11 +76,25 @@ def tally(per_sample, items):
     return {"samples": samples, "coverage": coverage}
 
 
-def load_runs(folder):
+def load_runs(folder, partial=False):
+    """partial이 True면 보정 폴더로 보고, 견본별 실행 결과 수 대신 항목별 답 수가 3인지 검사한다."""
     runs = defaultdict(list)
     for p in sorted(Path(folder).glob("*-run*.json")):
         runs[re.sub(r"-run\d+$", "", p.stem)].append(json.loads(p.read_text(encoding="utf-8")))
-    return answers(dict(runs))
+    for sample, rs in runs.items():
+        if not partial and len(rs) != 3:
+            raise ValueError(f"{folder}: 견본 {sample}의 실행 결과가 {len(rs)}개다(3개여야 한다)")
+        for r in rs:
+            for a in r:
+                if a["answer"] not in (YES, NO, NA):
+                    raise ValueError(f"{folder}: 견본 {sample} 항목 {a['id']}의 답 {a['answer']!r}는 '예'·'아니오'·'해당 없음'이 아니다")
+    out = answers(dict(runs))
+    if partial:
+        for sample, per in out.items():
+            for i, v in per.items():
+                if len(v) != 3:
+                    raise ValueError(f"{folder}: 견본 {sample} 항목 {i}의 답이 {len(v)}개다(3개여야 한다)")
+    return out
 
 
 def main(argv=None):
@@ -88,7 +104,7 @@ def main(argv=None):
     ap.add_argument("out")
     ap.add_argument("--override", action="append", default=[])
     a = ap.parse_args(argv)
-    per = merge(load_runs(a.folder), *[load_runs(o) for o in a.override])
+    per = merge(load_runs(a.folder), *[load_runs(o, partial=True) for o in a.override])
     res = tally(per, load_items())
     Path(a.out).write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"견본 {len(per)}개의 결과를 {a.out}에 묶었다")

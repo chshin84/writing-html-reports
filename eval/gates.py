@@ -1,12 +1,15 @@
 """기계 판정 명령.
 
-사용법: python eval/gates.py <html>… [--mode auto|step] [--only motion|layout|content] [--base-checks <폴더>] [--out <결과.json>]
+사용법: python eval/gates.py <html>… [--mode auto|step] [--only motion|layout|content] [--base-checks <폴더>] [--judge-hash-nav] [--out <결과.json>]
 문서마다 밝은 테마 기록(모든 항목)과 어두운 테마 기록(contrast-text·contrast-graphic·cvd)을 JSON 목록으로 출력한다.
 기록 형태: {file, mode, theme, env, items: [{id, target, status, value, detail}], load_errors, render_fail}. status는 pass·fail·unmeasurable·n/a.
 env는 ok·env-fail·error다. env-fail과 error 기록에는 error 메시지가 붙는다.
 종료 코드: 환경 실패가 하나라도 있으면 2, 측정기 오류가 있으면 3, fail·unmeasurable·같은 출처 요청 실패·렌더 실패가 하나라도 있으면 1, 모두 통과하면 0.
 hash-nav는 --judge-hash-nav가 없으면 기록만 하고(value.recorded_only) 종료 코드에서 뺀다. 고정 견본의 페이지 전환 코드는 관리 블록 밖이기 때문이다.
 --base-checks는 기준 커밋 checkout의 checks/ 폴더다. spec 「기계 판정」대로 L1의 공식 측정이 쓴다. 그 부모 폴더에 금지어.md가 없으면 멈춘다.
+규칙 항목은 gates.py가 놓인 워크트리의 checks/로 실행한다. 후보를 판정할 때는 후보 워크트리의 eval/gates.py를 실행하고,
+기준 커밋 규칙은 --base-checks로 함께 실행한다.
+문서를 열기 전의 예외(파일 없음, Chromium 실행 실패 등)도 그 문서의 밝은 테마 error 기록으로 남긴다.
 """
 import argparse
 import json
@@ -84,7 +87,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     records = []
     for h in a.html:
-        records += measure_file(h, a.mode, a.only, a.base_checks, a.judge_hash_nav)
+        try:
+            records += measure_file(h, a.mode, a.only, a.base_checks, a.judge_hash_nav)
+        except Exception as e:  # guarded 밖의 예외(파일 없음, 세션 진입 실패)도 판정 실패(1)와 섞이지 않게 기록한다
+            records.append({"file": str(Path(h).resolve()), "mode": a.mode or "default", "theme": "light", "env": "error",
+                            "error": f"{type(e).__name__}: {e}", "items": [], "load_errors": [], "render_fail": []})
         if a.out:  # 문서마다 써 두어 뒤 문서에서 멈춰도 앞 기록이 남는다
             Path(a.out).write_text(json.dumps(records, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     sys.stdout.reconfigure(encoding="utf-8")

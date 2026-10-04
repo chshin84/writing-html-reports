@@ -2,6 +2,9 @@
    원시값만 모으고, 통과·실패 판정은 eval/measure.py·motion.py·layout.py가 한다. */
 (function () {
   var C = window.__c0 = {};
+  var nosmooth = document.createElement('style'); // 부드러운 스크롤을 끈다. 측정 중 scrollTo가 즉시 이동해야 한다
+  nosmooth.textContent = 'html{scroll-behavior:auto !important}';
+  document.head.appendChild(nosmooth);
   var SKIP = /^(SCRIPT|STYLE|TITLE|NOSCRIPT)$/i;
   var SHAPE = /^(rect|path|polygon|circle|ellipse)$/i;
   var GEOM = 'text, rect, polygon, circle, ellipse, path, line, polyline, foreignObject';
@@ -11,7 +14,19 @@
   function rendered(e) {
     return e.checkVisibility ? e.checkVisibility({ visibilityProperty: true }) : e.getClientRects().length > 0;
   }
+  var RGB = /^(rgba?\(\s*[\d.]+[\s,]+[\d.]+[\s,]+[\d.]+([\s,\/]+[\d.]+%?)?\s*\)|#([0-9a-f]{3}|[0-9a-f]{6}))$/i;
+  var pen = null;
+  function norm(c) { // oklch()·color()·8자리 hex 같은 표기를 1×1 캔버스로 'rgba(r, g, b, a)'로 바꾼다. 판정 쪽이 읽는 표기와 none·transparent·url(…)은 그대로 둔다
+    if (!c || RGB.test(c) || /^(none|transparent)$/i.test(c) || /^url\(/i.test(c) || !CSS.supports('color', c)) return c;
+    if (!pen) { var cv = document.createElement('canvas'); cv.width = cv.height = 1; pen = cv.getContext('2d', { willReadFrequently: true }); }
+    pen.clearRect(0, 0, 1, 1);
+    pen.fillStyle = c;
+    pen.fillRect(0, 0, 1, 1);
+    var d = pen.getImageData(0, 0, 1, 1).data;
+    return 'rgba(' + d[0] + ', ' + d[1] + ', ' + d[2] + ', ' + +(d[3] / 255).toFixed(3) + ')';
+  }
   function alpha(c) {
+    c = norm(c);
     var m = /rgba?\(([^)]+)\)/.exec(c || '');
     if (!m) return c === 'transparent' || c === 'none' ? 0 : 1;
     var p = m[1].split(/[\s,\/]+/).filter(Boolean);
@@ -43,9 +58,9 @@
       return !SKIP.test(e.tagName) && !e.closest('defs') && own(e);
     });
   };
-  C.fonts = function (root, inSvg) { // inSvg: true면 SVG 안 글자(그려지는 모든 글자), false면 SVG 밖의 보이는 글자
+  C.fonts = function (root, inSvg) { // inSvg: true면 SVG 안의 보이는 글자, false면 SVG 밖의 보이는 글자. 숨은 글자는 보이는 단계 끝에서 잰다
     return C.textEls(root).filter(function (e) {
-      return !!e.closest('svg') === inSvg && (inSvg ? rendered(e) : C.visible(e));
+      return !!e.closest('svg') === inSvg && C.visible(e);
     }).map(function (e) { return { px: +(parseFloat(cs(e).fontSize) * scale(e)).toFixed(2), text: own(e).slice(0, 24) }; });
   };
   function scrollBox(e) { // overflow-x가 auto·scroll인 조상만 스크롤 상자로 본다
@@ -92,7 +107,7 @@
       var s = cs(n);
       if (s.backgroundImage && s.backgroundImage !== 'none') return null;
       var a = alpha(s.backgroundColor);
-      if (a >= 0.999) return s.backgroundColor;
+      if (a >= 0.999) return norm(s.backgroundColor);
       if (a > 0.001) return null;
     }
     return 'rgb(255, 255, 255)';
@@ -108,7 +123,7 @@
       if (!SHAPE.test(s.tagName)) continue;
       var c = cs(s);
       if (c.fill === 'none' || alpha(c.fill) === 0 || opac(s) * parseFloat(c.fillOpacity) <= 0.001) continue;
-      return opac(s) * parseFloat(c.fillOpacity) >= 0.999 && alpha(c.fill) >= 0.999 ? c.fill : null;
+      return opac(s) * parseFloat(c.fillOpacity) >= 0.999 && alpha(c.fill) >= 0.999 ? norm(c.fill) : null;
     }
     return undefined;
   }
@@ -116,7 +131,7 @@
   function textPair(e) { // op는 요소 불투명도다. 판정할 때 글자색 알파에 곱해 바탕과 합성한다
     var c = cs(e), inSvg = !!e.closest('svg'), r = e.getBoundingClientRect();
     var rec = { text: own(e).slice(0, 24), px: +(parseFloat(c.fontSize) * scale(e)).toFixed(2), weight: weight(c),
-      svg: inSvg, fg: ink(e), op: +opac(e).toFixed(3), bg: null, why: null };
+      svg: inSvg, fg: norm(ink(e)), op: +opac(e).toFixed(3), bg: null, why: null };
     if (inSvg) {
       var u = under(e, (r.left + r.right) / 2, (r.top + r.bottom) / 2);
       if (u === null) { rec.why = '반투명 도형 바탕'; return rec; }
@@ -130,7 +145,7 @@
     var out = [];
     [].forEach.call(root.querySelectorAll('.fill'), function (e) {
       if (C.visible(e)) out.push({ kind: 'fill', name: e.parentElement.textContent.trim().slice(0, 16),
-        fg: cs(e).backgroundColor, bg: bgOf(e.parentElement) });
+        fg: norm(cs(e).backgroundColor), bg: bgOf(e.parentElement) });
     });
     if (window.echarts) [].forEach.call(root.querySelectorAll('[_echarts_instance_]'), function (b) {
       var inst = echarts.getInstanceByDom(b);
@@ -139,7 +154,7 @@
       try { // getModel은 ECharts 내부 API다. 읽지 못하면 측정 불가로 남긴다
         inst.getModel().getSeries().forEach(function (s) {
           var d = s.getData(), line = s.subType === 'line';
-          var pick = function (st) { return st ? (line ? st.stroke : st.fill) : null; };
+          var pick = function (st) { return st ? norm(line ? st.stroke : st.fill) : null; };
           if (s.subType === 'pie') {
             for (var i = 0; i < d.count(); i++) out.push({ kind: 'series', name: s.name + ':' + d.getName(i), fg: pick(d.getItemVisual(i, 'style')), bg: bg });
           } else out.push({ kind: 'series', name: String(s.name), fg: pick(d.getVisual('style')), bg: bg });
@@ -151,7 +166,7 @@
       if (!shape || !C.visible(shape)) return;
       var c = cs(shape);
       if (c.stroke === 'none' || alpha(c.stroke) === 0) return;
-      out.push({ kind: 'node', name: (n.id || '').slice(-24), fg: c.stroke, bg: bgOf(shape.closest('svg')) });
+      out.push({ kind: 'node', name: (n.id || '').slice(-24), fg: norm(c.stroke), bg: bgOf(shape.closest('svg')) });
     });
     return out;
   };
@@ -186,7 +201,7 @@
   C.shown = function (id) { var e = document.getElementById(id); return !!e && rendered(e) && e.getBoundingClientRect().height > 0; };
   C.tokens = function (names) {
     var s = cs(document.documentElement), o = {};
-    names.forEach(function (n) { o[n] = s.getPropertyValue('--' + n).trim(); });
+    names.forEach(function (n) { o[n] = norm(s.getPropertyValue('--' + n).trim()); });
     return o;
   };
   C.figText = function (fig) { // figure 안 보이는 글 요소 {키: 글}. 조작 줄과 단계 목록은 뺀다
@@ -209,14 +224,15 @@
     var scale = typeof tl.timeScale === 'function' ? tl.timeScale() : 1;
     return { ends: ends, timeScale: scale, samples: ts.map(function (t) { tl.seek(t, false); return [t, C.figText(f)]; }) };
   };
-  C.step1 = function (id, mode) { // 처음 연 상태의 시간과, 재생(자동)·다음(넘김)을 누른 뒤 e0에 닿기까지의 벽시계 시간
+  C.step1 = function (id, mode) { // 처음 연 상태의 시간, 재생(자동)·다음(넘김)을 누른 뒤 e0에 닿기까지의 벽시계 시간, 타임라인 배속
     var f = document.getElementById(id), tl = f._rcTl, b = f.querySelectorAll('.demo-ctl button'), t0 = tl.time(), e0 = tl.labels.e0;
+    var ts = typeof tl.timeScale === 'function' ? tl.timeScale() : 1;
     return new Promise(function (done) {
       var start = performance.now();
       (mode === 'step' ? b[2] : b[1]).click();
       (function poll() {
         var el = (performance.now() - start) / 1000, hit = tl.time() >= e0 - 1e-6;
-        if (hit || el > 6) done({ initial: t0, e0: e0, reached: hit, seconds: +el.toFixed(3) });
+        if (hit || el > 6) done({ initial: t0, e0: e0, reached: hit, seconds: +el.toFixed(3), timeScale: ts });
         else requestAnimationFrame(poll);
       })();
     });
@@ -231,7 +247,7 @@
       })();
     });
   }
-  C.stepAnim = function (id) { // '다음'을 누를 때마다 연출 길이(벽시계)와 타임라인 변화량, 첫 단계 뒤 3초 동안 멈춰 있는지
+  C.stepAnim = function (id) { // '다음'을 누를 때마다 연출 길이(벽시계)와 타임라인 변화량, 첫 단계 뒤 3초 동안 멈춰 있는지, 단계 수, 타임라인 배속
     var f = document.getElementById(id), tl = f._rcTl, b = f.querySelectorAll('.demo-ctl button'), n = C.ends(tl).length, lens = [], deltas = [], held = null;
     function one(k) {
       if (k >= n || b[2].disabled) return Promise.resolve();
@@ -245,7 +261,8 @@
         return wait(3000).then(function () { held = Math.abs(tl.time() - t) < 1e-6; return one(k + 1); });
       });
     }
-    return one(0).then(function () { return { lengths: lens, deltas: deltas, held: held }; });
+    var ts = typeof tl.timeScale === 'function' ? tl.timeScale() : 1;
+    return one(0).then(function () { return { lengths: lens, deltas: deltas, held: held, steps: n, timeScale: ts }; });
   };
   C.toStep = function (id, i) { // 엔진 버튼으로 i번째 단계 끝까지 간다. i=0은 '처음부터' 뒤 필요하면 '다음'을 한 번 누른다
     var f = document.getElementById(id), tl = f._rcTl, b = f.querySelectorAll('.demo-ctl button'), e0 = tl.labels.e0;
