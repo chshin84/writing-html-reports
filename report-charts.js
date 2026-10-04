@@ -103,6 +103,20 @@
       candlestick: { itemStyle: { color: tok('neg'), color0: tok('s1'), borderColor: tok('neg'), borderColor0: tok('s1') } }
     });
   }
+  var SHAPES = ['circle', 'rect', 'triangle', 'diamond', 'roundRect', 'pin'];
+  function lineLabels(option) { // 선 계열이 둘 이상이면 선 끝에 계열 이름을 달고 계열마다 표식 모양을 다르게 한다. 작성자가 준 값은 두고 빈 값만 채운다
+    var lines = (option.series || []).filter(function (s) { return s.type === 'line'; });
+    if (lines.length < 2) return;
+    lines.forEach(function (s, k) {
+      if (s.symbol == null) s.symbol = SHAPES[k % SHAPES.length];
+      if (s.showSymbol == null) s.showSymbol = true;
+      if (s.symbolSize == null) s.symbolSize = 6;
+      if (s.endLabel == null) s.endLabel = { show: true, formatter: '{a}', color: tok('ink-2'), fontSize: 12, distance: 6 };
+    });
+    [].concat(option.grid || (option.grid = {})).forEach(function (g) { // 이름표가 잘리지 않게 오른쪽 여백을 둔다
+      if (g.right == null || (typeof g.right === 'number' && g.right < 72)) g.right = 72;
+    });
+  }
   RC.chart = function (box, option) {
     if (!box) { console.error('RC.chart: 차트 상자가 없다'); return null; }
     if (typeof echarts === 'undefined') { fail(box); return null; }
@@ -112,6 +126,7 @@
       var h = box.clientHeight || parseFloat(getComputedStyle(box).height) || 320;
       var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
       option.animation = false;
+      lineLabels(option);
       if (!option.tooltip) {
         var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
         option.tooltip = { trigger: pie ? 'item' : 'axis' };

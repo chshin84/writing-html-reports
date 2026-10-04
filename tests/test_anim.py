@@ -540,5 +540,27 @@ class EngineFit(EngineCase):
         self.assertEqual(r, ["0px", "visible"])
 
 
+CHART = '<figure><div class="viz" id="c1"></div></figure>'
+
+
+class EngineChart(EngineCase):
+    def option(self, series):
+        js = ("window.ch=RC.chart(document.getElementById('c1'),{grid:{left:40,right:16,top:20,bottom:28},"
+              "xAxis:{type:'category',data:['1월','2월','3월']},yAxis:{type:'value'},series:%s});" % series)
+        p = self.open(CHART, js)
+        return self.js(p, "() => { const o = ch.getOption(); return {s: o.series.map(s => [s.symbol, !!(s.endLabel && s.endLabel.show)]), right: o.grid[0].right}; }")
+
+    def test_two_lines_get_end_labels_and_shapes(self):
+        r = self.option("[{name:'가',type:'line',data:[1,2,3]},{name:'나',type:'line',data:[3,2,1]}]")
+        self.assertEqual([x[1] for x in r["s"]], [True, True])
+        self.assertNotEqual(r["s"][0][0], r["s"][1][0])
+        self.assertGreaterEqual(r["right"], 72)
+
+    def test_single_line_unchanged(self):
+        r = self.option("[{name:'가',type:'bar',data:[1,2,3]},{name:'나',type:'line',data:[3,2,1]}]")
+        self.assertEqual(r["s"][1][1], False)
+        self.assertEqual(r["right"], 16)
+
+
 if __name__ == "__main__":
     unittest.main()
