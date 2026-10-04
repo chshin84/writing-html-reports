@@ -4,6 +4,8 @@
 .demo-ctl button:disabled{color:var(--ink-3);cursor:default}
 .demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
 .demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-cap{min-height:1.5em}
+.demo-cap.rc-off{visibility:hidden}
 .demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
 .demo-static .demo-ctl,.demo-static .demo-cap{display:none}
 .demo-static .demo-steps{display:block}

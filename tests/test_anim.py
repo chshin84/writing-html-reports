@@ -8,6 +8,78 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from checks import anim  # noqa: E402
 from helpers import ROOT, anim_page, has, page  # noqa: E402
+import json
+import tempfile
+
+sys.path.insert(0, str(ROOT / "eval"))
+import harness  # noqa: E402  (C0 소유, 읽기 전용으로 가져다 쓴다)
+import measure  # noqa: E402
+from helpers import cdn  # noqa: E402
+
+CSS = (ROOT / "report-base.css").read_text(encoding="utf-8") + (ROOT / "report-demo.css").read_text(encoding="utf-8")
+PAGER_JS = """document.documentElement.classList.add('js');
+addEventListener('DOMContentLoaded',function(){var P=[].slice.call(document.querySelectorAll('.page'));
+function show(k){P.forEach(function(p,j){p.classList.toggle('on',j===k)})}
+window.showPage=show;var m=/^#p(\\d+)$/.exec(location.hash);show(m?parseInt(m[1],10)-1:0)});"""
+
+
+def engine_doc(body, script, paged=False):
+    js = (ROOT / "report-charts.js").read_text(encoding="utf-8") + "\n" + (ROOT / "report-peeps.js").read_text(encoding="utf-8")
+    js = f"/* BEGIN report-charts 시험 */\n{js}\n/* END report-charts */"  # 엔진 주석의 'RC.demo('를 호출 수에서 빼려고 관리 블록으로 감싼다
+    pager = f"<script>{PAGER_JS}</script>" if paged else ""
+    return (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>엔진 시험</title><style>{CSS}</style>'
+            f'{cdn("echarts")}{cdn("mermaid")}{cdn("gsap")}<script>{js}</script>{pager}</head>'
+            f'<body><main class="doc{" paged" if paged else ""}">{body}</main><script>{script}</script></body></html>')
+
+
+MMD = """<figure id="d1" data-anim="구조"><figcaption><span class="t">흐름</span></figcaption>
+<pre class="mermaid">flowchart TD
+  A[주문 접수] --> B{한도 검증}
+  B -->|예| C[체결]
+  B -->|아니오| D[거부]</pre><p class="src">자료: 시험</p></figure>"""
+
+
+def mmd_steps(spec):
+    """spec: [(단계 이름, 문장, 노드, 색 또는 None)] → RC.demo 호출문."""
+    items = ",".join(
+        "{name:%s,text:%s,play:function(tl,$){RC.fx.mark(tl,$(%s)%s);}}"
+        % (json.dumps(n, ensure_ascii=False), json.dumps(t, ensure_ascii=False), json.dumps(node),
+           f",{json.dumps(c)}" if c else "") for n, t, node, c in spec)
+    return f"RC.demo(document.getElementById('d1'),[{items}]);"
+
+
+FLOW = [("시나리오 A · 접수", "주문을 접수합니다.", "A", None), ("시나리오 A · 검증", "한도 이내입니다.", "B", None),
+        ("시나리오 A · 체결", "주문을 체결합니다.", "C", None)]
+
+
+class EngineCase(unittest.TestCase):
+    """합성 문서를 로컬 서버로 열어 엔진 동작을 본다. CDN을 열지 못하면 건너뛴다."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.sess = harness.Session(cls.tmp.name).__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.sess.__exit__(None, None, None)
+        cls.tmp.cleanup()
+
+    def open_file(self, name, html, mode=None, width=1280, page=None):
+        Path(self.tmp.name, name).write_text(html, encoding="utf-8")
+        try:
+            p, ok = self.sess.open(name, measure.source_facts(html)["demo_calls"], width, "light", mode, page)
+        except harness.EnvFail as e:
+            self.skipTest(f"문서를 열지 못했다(CDN): {e}")
+        self.addCleanup(p.close)
+        self.assertTrue(ok, "data-rc-ready가 오지 않았다")
+        return p
+
+    def open(self, body, script, mode=None, width=1280, page=None, paged=False):
+        return self.open_file(self.id().split(".")[-1] + ".html", engine_doc(body, script, paged), mode, width, page)
+
+    def js(self, p, expr, arg=None):
+        return p.evaluate(expr, arg)
 
 
 class ScriptMotion(unittest.TestCase):
@@ -73,6 +145,54 @@ class ListSync(unittest.TestCase):
                 rows[cols[0]] = cols[-1]
         self.assertEqual(rows, anim.ANIM_TYPES)
 
+
+
+class EngineMode(EngineCase):
+    def test_default_mode_is_step_and_attribute(self):
+        p = self.open(MMD, mmd_steps(FLOW))
+        self.assertEqual(self.js(p, "() => document.getElementById('d1').dataset.rcMode"), "step")
+
+    def test_url_mode_auto(self):
+        p = self.open(MMD, mmd_steps(FLOW), mode="auto")
+        self.assertEqual(self.js(p, "() => document.getElementById('d1').dataset.rcMode"), "auto")
+
+    def test_initial_time_zero_and_buttons(self):
+        p = self.open(MMD, mmd_steps(FLOW))
+        st = self.js(p, """() => { const f = document.getElementById('d1');
+          return {t: f._rcTl.time(), btn: [...f.querySelectorAll('.demo-ctl button')].map(b => b.textContent),
+                  cap: f.querySelector('.demo-cap').textContent}; }""")
+        self.assertEqual(st, {"t": 0, "btn": ["이전", "재생", "다음", "처음부터"], "cap": ""})
+
+    def test_step1_plays_in_both_modes(self):
+        for mode in ("step", "auto"):
+            p = self.open(MMD, mmd_steps(FLOW), mode=mode)
+            r = self.js(p, "([id, m]) => __c0.step1(id, m)", ["d1", mode])
+            self.assertTrue(r["reached"] and r["initial"] <= 0.05 and r["e0"] >= 0.2, (mode, r))
+
+    def test_auto_next_runs_to_end_label(self):  # 자동 재생의 '다음'은 머무는 시간까지 재생한다
+        p = self.open(MMD, mmd_steps(FLOW), mode="auto")
+        r = self.js(p, "async () => { await __c0.toStep('d1', 0); const tl = document.getElementById('d1')._rcTl; return [tl.time(), tl.labels.e0]; }")
+        self.assertAlmostEqual(r[0], r[1], places=3)
+        self.assertGreater(r[1], 1.0)
+
+    def test_step_mode_segments_and_hold(self):
+        long_step = "{name:'긴 단계',text:'길게 움직입니다.',play:function(tl,$){tl.to($('A'),{strokeWidth:3,duration:4});}}"
+        short_step = "{name:'짧은 단계',text:'바로 바뀝니다.',play:function(tl,$){tl.set($('B'),{strokeWidth:2});}}"
+        p = self.open(MMD, f"RC.demo(document.getElementById('d1'),[{long_step},{short_step},{short_step}]);")
+        r = self.js(p, "id => __c0.stepAnim(id)", "d1")
+        ends = self.js(p, "() => __c0.ends(document.getElementById('d1')._rcTl)")
+        segs = [ends[0]] + [b - a for a, b in zip(ends, ends[1:])]
+        self.assertTrue(all(0.4 <= s <= 2.5 for s in segs), segs)
+        self.assertTrue(r["held"], r)
+
+    def test_button_mash_runs_one_step(self):
+        p = self.open(MMD, mmd_steps(FLOW), mode="auto")
+        t = self.js(p, """async () => { const f = document.getElementById('d1'), b = f.querySelectorAll('.demo-ctl button');
+          b[1].click(); b[1].click(); b[1].click(); b[2].click(); b[2].click();
+          await new Promise(r => setTimeout(r, 200));
+          return {t: f._rcTl.time(), e: __c0.ends(f._rcTl), playing: b[1].textContent}; }""")
+        self.assertLessEqual(t["t"], t["e"][1] + 1e-6)
+        self.assertEqual(t["playing"], "재생")
 
 
 if __name__ == "__main__":

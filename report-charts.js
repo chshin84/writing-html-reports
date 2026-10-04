@@ -211,14 +211,33 @@
   /* 애니메이션 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
      at은 GSAP 위치 인자(생략하면 앞 효과 뒤, '<'이면 앞 효과와 함께)다.
      글 규칙(RC.demo가 강제한다): 글이 한 번 나타날 때(타이핑과 카운트업이 이어진 한 덩어리)마다 1초 안에 끝나고,
-     단계의 마지막 글이 나타나기 시작한 때부터 min(1초 + 글자 수 ÷ 10초, 4초) 동안 보여 준 뒤 다음 단계로 넘어간다.
+     자동 재생에서는 단계의 글이 다 나온 뒤 1초 + 글자 수 ÷ 8초 이상 머문다. 글자 수에는 자막과 설명 상자와 숫자 칸이 모두 든다.
      설명 상자 하나의 글은 30자 이하다. 글자 수는 공백을 빼고 세며 숫자 하나는 1자다 */
   var TEXT_MAX = 1, CHAR_MAX = 30;
   function chars(s) { return String(s).replace(/\d[\d,.]*/g, '#').replace(/\s/g, '').length; }
-  function holdFor(n) { return Math.min(4, 1 + n / 10); }
+  function holdFor(n) { return 1 + n / 8; } // 글이 다 나온 뒤 머무는 시간의 하한(초). 상한은 이 값 + 3초다
+  var HOLD_PAD = 0.3; // 측정 간격(0.05초)과 반올림을 흡수하는 여유
+  var DEFAULT_MODE = 'step'; // 주소에 ?rc-mode가 없을 때의 재생 방식. L1이 실측 뒤 바꿀 수 있다
+  var STEP_MIN = 0.43, STEP_MAX = 2.43; // 단계 넘김의 단계 연출 길이. 사이 띄움 0.02초를 더하면 0.45~2.45초다
+  function playMode() { var m = /[?&]rc-mode=(auto|step)(?:&|$)/.exec(location.search); return m ? m[1] : DEFAULT_MODE; }
+  var demoStep = null; // RC.demo가 단계를 만드는 동안 $로 마지막에 조회한 요소(last)와 mark·spot이 받은 요소(mark)를 적는다
   var stepLog = null; // RC.demo가 단계마다 글 등장 구간과 글자 수를 모은다
   RC.issues = []; // 글 규칙 위반. 겹침 판정 도구가 함께 읽는다
   function issue(msg) { RC.issues.push(msg); console.error('RC.demo: ' + msg); }
+  function textRules(L, s, fig) { // 글 등장 1초 규칙과 설명 상자 30자 규칙(작성자 글만 센다)
+    if (!L.beats.length) return;
+    L.beats.sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [L.beats[0].slice()];
+    L.beats.slice(1).forEach(function (b) { // 이어지거나 겹치는 글 등장은 한 덩어리로 본다
+      var m = merged[merged.length - 1];
+      if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
+    });
+    merged.forEach(function (m) {
+      if (m[1] - m[0] > TEXT_MAX + 0.001) issue('[' + fig.id + '] "' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
+    });
+    var n = 0; L.fin.forEach(function (v) { n += chars(v); });
+    if (n > CHAR_MAX) issue('[' + fig.id + '] "' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
+  }
   function len(e) { return e && e.getTotalLength ? e.getTotalLength() : 0; }
   var shown = typeof WeakMap === 'function' ? new WeakMap() : null; // 글자 요소마다 직전 단계에서 보인 문장
   function textTween(tl, e, from, render, dur, at) { // 되감을 때 직전 단계의 문장으로 돌아가게 한다
@@ -334,10 +353,11 @@
     });
     var src = fig.querySelector('.src');
     [ctl, cap, list].forEach(function (n) { fig.insertBefore(n, src); });
+    var mode = playMode(); fig.dataset.rcMode = mode;
     if (typeof gsap === 'undefined') { fig.classList.add('demo-static'); return null; }
 
     RC.ready.then(function () {
-      var $ = function (name) {
+      var find = function (name) {
         var hit = fig.querySelector('[id="' + name + '"]');
         if (hit) return hit;
         var re = new RegExp('-flowchart-' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-\\d+$');
@@ -347,47 +367,68 @@
         }
         return null;
       };
-      var tl = gsap.timeline({ paused: true }), ends = [], holds = [];
+      var rec = { last: null, mark: null };
+      var $ = function (name) { var e = find(name); if (e && demoStep === rec) rec.last = e; return e; };
+      var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
+      function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
+      /* Task 2: capPrev */
+      /* Task 4: memo, prevActive */
+      /* Task 5: stage, restore, box, vb */
+      /* Task 6: usePeep, hideNext, prevIt, NEG */
       try {
         steps.forEach(function (s, i) {
+          var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
           stepLog = { beats: [], fin: new Map() };
-          s.play(tl, $);
+          rec.last = rec.mark = null; demoStep = rec;
+          try { s.play(sub, $); } finally { demoStep = null; }
           var L = stepLog; stepLog = null;
-          if (L.beats.length) { // 글이 다 나온 뒤 읽을 시간을 두고 다음 단계로 넘어간다
-            L.beats.sort(function (a, b) { return a[0] - b[0]; });
-            var merged = [L.beats[0].slice()];
-            L.beats.slice(1).forEach(function (b) { // 이어지거나 겹치는 글 등장은 한 덩어리로 본다
-              var m = merged[merged.length - 1];
-              if (b[0] <= m[1] + 0.05) m[1] = Math.max(m[1], b[1]); else merged.push(b.slice());
-            });
-            merged.forEach(function (m) {
-              if (m[1] - m[0] > TEXT_MAX + 0.001) issue('[' + fig.id + '] "' + s.name + '" 단계의 글 등장이 1초를 넘는다(' + (m[1] - m[0]).toFixed(2) + '초)');
-            });
-            var n = 0; L.fin.forEach(function (v) { n += chars(v); });
-            if (n > CHAR_MAX) issue('[' + fig.id + '] "' + s.name + '" 단계의 설명이 30자를 넘는다(' + n + '자)');
-            holds[i] = holdFor(n);
-            var lastBeat = merged[merged.length - 1];
-            var need = Math.max(lastBeat[1], lastBeat[0] + holds[i]);
-            if (tl.duration() < need) tl.to({}, { duration: need - tl.duration() });
-          }
-          tl.addLabel('e' + i); ends.push(tl.duration());
+          textRules(L, s, fig);
+          tl.add(sub, start);
+          if (!auto && sub.duration() > STEP_MAX) sub.timeScale(sub.duration() / STEP_MAX);
+          var it = { start: start, active: rec.mark || rec.last, noteOn: false, n: 0, done: start, pause: 0.3,
+                     color: undefined, diamond: false, note: null, think: null };
+          /* Task 4: it.color, it.diamond, styleNodes */
+          /* Task 6: 앞 단계 스틱맨 숨김과 판정 스틱맨 */
+          var animEnd = Math.max(sub.endTime(), tl.duration());
+          rewindTo(pre);
+          /* Task 5: 자동 상자 위치와 it.noteOn */
+          /* Task 6: 고민 스틱맨 */
+          /* Task 2: 글 표본으로 it.n·it.done 계산 */
+          var end = auto ? Math.max(animEnd, it.done + holdFor(it.n) + HOLD_PAD) : Math.max(animEnd, start + STEP_MIN);
+          if (end > tl.duration()) tl.to({}, { duration: end - tl.duration() });
+          tl.addLabel('e' + i, end); ends.push(end);
+          it.pause = Math.max(0.3, it.done + holdFor(it.n) + HOLD_PAD - end);
+          info.push(it);
           tl.to({}, { duration: 0.02 }); // 다음 단계의 즉시 설정이 이 단계의 끝 시각과 겹쳐 미리 실행되지 않게 띄운다
         });
       } catch (e) { // 단계 코드가 틀리면 동작하지 않는 버튼 대신 단계 설명 목록을 보인다
         console.error('RC.demo', e);
         tl.kill();
         fig.classList.add('demo-static');
+        /* Task 5: restore() */
         return;
       }
-      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var cur = 0, tw = null, timer = null, saved = 0, last = steps.length - 1;
-
+      /* Task 5: restore() */
+      rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, last = steps.length - 1;
+      var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;
+      function stepAt(t) { if (t <= 1e-6) return -1; var i = 0; while (i < last && ends[i] < t - 1e-6) i++; return i; }
+      function startOf(i) { return i > 0 ? ends[i - 1] : 0; }
+      function label(i) { return i < 0 ? '0/' + steps.length : (i + 1) + '/' + steps.length; } // Task 3이 시나리오 표시로 바꾼다
       function show(i) {
-        cur = i;
-        cnt.textContent = (i + 1) + '/' + steps.length;
-        cap.textContent = steps[i].name + ': ' + steps[i].text;
-        bPrev.disabled = i === 0;
+        at = i;
+        cnt.textContent = label(i);
+        cap.textContent = i < 0 ? '' : steps[i].name + ': ' + steps[i].text;
+        cap.classList.toggle('rc-off', i >= 0 && info[i].noteOn);
+        bPrev.disabled = i < 0;
         bNext.disabled = i === last;
+        pend = quiet || i < 0 ? null : i;
+      }
+      function sync() {
+        var t = tl.time(), i = stepAt(t);
+        if (i !== at) show(i);
+        /* Task 4: data-rc-active 옮기기 */
+        /* Task 7: pend 처리(keepInView) */
       }
       function stop() {
         tl.pause();
@@ -395,40 +436,39 @@
         if (timer) { timer.kill(); timer = null; }
         bPlay.textContent = '재생';
       }
+      function seekTo(t) { tl.seek(t, false); sync(); } // seek의 두 번째 인자 false: 바로 옮겨도 글자 효과(onUpdate)가 끝 상태를 그린다
       function go(i, animate) {
         stop();
-        if (animate && !reduce) { // 직전 단계로 바로 옮긴 뒤 한 단계만 연출한다(빠르게 여러 번 눌러도 한 단계 분량만 재생한다)
-          if (i > 0) tl.seek('e' + (i - 1), false);
-          tw = tl.tweenTo('e' + i, { onComplete: function () { tw = null; } });
-        }
-        else tl.seek('e' + i, false);
-        show(i);
-      }
-      function tick() {
-        if (cur < last) { tl.seek('e' + (cur + 1), false); show(cur + 1); timer = gsap.delayedCall(holds[cur] || 2, tick); } else stop();
+        if (i < 0) { seekTo(0); return; }
+        if (animate && !reduce) { seekTo(startOf(i)); tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; } }); }
+        else seekTo(ends[i]);
       }
       function play() {
-        if (cur === last) go(0, false);
+        if (at >= to || at < from - 1) seekTo(startOf(from));
         bPlay.textContent = '일시정지';
-        if (reduce) timer = gsap.delayedCall(holds[cur] || 2, tick); else tl.play();
+        if (auto && !reduce) { tw = tl.tweenTo(ends[to], { onComplete: stop }); return; }
+        (function next() { // 단계 넘김: 한 단계를 재생하고 체류 시간 규칙만큼 쉰 뒤 다음 단계로 간다
+          var i = at + 1;
+          var rest = function () {
+            if (i >= to) { stop(); return; }
+            timer = gsap.delayedCall(reduce ? holdFor(info[i].n) + HOLD_PAD : info[i].pause, next);
+          };
+          if (reduce) { seekTo(ends[i]); rest(); }
+          else tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; rest(); } });
+        })();
       }
-      // seek의 두 번째 인자 false: 바로 이동할 때도 글자 효과(onUpdate)가 끝 상태를 그리게 한다
-      tl.eventCallback('onUpdate', function () { // 연속 재생 중에만 단계 표시를 따라가게 한다
-        if (tw) return;
-        var t = tl.time(), i = 0;
-        while (i < last && ends[i] < t - 1e-6) i++;
-        if (i !== cur) show(i);
-      });
-      tl.eventCallback('onComplete', function () { bPlay.textContent = '재생'; });
-      bPrev.onclick = function () { go(Math.max(0, cur - 1), false); };
-      bNext.onclick = function () { go(Math.min(last, cur + 1), true); };
-      bReset.onclick = function () { go(0, false); };
-      bPlay.onclick = function () { if (tl.isActive() || tw || timer) stop(); else play(); };
+      tl.eventCallback('onUpdate', sync);
+      bPrev.onclick = function () { go(at - 1, false); };
+      bNext.onclick = function () { go(Math.min(last, at + 1), true); };
+      bReset.onclick = function () { /* Task 3: whole() */ go(-1); };
+      bPlay.onclick = function () { if (tw || timer || tl.isActive()) stop(); else play(); };
+      /* Task 3: 시나리오 버튼 */
       new ResizeObserver(function () { if (fig.clientWidth === 0) stop(); }).observe(fig); // 다른 페이지로 넘기면 멈춘다
-      addEventListener('beforeprint', function () { saved = cur; stop(); tl.seek('e' + last, false); });
-      addEventListener('afterprint', function () { go(saved, false); });
-      go(0, false);
-      fig._rcTl = tl; fig.dataset.rcReady = '1'; // RC.check가 빌드 성공을 확인하고 처음부터 재생할 때 쓴다
+      addEventListener('beforeprint', function () { saved = at; stop(); quiet = true; seekTo(ends[last]); });
+      addEventListener('afterprint', function () { go(saved, false); quiet = false; });
+      seekTo(0); quiet = false;
+      fig._rcTl = tl; fig.dataset.rcReady = '1'; // C0 하네스와 RC.check가 쓴다
+      /* Task 8: watchFit(fig) */
     });
     return null;
   };
