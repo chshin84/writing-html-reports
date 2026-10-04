@@ -208,26 +208,26 @@ footer p{margin:0 0 4px}
 <section class="page summary" id="p1">
   <p class="pno">1 / 6</p>
   <div class="doc-head">
-    <p class="meta">가상 운용지원팀 · 2026년 10월 4일</p>
+    <p class="doc-meta">가상 운용지원팀 · 2026년 10월 4일</p>
     <h1>월간 성과 표 생성 스크립트 개선</h1>
     <p class="basis">기준: 변경 커밋 3f9c2a1(가상), 설계 문서 docs/specs/monthly-table-v2.md(가상)</p>
     <p class="lede">월간 성과 표 생성 스크립트 개선은 처음 요청을 얼마나 채웠고, 끝내려면 무엇을 정해야 하는가? 이 보고서는 가상의 운용지원팀 작업을 예로 든 마무리 보고서 견본이며, 팀 이름과 경로와 수치는 모두 지어낸 값입니다.</p>
   </div>
   <div class="keyfig">
     <div data-src="p2"><span class="k">표 생성 시간(1회)</span><span class="v">6분</span><span class="d">종전 42분</span></div>
-    <div data-src="p3"><span class="k">요청 항목 달성</span><span class="v">4개 중 3개</span><span class="d">PDF 출력은 일부 달성</span></div>
-    <div data-src="p4"><span class="k">남은 일(10월 처리)</span><span class="v">1건</span><span class="d">PDF 서식 보완, 나머지는 미룸·하지 않음</span></div>
-    <div data-src="p5"><span class="k">결정 요청</span><span class="v">1건</span><span class="d">결측 기준가 처리(권장: 빈 칸 표시)</span></div>
-    <div data-src="p6"><span class="k">자동 시험</span><span class="v">18건 통과</span><span class="d">PDF 화면은 확인하지 않음</span></div>
+    <div data-src="p3"><span class="k">요청 항목 달성</span><span class="v">4개 중 3개</span><span class="d">나머지 1개는 일부 달성</span></div>
+    <div data-src="p4"><span class="k">남은 일(10월 처리)</span><span class="v">1건</span><span class="d">남은 일 3건 중</span></div>
+    <div data-src="p5"><span class="k">결정 요청</span><span class="v">1건</span><span class="d">9월 결측 기준가 3건</span></div>
+    <div data-src="p6"><span class="k">자동 시험</span><span class="v">18건 통과</span><span class="d">시험 범위: 계산 함수</span></div>
   </div>
   <div class="gist">
     <h2>요약</h2>
     <ul>
       <li data-src="p2">월간 성과 표를 한 번 만드는 시간이 종전의 7분의 1로 줄었습니다.</li>
-      <li data-src="p3">처음 요청한 항목 중 PDF 출력만 일부 달성에 그쳤고 나머지는 모두 달성했습니다.</li>
-      <li data-src="p4">남은 일은 PDF 서식 보완만 10월에 끝내고, 나머지는 미루거나 하지 않습니다.</li>
+      <li data-src="p3">처음 요청 중 미완 항목은 PDF 출력이며, 엑셀 출력은 완료했습니다.</li>
+      <li data-src="p4">10월에 처리할 일은 PDF 서식 보완이며, 서버 환경 측정은 11월로 미룹니다.</li>
       <li data-src="p5">결측 기준가 처리 방식의 결정이 필요하며, 권장안은 결측을 감추지 않는 빈 칸 표시입니다.</li>
-      <li data-src="p6">계산 값은 자동 시험으로 확인했지만 PDF 화면은 확인하지 않았습니다.</li>
+      <li data-src="p6">계산 값은 확인했지만 PDF 화면과 서버 환경 소요 시간은 확인하지 않았습니다.</li>
     </ul>
   </div>
   <dl class="gloss">
@@ -263,7 +263,7 @@ footer p{margin:0 0 4px}
   </table></div>
   <p class="blk"><b>중요 포인트</b></p>
   <ul class="pts">
-    <li>바뀐 칸은 굵게 표시했습니다. 변경 전 열은 8월 실행 1회, 변경 후 열은 9월 실행 1회의 기록입니다.</li>
+    <li>바뀐 칸은 굵게 표시했습니다. 생성 시간은 8월 실행(변경 전)과 9월 실행(변경 후) 기록이고, 수작업 수정 셀은 9월 원자료로 만든 옛 표와 새 표를 비교한 값입니다.</li>
   </ul>
   <p class="blk warn"><b>유의사항</b></p>
   <ul class="pts">
@@ -351,7 +351,7 @@ footer p{margin:0 0 4px}
 <section class="page core" id="p5" data-part="decisions">
   <p class="pno">5 / 6</p>
   <p class="sec">결정 요청</p>
-  <h2>결측 기준가는 직전 값 채움 대신 빈 칸 표시를 권장한다</h2>
+  <h2>9월 결측 기준가 3건은 직전 값 채움 대신 빈 칸 표시를 권장한다</h2>
   <ul class="pts">
     <li><span class="state" data-state="run">실행으로 확인함</span> 10월 마감 실행 전에 정하지 않으면 현행 설정인 직전 값 채움이 그대로 적용됩니다(<code>config.yaml</code>의 <code>missing: ffill</code>).</li>
     <li><span class="state" data-state="assume">가정함</span> 빈 칸 표시를 고르면 엑셀과 PDF에 같은 표기를 넣어야 하며, 이 작업은 PDF 서식 보완 일정 안에서 끝난다고 가정합니다.</li>
@@ -361,7 +361,7 @@ footer p{margin:0 0 4px}
   <div class="tbl"><table>
     <thead><tr><th>정할 사항</th><th>선택안</th><th>권장안과 이유</th><th>기각한 대안과 이유</th></tr></thead>
     <tbody>
-      <tr><td>결측 기준가 처리<br>(결정 요청, 9월 3건)</td><td>직전 영업일 값으로 채움(현행)<br>빈 칸으로 표시<br>해당 펀드 행 제외</td><td>빈 칸으로 표시. 결측이 표에서 드러나고 수익률을 지어내지 않음</td><td>직전 값 채움은 결측 펀드의 수익률이 0%로 보임. 행 제외는 펀드 수가 달마다 바뀌어 전월 표와 비교하기 어려움</td></tr>
+      <tr><td>결측 기준가 처리<br>(결정 요청, 9월 3건)</td><td>직전 영업일 값으로 채움(현행)<br>빈 칸으로 표시<br>해당 펀드 행 제외</td><td>빈 칸으로 표시. 결측이 표에서 드러나고 수익률을 지어내지 않음</td><td>직전 값 채움은 결측일의 기준가 변동이 0으로 처리되어 실제 변동이 가려짐. 행 제외는 펀드 수가 달마다 바뀌어 전월 표와 비교하기 어려움</td></tr>
       <tr><td>출력 파일 이름 규칙<br>(결정한 사항, 9월 28일)</td><td>날짜를 이름 앞에 붙임<br>날짜를 이름 뒤에 붙임</td><td>날짜를 이름 뒤에 붙임. 기존 폴더의 정렬 순서와 같음</td><td>이름 앞에 붙이면 배포 스크립트의 파일 경로를 고쳐야 함</td></tr>
     </tbody>
   </table></div>
@@ -407,7 +407,6 @@ footer p{margin:0 0 4px}
   <p class="blk warn"><b>유의사항</b></p>
   <ul class="pts">
     <li>단위 시험은 계산 함수만 다루며, 엑셀 서식(열 폭·글꼴)은 시험하지 않습니다.</li>
-    <li>엑셀 서식은 PDF 서식 보완 때 화면으로 함께 대조합니다.</li>
   </ul>
   <p class="blk"><b>출처</b></p>
   <ul class="pts src-list">
@@ -447,6 +446,7 @@ document.documentElement.classList.add('js');
   prev.addEventListener('click', function () { go(cur - 1); });
   next.addEventListener('click', function () { go(cur + 1); });
   document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     if (e.key === 'ArrowLeft') go(cur - 1);
     if (e.key === 'ArrowRight') go(cur + 1);
   });
