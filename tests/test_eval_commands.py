@@ -93,5 +93,57 @@ class Shoot(unittest.TestCase):
         self.assertIn("첫 페이지", (out / "p1.txt").read_text(encoding="utf-8"))
 
 
+DEFECTS = ["애니메이션 단계가 읽기 전에 넘어간다", "설명이 도형에서 떨어져 하단 자막으로만 나온다",
+           "강조 노드와 설명을 한 화면에서 함께 볼 수 없다", "현재 노드와 지나온 노드가 구분되지 않는다",
+           "390 폭에서 표를 읽기 어렵거나 가로 스크롤 단서가 없다", "페이지 번호가 두 번 보인다", "용어 풀이 배치가 깨진다",
+           "제목만 읽으면 논지가 보이지 않는다", "같은 사실을 불릿·도식·표로 반복한다", "결정 요청에 권장안이 없다",
+           "전후 비교의 기준선이 끝 장면에서 사라진다", "불릿과 표의 내용이 서로 다르다", "근거 없는 주장이 있다"]
+
+
+class Checklist(unittest.TestCase):
+    def test_items_cover_defects_and_labels(self):
+        import checklist_vote as cv
+        items = cv.load_items(ROOT / "eval/checklist.md")
+        self.assertGreaterEqual(len(items), 13)
+        self.assertEqual(len({i["id"] for i in items}), len(items))
+        for i in items:
+            self.assertIn(i["category"], {"사용자 만족도", "심미성", "구성", "이해 용이성", "논리 전개"})
+            self.assertIn(i["target"], {"motion", "layout", "content"})
+        for d in DEFECTS:
+            self.assertTrue(any(d in i["defect"] for i in items), d)
+
+    def test_majority_and_coverage(self):
+        import checklist_vote as cv
+        self.assertEqual(cv.majority(["예", "예", "아니오"]), "예")
+        self.assertEqual(cv.majority(["예", "아니오", "해당 없음"]), "아니오")
+        self.assertEqual(cv.majority(["해당 없음"] * 3), "해당 없음")
+        self.assertFalse(cv.stable(["예", "예", "아니오"]))
+        items = [{"id": "a", "target": "motion"}, {"id": "b", "target": "motion"}, {"id": "c", "target": "layout"}]
+        run = lambda a, b, c: [{"id": "a", "answer": a, "evidence": ""}, {"id": "b", "answer": b, "evidence": ""}, {"id": "c", "answer": c, "evidence": ""}]
+        per = cv.answers({"s": [run("예", "아니오", "해당 없음"), run("예", "아니오", "해당 없음"), run("예", "예", "해당 없음")]})
+        t = cv.tally(per, items)
+        self.assertEqual(t["coverage"]["s"], {"motion": 0.5, "layout": None, "content": None})
+        self.assertEqual(t["samples"]["s"]["b"]["majority"], "아니오")
+        self.assertFalse(t["samples"]["s"]["b"]["stable"])
+        fixed = cv.merge(per, {"s": {"b": ["예", "예", "예"]}})
+        self.assertEqual(cv.tally(fixed, items)["coverage"]["s"]["motion"], 1.0)
+        self.assertNotIn("x", cv.tally({"s": {"x": ["예"] * 3}}, items)["samples"]["s"])  # 뺀 항목은 묶지 않는다
+
+
+class Prompts(unittest.TestCase):
+    SLOTS = {"checklist-review.md": "{{CHECKLIST}}", "comprehension.md": "{{QUESTIONS}}",
+             "planted-error.md": "{{ERROR_HINT_SCOPE}}", "title-link.md": "{{STAGE}}"}
+
+    def test_slots_only_no_answers(self):
+        for name, slot in self.SLOTS.items():
+            text = (ROOT / "eval/prompts" / name).read_text(encoding="utf-8")
+            self.assertIn("{{INPUT_DIR}}", text, name)
+            self.assertIn(slot, text, name)
+            for banned in ("정답:", "정답은", "모범 답", "answer key", "심은 오류는"):
+                self.assertNotIn(banned, text, name)
+            self.assertNotIn("writing-html-reports", text, name)
+            self.assertNotIn("whr-c0", text, name)
+
+
 if __name__ == "__main__":
     unittest.main()
