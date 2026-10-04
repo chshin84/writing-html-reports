@@ -114,8 +114,8 @@ C1의 기본 재생 방식은 L1이 보류 견본에서 두 방식을 각각 측
 |---|---|---|
 | L1 | 사전 정리, 보류 자료 작성 지시, 공식 측정, 병합, 관리 블록 재빌드, 통합 | `check.py`, `checks/__init__.py`, `checks/common.py`, `build.py`, `글쓰기-규칙.md`, `금지어.md`, `.gitignore`, `assets/**`, `tests/test_common.py`, `tests/test_cli.py`, `tests/test_build.py`, 다른 소유자가 없는 `docs/**` |
 | C0 평가 하네스 | 고정 견본, 측정 도구, 체크리스트, 기준선 | `eval/**`, `bench/**`, `tests/test_eval_*.py` |
-| C1 애니메이션 엔진 | 아래 C1 목록 | `report-charts.js`, `report-demo.css`, `report-peeps.js`, `tools/build-peeps.py`, `checks/anim.py`, `시각화.md`, `tests/sample-anim.html`, `tests/test_anim.py`, `tests/test_peeps.py` |
-| C2 페이지 틀·CSS | 아래 C2 목록 | `report-base.css`, `template.html`, `template-paged.html`, `checks/style.py`, `보고서-규격.md`, `tests/sample-viz.html`, `tests/test_style.py` |
+| C1 애니메이션 엔진 | 아래 C1 목록 | `report-charts.js`, `report-demo.css`, `report-peeps.js`, `tools/build-peeps.py`, `checks/anim.py`, `시각화.md`, `tests/sample-anim.html`, `tests/sample-viz.html`, `tests/test_anim.py`, `tests/test_peeps.py` |
+| C2 페이지 틀·CSS | 아래 C2 목록 | `report-base.css`, `template.html`, `template-paged.html`, `checks/style.py`, `보고서-규격.md`, `tests/test_style.py` |
 | C3 내용 규격 | 아래 C3 목록 | `SKILL.md`, `checks/content.py`, `examples/**`, `tests/test_content.py` |
 
 각 L2가 쓰는 plan과 리뷰 기록은 그 컴포넌트 소유다. 파일 이름에 컴포넌트 이름을 넣는다. 예: `docs/superpowers/plans/2026-10-05-c1-animation-engine.md`.
@@ -174,7 +174,7 @@ L1은 팬아웃 전에 main에서 동작을 바꾸지 않는 구조 변경을 �
 
 **애니메이션 CSS 분리.** `report-base.css`의 `.demo-*` 규칙을 `report-demo.css`로 옮긴다. 대상은 110~117행과, `@media print` 블록 안의 179~180행이다. 인쇄용 규칙은 같은 매체 블록으로 감싸 옮긴다. `build.py`는 report-base 블록에 두 파일을 이어 넣는다.
 
-**견본 이동.** `tests/sample-viz.html`의 '구조' 애니메이션(`d-order`, `d-mmd`)을 `tests/sample-anim.html`로 옮기고, `시각화.md`의 견본 위치를 고친다.
+**견본 소유.** `tests/sample-viz.html`은 차트·Mermaid 도식·'구조' 애니메이션 견본이므로 C1 소유로 둔다. 파일을 옮기지 않는 이유는 '구조' 애니메이션 두 개를 `tests/sample-anim.html`로 옮기면 파일당 애니메이션 상한(3개)과 별 표시 상한(3개)을 넘기 때문이다.
 
 커밋마다 다음 확인을 실행한다.
 
