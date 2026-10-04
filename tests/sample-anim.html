@@ -237,6 +237,15 @@ footer p{margin:0 0 4px}
     for (var i = 0; i < e.childNodes.length; i++) if (e.childNodes[i].nodeType === 3) s += e.childNodes[i].nodeValue;
     return s.replace(/\s+/g, ' ').trim();
   }
+  function alpha(c) { // 색 값의 불투명도. rgba의 넷째 성분과 color(… / a)의 a를 읽는다. 파랑 성분이 0인 불투명 색을 투명으로 보지 않는다
+    if (!c || /^(transparent|none)$/i.test(c)) return 0;
+    var m = /^(?:rgba?|color)\(([^)]*)\)$/i.exec(c);
+    if (!m) return 1;
+    var sl = m[1].split('/');
+    if (sl.length > 1) return parseFloat(sl[1]);
+    var p = m[1].split(/[\s,]+/).filter(Boolean);
+    return /^rgb/i.test(c) && p.length > 3 ? parseFloat(p[3]) : 1;
+  }
   function seen(e, fig) { // C0 하네스의 보임 판정을 계산된 스타일로 옮긴 것이다. 숨은 페이지에서도 쓰도록 면적 조건은 뺀다
     var o = 1, c0 = getComputedStyle(e);
     if (c0.visibility === 'hidden' || c0.visibility === 'collapse') return false;
@@ -248,7 +257,7 @@ footer p{margin:0 0 4px}
     if (o <= 0.05) return false;
     if (!ownText(e)) return true; // C0처럼 글자색은 글을 가진 요소에만 본다. 채움이 없는 도형도 보이는 무대 요소다
     var col = c0[e instanceof SVGElement ? 'fill' : 'color'];
-    return !/^(transparent|none)$|,\s*0\)$/.test(col);
+    return alpha(col) > 0;
   }
   function textPool(fig) { // 표본마다 다시 찾지 않도록 글을 가질 수 있는 요소를 단계마다 한 번 모은다. 조작 줄·단계 목록·자막·시나리오 줄은 뺀다
     return [].filter.call(fig.querySelectorAll('*'), function (e) {
@@ -318,11 +327,11 @@ footer p{margin:0 0 4px}
   }
   var SHAPES = ['circle', 'rect', 'triangle', 'diamond', 'roundRect', 'pin'];
   function lineLabels(option) { // 선 계열이 둘 이상이면 선 끝에 계열 이름을 달고 계열마다 표식 모양을 다르게 한다. 작성자가 준 값은 두고 빈 값만 채운다
-    var lines = (option.series || []).filter(function (s) { return s.type === 'line'; });
+    var lines = [].concat(option.series || []).filter(function (s) { return s.type === 'line'; });
     if (lines.length < 2) return;
     lines.forEach(function (s, k) {
       if (s.symbol == null) s.symbol = SHAPES[k % SHAPES.length];
-      if (s.showSymbol == null) s.showSymbol = true;
+      if (s.showSymbol == null && (s.data || []).length <= 30) s.showSymbol = true; // 점이 많으면 ECharts가 겹치는 표식을 줄이도록 비워 둔다
       if (s.symbolSize == null) s.symbolSize = 6;
       if (s.endLabel == null) s.endLabel = { show: true, formatter: '{a}', color: tok('ink-2'), fontSize: 12, distance: 6 };
     });
@@ -341,7 +350,7 @@ footer p{margin:0 0 4px}
       option.animation = false;
       lineLabels(option);
       if (!option.tooltip) {
-        var pie = (option.series || []).some(function (s) { return s.type === 'pie'; });
+        var pie = [].concat(option.series || []).some(function (s) { return s.type === 'pie'; });
         option.tooltip = { trigger: pie ? 'item' : 'axis' };
       }
       chart.setOption(option);
@@ -576,7 +585,7 @@ footer p{margin:0 0 4px}
       if (demoStep) demoStep.mark = e;
       var c = tok(color || 'accent'), b = geom(e), P = 6;
       var pts = [[b.x - P, b.y - P], [b.x + b.width + P, b.y - P], [b.x + b.width + P, b.y + b.height + P], [b.x - P, b.y + b.height + P]];
-      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3, data: FX }, at);
+      if (frame.cur && frame.cur !== e) tl.to(frame.cur, { stroke: tok('accent-2'), strokeWidth: 1.5, fillOpacity: 0, duration: 0.3, autoRound: false, data: FX }, at); // autoRound를 끄지 않으면 1.5px이 2px로 반올림된다
       else tl.to({}, { duration: 0 }, at);
       if (!frame.cur) { // 처음에는 크게 나타났다가 조여진다
         pts.forEach(function (p, i) { var o = [[-1, -1], [1, -1], [1, 1], [-1, 1]][i]; tl.set(frame.c[i], { x: p[0] + o[0] * 14, y: p[1] + o[1] * 14 }, '<'); });
@@ -675,12 +684,19 @@ footer p{margin:0 0 4px}
     });
     return hit;
   }
+  function touchesStroke(sub, e) { // 이번 단계의 트윈(spot·unspot 표시 포함)이 요소 e의 테두리 색이나 두께를 바꾸는지
+    return sub.getChildren(true, true, false).some(function (t) {
+      if (t.targets().indexOf(e) < 0) return false;
+      var a = t.vars.attr || {};
+      return t.vars.stroke != null || t.vars.strokeWidth != null || a.stroke != null || a['stroke-width'] != null;
+    });
+  }
   function closedShape(e) { return !!(e && /^(rect|polygon|circle|ellipse)$/i.test(e.tagName) && !e.closest('.rc-note, .rc-icon, .rc-focus')); }
   function mmdShape(e) { return !!(e && e.closest && e.closest('pre.mermaid svg g.node')); }
   function ownFill(e) { var f = e.style.fill || e.getAttribute('fill'); return !!f && f !== 'none'; } // 작성자가 인라인 스타일·속성으로 준 채움
   function styleNodes(tl, sub, cur, prev, at, memo) { // 닫힌 도형에 현재·지나온 노드 표시를 한다. 작성자가 준 색은 덮어쓰지 않는다
     var A = tok('accent'), K = ['stroke', 'strokeWidth', 'fill', 'fillOpacity'];
-    if (closedShape(prev) && prev !== cur) {
+    if (closedShape(prev) && prev !== cur && !touchesStroke(sub, prev)) { // 이번 단계가 직전 노드 테두리를 바꾸면(unspot 포함) 그 값을 둔다
       var s = authorSet(sub, prev, K) || {}, v = { duration: 0.3, autoRound: false }; // autoRound를 끄지 않으면 GSAP가 1.5px을 2px로 반올림한다
       if (s.stroke == null && !memo.author.has(prev)) v.stroke = tok('accent-2'); // 작성자가 tl.to로 색을 준 적이 있으면 그 색을 둔다
       if (s.strokeWidth == null) v.strokeWidth = 1.5;
@@ -741,7 +757,7 @@ footer p{margin:0 0 4px}
     [].forEach.call(svg.querySelectorAll(STAGE_GEOM), function (e) {
       if (e.closest('.rc-note, defs, marker, clipPath, mask, pattern') || !seen(e, fig)) return;
       var c = getComputedStyle(e), tag = e.tagName.toLowerCase();
-      var line = tag === 'line' || tag === 'polyline' || (tag === 'path' && (c.fill === 'none' || /,\s*0\)$/.test(c.fill)));
+      var line = tag === 'line' || tag === 'polyline' || (tag === 'path' && alpha(c.fill) === 0);
       if (line && dots && e.getTotalLength) {
         var m = e.getScreenCTM(), L = e.getTotalLength();
         for (var s = 0; s <= L; s += 3) { var p = e.getPointAtLength(s); into.pts.push(new DOMPoint(p.x, p.y).matrixTransform(m).matrixTransform(inv)); }
@@ -886,7 +902,7 @@ footer p{margin:0 0 4px}
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
       var hideNext = [], prevIt = null, NEG = tok('neg');
-      if (box) tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 자동 상자·스틱맨 설정을 시각 0 뒤에 둔다
+      tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 모든 설정(작성자 tl.set, 자동 상자·스틱맨)을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
           var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
@@ -998,7 +1014,7 @@ footer p{margin:0 0 4px}
       function go(i, animate) {
         stop();
         if (i < 0) { seekTo(0); return; }
-        if (animate && !reduce) { seekTo(startOf(i)); tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; } }); }
+        if (animate && !reduce) { var q = quiet; quiet = true; pend = null; seekTo(startOf(i)); quiet = q; tw = tl.tweenTo(ends[i], { onComplete: function () { tw = null; } }); }
         else seekTo(ends[i]);
       }
       function play() {

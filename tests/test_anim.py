@@ -145,6 +145,10 @@ class ListSync(unittest.TestCase):
                 rows[cols[0]] = cols[-1]
         self.assertEqual(rows, anim.ANIM_TYPES)
 
+    def test_fx_table_lists_mark(self):  # 애니메이션 함수 표에 RC.fx.mark 줄이 있다
+        text = (ROOT / "시각화.md").read_text(encoding="utf-8")
+        self.assertIn("| `RC.fx.mark(tl, el, color, at)` |", text)
+
 
 
 class EngineMode(EngineCase):
@@ -343,12 +347,34 @@ class EngineActive(EngineCase):
           const out = [];
           for (let i = 0; i < 4; i++) { f._rcTl.seek('e' + i, false);
             out.push([cs('a').stroke, cs('a').strokeWidth, cs('b').stroke, cs('b').strokeWidth]); }
-          return {out, A: col('accent'), A2: col('accent-2')}; }""")
+          return {out, A: col('accent'), A2: col('accent-2'), K: col('ink')}; }""")
         A, A2 = r["A"], r["A2"]
         self.assertEqual(r["out"][0][:2], [A, "2px"])
         self.assertEqual(r["out"][1], [A2, "1.5px", A, "2px"])
-        self.assertEqual(r["out"][2][:2], [A, "2px"])
+        self.assertEqual(r["out"][2], [A, "2px", r["K"], "1px"])  # unspot이 처음 상태로 돌린 b를 지나온 노드 표시가 덮어쓰지 않는다
         self.assertEqual(r["out"][3], [A2, "1.5px", A, "2px"])
+
+    def test_opaque_zero_blue_text_is_seen(self):  # 파랑 성분이 0인 불투명 글자색(rgb(200, 100, 0))도 보이는 글로 센다
+        def e0(fill, name):  # 두 문서가 같은 파일 이름이면 브라우저 캐시가 앞 문서를 다시 줄 수 있어 이름을 나눈다
+            body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                    f'<text id="t" x="20" y="100" style="fill:{fill}"></text></svg></figure>')
+            script = ("RC.demo(document.getElementById('d1'),[{name:'가',text:'첫 단계입니다.',play:function(tl){"
+                      "RC.fx.type(tl,document.getElementById('t'),'ABCDEFGHIJKLMNOP',0.5);}}]);")
+            p = self.open_file(name, engine_doc(body, script), mode="auto")
+            return self.js(p, "() => document.getElementById('d1')._rcTl.labels.e0")
+        self.assertGreater(e0("rgb(200, 100, 0)", "opaque_zero_blue.html") - e0("rgba(200, 100, 0, 0)", "clear_zero_blue.html"), 1.5)  # 16자 ÷ 8 = 2초 더 머문다
+
+    def test_reset_reverts_time0_set_with_author_note(self):  # 작성자 설명 상자가 있어도 시각 0의 tl.set을 '처음부터'가 되돌린다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="a" x="20" y="80" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),nt=RC.note(st,120,30);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 단계입니다.',play:function(tl,$){tl.set($('a'),{opacity:0.2});tl.to($('a'),{x:10,duration:0.3});}},"
+                  "{name:'나',text:'둘째 단계입니다.',play:function(tl,$){tl.to($('a'),{x:20,duration:0.3});}}]);")
+        p = self.open(body, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'), a = document.getElementById('a');
+          f._rcTl.seek('e1', false); const mid = +getComputedStyle(a).opacity;
+          f.querySelectorAll('.demo-ctl button')[3].click(); return [mid, +getComputedStyle(a).opacity]; }""")
+        self.assertEqual(r, [0.2, 1])
 
     def test_active_moves_at_step_end(self):  # data-rc-active는 단계 끝 시각에 옮긴다
         p = self.open(MMD, mmd_steps(FLOW))
@@ -492,7 +518,22 @@ TALL_JS = ("RC.demo(document.getElementById('d1'),[{name:'가',text:'위 상자�
            "{name:'나',text:'아래 상자입니다.',play:function(tl,$){tl.to($('bot'),{strokeWidth:2,duration:0.3});}}]);")
 
 
+THREE = TALL.replace('<rect id="bot"', '<rect id="mid" x="20" y="800" width="100" height="40" fill="none" stroke="currentColor"/>\n<rect id="bot"')
+THREE_JS = ("RC.demo(document.getElementById('d1'),["
+            + ",".join("{name:'%s',text:'%s 상자입니다.',play:function(tl,$){tl.to($('%s'),{strokeWidth:2,duration:0.3});}}" % (n, n, k)
+                       for n, k in (("가", "top"), ("나", "mid"), ("다", "bot"))) + "]);")
+
+
 class EngineScroll(EngineCase):
+    def test_next_scrolls_only_to_target_step(self):  # '다음'이 단계 시작으로 먼저 옮길 때 앞 단계로는 스크롤하지 않는다
+        p = self.open(THREE, THREE_JS)
+        r = self.js(p, """() => { scrollTo(0, 300); const f = document.getElementById('d1'), tl = f._rcTl, calls = [];
+          const orig = window.scrollBy; window.scrollBy = function (o) { calls.push(o.top); };
+          tl.seek(tl.labels.e0 + 0.01, false);  // 2단계 연출이 막 시작된 상태(단계 사이 띄움 안)
+          f.querySelectorAll('.demo-ctl button')[2].click(); tl.seek(tl.labels.e2, false);
+          window.scrollBy = orig; return calls.length; }""")
+        self.assertEqual(r, 1)
+
     def test_scrolls_when_figure_on_screen(self):
         p = self.open(TALL, TALL_JS)
         self.assertEqual(self.js(p, "() => scrollY"), 0)  # 문서를 열 때는 스크롤하지 않는다
@@ -560,6 +601,21 @@ class EngineChart(EngineCase):
         r = self.option("[{name:'가',type:'bar',data:[1,2,3]},{name:'나',type:'line',data:[3,2,1]}]")
         self.assertEqual(r["s"][1][1], False)
         self.assertEqual(r["right"], 16)
+
+
+    def test_long_lines_keep_symbol_unset(self):  # 점이 30개를 넘는 선은 표식 표시를 ECharts 기본값에 맡긴다
+        js = ("var x=[],y1=[],y2=[];for(var i=0;i<100;i++){x.push(i);y1.push(i);y2.push(100-i);}"
+              "window.opt={xAxis:{type:'category',data:x},yAxis:{type:'value'},series:[{name:'가',type:'line',data:y1},{name:'나',type:'line',data:y2}]};"
+              "window.opt2={xAxis:{type:'category',data:[1,2,3]},yAxis:{type:'value'},series:[{name:'가',type:'line',data:[1,2,3]},{name:'나',type:'line',data:[3,2,1]}]};"
+              "RC.chart(document.getElementById('c1'),opt);RC.chart(document.getElementById('c2'),opt2);")
+        p = self.open('<figure><div class="viz" id="c1"></div><div class="viz" id="c2"></div></figure>', js)
+        r = self.js(p, "() => [opt.series.map(s => [s.showSymbol === undefined, !!s.symbol, !!(s.endLabel && s.endLabel.show)]), opt2.series.map(s => s.showSymbol)]")
+        self.assertEqual(r, [[[True, True, True], [True, True, True]], [True, True]])
+
+    def test_single_series_object(self):  # series를 배열 아닌 객체 하나로 줘도 그린다
+        js = "window.ch=RC.chart(document.getElementById('c1'),{series:{type:'pie',data:[{name:'가',value:1},{name:'나',value:2}]}});"
+        p = self.open(CHART, js)
+        self.assertEqual(self.js(p, "() => ch && ch.getOption().tooltip[0].trigger"), "item")
 
 
 class SampleSelfCheck(EngineCase):
