@@ -1,0 +1,30 @@
+{
+  "lens": "lens-fit",
+  "target": "docs/superpowers/plans/2026-10-04-c1-animation-engine.md",
+  "doc_type": "설계 (spec·plan) — 이 문서는 구현 단계와 그 설계 근거('설계 결정' 절)를 담고 진행 상태나 다음 단계를 적지 않았다(체크박스는 superpowers 형식이 요구하는 빈 칸뿐이다). 설계 행은 포함 금지 항목을 정하지 않으므로 행 대조로 올릴 것이 없었다",
+  "read": [
+    "C:/Users/ho381/.claude/plugins/cache/chshin-tools/disciplined-coder/4edfe8ef3073/skills/lens-fit/SKILL.md",
+    "C:/Users/ho381/.claude/disciplined-coder/agent-principles.md",
+    "C:/Users/ho381/.claude/plugins/cache/chshin-tools/disciplined-coder/4edfe8ef3073/skills/lens-readability/domain-korean.md",
+    "C:/Users/ho381/.claude/plugins/cache/claude-plugins-official/superpowers/6.4.1/skills/writing-plans/SKILL.md",
+    "D:/projects/Structure/whr-c1/docs/superpowers/plans/2026-10-04-c1-animation-engine.md"
+  ],
+  "issues": [
+    {"where": "Task 12 Step 1·Step 5", "type": "format", "claim": "실행 명령에 자리표시가 남아 있다. 실행자가 `<스크래치 폴더>`와 `<임시>`의 실제 경로를 스스로 정해야 명령이 돈다.", "evidence": "SP=<스크래치 폴더>/rb1 / python eval/shoot.py $SP/04-rules.html <임시>/auto/04 --mode auto", "principle": "writing-plans No Placeholders", "consequence": "Task 12의 기계 판정 명령과 화면 캡처 명령은 문서에 적힌 그대로는 셸에서 실행되지 않는다."},
+    {"where": "Task 3 Step 3", "type": "format", "claim": "`.demo-static` 규칙과 `@media print` 블록에 `.demo-scen`을 더하는 부분에 코드가 없다.", "evidence": "`.demo-static` 규칙과 `@media print` 블록에 `.demo-scen`을 함께 숨긴다.", "principle": "writing-plans No Placeholders", "consequence": "기존 숨김 규칙에 들어갈 선택자 줄은 실행자가 기존 CSS를 읽고 지어내야 한다."},
+    {"where": "Task 11 Step 1 '재생 방식'·'report-charts.js 주석' 불릿", "type": "format", "claim": "문서 갱신 단계가 넣을 문장 대신 무엇을 적을지만 지시한다. 주석 불릿은 조건부 지시라 고칠 내용이 정해지지 않았다.", "evidence": "자동 재생(`?rc-mode=auto`)과 단계 넘김(...)을 표로 적는다. / 3~5행 함수 목록 주석에 바뀐 동작이 있으면 같은 말로 맞춘다.", "principle": "writing-plans No Placeholders", "consequence": "재생 방식 표의 셀 내용과 주석 수정 여부는 실행자가 정한다."},
+    {"where": "Review Focus '되감기와 이전' ↔ Task 5 test_rewind_restores_note_text", "type": "format", "claim": "Review Focus 줄이 고정한다고 적은 조건을 해당 Task의 시험이 다 담지 않는다. 시험은 '이전'을 누른 뒤 설명 상자 글만 보고, '처음부터'와 현재 노드 표시와 스틱맨 상태는 보지 않는다.", "evidence": "단계 끝에서 '이전'이나 '처음부터'를 누르면 설명 상자 글·현재 노드 표시·스틱맨이 그 단계의 상태로 돌아가야 한다. Task 5의 되감기 시험이 고정한다.", "principle": "writing-plans Review Focus", "consequence": "되감기 뒤의 data-rc-active와 스틱맨 투명도, '처음부터' 뒤 상태를 확인하는 시험이 없다."},
+    {"where": "Review Focus 각 줄과 '설계 결정'·'파일 구조' 불릿", "type": "style", "claim": "불릿 한 항목이 여러 문장이다.", "evidence": "- **설명 상자 자리가 없을 때 범위 넓히기:** … (네 문장)", "principle": "BULLET-SCOPE", "consequence": "설계 결정의 근거 문단이 불릿 안에 들어가 있다."},
+    {"where": "Task 11 Step 3", "type": "constraint", "claim": "금지어 확인 단계가 실행하지 않을 명령을 `Run:` 라벨로 적고, 실제 확인은 명령 없이 남겼다.", "evidence": "Run: `python check.py 시각화.md` 는 HTML 전용이라 쓰지 않는다.", "principle": "CHECKABLE", "consequence": "금지어 표 전체를 대조하는 명령과 기대 결과가 없다. 이어지는 grep은 낱말 일곱 개만 본다."},
+    {"where": "Task 10 Step 2 Expected", "type": "constraint", "claim": "실패를 확인하는 단계의 기대 결과가 통과인지 실패인지 정하지 않는다.", "evidence": "`test_sample_anim_and_viz_pass`는 관리 블록이 옛 엔진이라 결과가 엔진 변경을 반영하지 않는다.", "principle": "CHECKABLE", "consequence": "실행자는 이 시험의 결과가 계획대로인지 판정할 수 없다."},
+    {"where": "Task 12 머리", "type": "format", "claim": "Task 구조에 Interfaces 블록과 커밋 단계가 없다.", "evidence": "**Files:** - 없음(측정만 한다). 결함이 나오면 해당 Task의 파일을 고치고 그 Task의 시험을 다시 실행한다.", "principle": "writing-plans Task Structure", "consequence": "Step 6의 '작업 트리 정리됨' 기대와 어긋날 수 있다."},
+    {"where": "머리말 Goal", "type": "format", "claim": "Goal 문장이 390 폭 스크롤 상자, 선 차트 이름표, 시나리오 묶기, 견본 수정을 담지 않는다.", "evidence": "**Goal:** 고정 견본의 호출 코드를 바꾸지 않고, …", "principle": "writing-plans Plan Document Header", "consequence": "Goal만 읽은 실행자는 Task 8·9를 범위 밖으로 볼 수 있다."},
+    {"where": "Global Constraints와 파일 구조", "type": "style", "claim": "한 목록 안에서 말끝이 섞여 있다.", "evidence": "- 자동 재생의 체류 시간: 글이 다 나온 뒤 1초 + n÷8초 이상, 그 값 + 3초 이하. / - `report-charts.js`: 엔진 원본.", "principle": "ONE-ENDING", "consequence": "항목 사이 차이에 뜻이 있는지 다시 따져야 한다."},
+    {"where": "Global Constraints, Review Focus, 설계 결정", "type": "style", "claim": "관형절이 문장 중간에 끼어 있다.", "evidence": "n은 그 단계에서 figure 안에 새로 보이는 글의 글자 수(...)이고 / 지나온 노드는 작성자가 마지막으로 준 테두리 색이 강조색(`accent`)이거나", "principle": "NO-MID-MOD", "consequence": "서술어까지의 거리가 늘어난다."},
+    {"where": "Architecture, 설계 결정, Task 10 Step 3", "type": "style", "claim": "명사 앞에 수식어가 둘 이상 쌓여 있다.", "evidence": "figure 안의 보이는 글을 모아 / 지나온 노드의 보조 강조색 1.5px 표시는 / 아래 얇은 막대가", "principle": "NO-STACK-MOD", "consequence": "수식어가 두세 겹 붙어 있다."},
+    {"where": "Goal, Architecture, 설계 결정", "type": "style", "claim": "저장소 안에서만 통하는 이름(고정 견본, n, C0 하네스, note-near, 04-rules 흐름도)이 처음 나올 때 풀이가 없다.", "evidence": "고정 견본의 호출 코드를 바꾸지 않고 / n과 글 완료 시각을 구하고 / 넓히지 않으면 `note-near`가 실패하기 때문이다", "principle": "TERM-EXPLAIN", "consequence": "머리말만 읽는 실행자가 용어를 모른 채 설계 결정을 읽는다."},
+    {"where": "Task 1 Step 4, Task 10 Files, Global Constraints", "type": "style", "claim": "대상을 이름 대신 개수로 가리킨다.", "evidence": "`EngineMode` 6개와 기존 시험 모두 PASS / 무대 SVG 두 개와 관리 블록 / 네 개를 이 순서로", "principle": "COUNT-EARNS", "consequence": "시험 목록을 바꾸면 개수가 조용히 틀린다."}
+  ],
+  "principles_applied": ["writing-plans Plan Document Header", "writing-plans Task Structure", "writing-plans No Placeholders", "writing-plans Review Focus", "CHECKABLE", "YAGNI", "NAME-ITEMS", "STATE-ASSUME", "TITLES", "DOC-TYPE", "WRITTEN-ONLY", "NO-MID-MOD", "NO-STACK-MOD", "KEEP-CONNECT", "ANTI-LIMIT", "COMMA-CUT", "FULL-SENTENCE", "ONE-ENDING", "BULLET-SCOPE", "ONE-IDEA", "TERM-EXPLAIN", "TERM-ONE", "COUNT-EARNS", "SPECIFIC-NAME"],
+  "notes": "NAME-ITEMS는 Task·Step 번호가 형식 계약이 정한 순서라 위반으로 보지 않았다. TITLES는 템플릿 우선 조항으로 적용하지 않았다. YAGNI는 spec을 읽지 않아 판정하지 못했다. 본문에서 '자리'를 여러 번 쓴다는 점을 호출자가 참고할 만하다. (원본 보고에서 파일 경로와 counterpart 인용 칸은 줄여 옮겼다)"
+}

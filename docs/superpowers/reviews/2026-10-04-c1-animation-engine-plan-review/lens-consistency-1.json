@@ -1,0 +1,78 @@
+{
+ "lens": "lens-consistency",
+ "target": "docs/superpowers/plans/2026-10-04-c1-animation-engine.md",
+ "issues": [
+  {
+   "where": "plan 전체(Task 12 이후), spec 산출 계약",
+   "type": "gap",
+   "claim": "spec이 요구하는 리포트를 쓰는 Task가 없다. 리포트를 저장소 밖에 쓰고 커밋하지 않는다는 규칙과 리포트 항목을 모으는 단계가 없다."
+  },
+  {
+   "where": "plan 마지막 줄",
+   "type": "gap",
+   "claim": "리뷰 마커가 없고 마커를 붙이는 단계도 없다."
+  },
+  {
+   "where": "Task 10 Step 3, Task 11, Task 12",
+   "type": "gap",
+   "claim": "build.py 재빌드를 Task 10에서 한 번만 한다. Task 11·12에서 report-charts.js를 고친 뒤 견본 관리 블록이 낡는다."
+  },
+  {
+   "where": "Task 11 Step 1 '자동 설명 상자'와 Step 3 grep",
+   "type": "contradiction",
+   "claim": "Step 1이 '자리'가 든 문장을 넣게 하고 Step 3 grep은 '자리'가 없어야 통과한다."
+  },
+  {
+   "where": "Task 5·6 usePeep",
+   "type": "drift",
+   "claim": "usePeep 정의가 box·stage 정의보다 뒤라는 순서가 정해지지 않았다. 앞에 두면 usePeep이 늘 false다."
+  },
+  {
+   "where": "Task 1 골격과 Task 4·6·8",
+   "type": "drift",
+   "claim": "골격에 memo·prevActive·hideNext·prevIt·NEG 자리가 없고, Task 8 주석은 fitSvg인데 넣는 코드는 watchFit이다. info 필드 목록에 note·think가 없다."
+  },
+  {
+   "where": "설계 결정 범위 넓히기, spec 산출 계약",
+   "type": "drift",
+   "claim": "plan은 'spec과 다르게 정한 점'에 적으라 하나 spec 리포트 항목에는 '상위 설계와 다르게 정한 점'만 있다."
+  },
+  {
+   "where": "설계 결정 범위 넓히기, Task 5",
+   "type": "contradiction",
+   "claim": "spec은 표시 범위 안 자리만 고르고 없으면 자막을 보이라 한다. plan은 viewBox를 넓힌다."
+  },
+  {
+   "where": "Task 5 EngineNote",
+   "type": "gap",
+   "claim": "viewBox 넓히기 경로를 고정하는 시험이 없다."
+  },
+  {
+   "where": "Task 6 usePeep·it.think 조건",
+   "type": "contradiction",
+   "claim": "spec은 자동 스틱맨을 RC.icon 미사용 조건으로만 정하는데 plan은 자동 설명 상자가 있을 때만 둔다. 설계 결정에도 없다."
+  },
+  {
+   "where": "Task 1 show(i), Task 4",
+   "type": "contradiction",
+   "claim": "spec은 단계 끝에서 data-rc-active를 단다고 정하는데 plan은 단계 시작 직후에 단다. Mermaid 한정 표시와 판정 색 두 단계 결정도 리포트에 적는다는 표시가 없다."
+  },
+  {
+   "where": "Review Focus 되감기, Task 5 test_rewind",
+   "type": "gap",
+   "claim": "되감기 시험이 설명 상자 글만 비교한다."
+  }
+ ],
+ "principles_applied": [
+  "NO-ASSUME",
+  "STATE-ASSUME",
+  "CHECKABLE",
+  "FOCUSED",
+  "NO-FLEET",
+  "TERM-ONE",
+  "SPECIFIC-NAME",
+  "WRITTEN-ONLY",
+  "NAME-ITEMS"
+ ],
+ "notes": "검증 2의 발동·비발동 입력은 viewBox 넓히기를 빼고 모두 대응 시험이 있다. 빌드 중 seek 상태에서 다음 단계 play를 실행하면 gsap.set과 getComputedStyle이 앞 단계 끝 DOM을 읽는 위험이 있다. 상위 설계와 eval/motion.py는 열지 않았다. (원본 보고의 evidence·counterpart 칸은 줄여 옮겼다)"
+}
