@@ -195,5 +195,44 @@ class EngineMode(EngineCase):
         self.assertEqual(t["playing"], "재생")
 
 
+class EngineDwell(EngineCase):
+    def dwell(self, p):
+        r = self.js(p, "id => __c0.dwellSamples(id)", "d1")
+        return measure.dwell_steps([(t, s) for t, s in r["samples"]], r["ends"])
+
+    def test_caption_only_steps_meet_rule(self):  # 무대 글이 없는 단계도 자막으로 n을 얻는다
+        p = self.open(MMD, mmd_steps(FLOW), mode="auto")
+        steps = self.dwell(p)
+        self.assertTrue(all(s["ok"] for s in steps), steps)
+        self.assertTrue(all(s["n"] > 0 for s in steps), steps)
+
+    def test_stage_text_counts(self):  # 무대 글(숫자 칸 포함)과 작성자 설명 상자 글을 센다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="r" x="20" y="80" width="80" height="40" fill="none" stroke="currentColor"/>'
+                '<text id="v" x="200" y="100" font-size="14">0</text></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),nt=RC.note(st,180,40);"
+                  "RC.demo(document.getElementById('d1'),[{name:'가',text:'첫 단계입니다.',play:function(tl,$){"
+                  "RC.fx.say(tl,nt,200,20,'모델 A는 비슷한 변형 일곱 개',0.6);RC.fx.count(tl,$('v'),0,720000,'원',0.4);}},"
+                  "{name:'나',text:'둘째 단계입니다.',play:function(tl,$){RC.fx.say(tl,nt,200,20,'둘째',0.2);}}]);")
+        p = self.open(body, script, mode="auto")
+        steps = self.dwell(p)
+        self.assertTrue(all(s["ok"] for s in steps), steps)
+        self.assertGreaterEqual(steps[0]["n"], 14)
+
+    def test_rewind_keeps_popped_icon(self):  # 같은 아이콘을 두 단계에서 pop해도 '이전'으로 돌아가면 보인다
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="r" x="20" y="80" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),ic=RC.icon(st,'check',300,40);"
+                  "RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'나타납니다.',play:function(tl,$){RC.fx.pop(tl,ic);$('r');}},"
+                  "{name:'나',text:'사라집니다.',play:function(tl,$){tl.to(ic,{opacity:0,duration:0.2});$('r');}},"
+                  "{name:'다',text:'다시 나타납니다.',play:function(tl,$){RC.fx.pop(tl,ic);$('r');}}]);")
+        p = self.open(body, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'), b = f.querySelectorAll('.demo-ctl button'), ic = f.querySelector('.rc-icon');
+          f._rcTl.seek('e2', false); b[0].click(); b[0].click();
+          return +getComputedStyle(ic).opacity; }""")
+        self.assertGreater(r, 0.9)
+
+
 if __name__ == "__main__":
     unittest.main()

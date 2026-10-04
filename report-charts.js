@@ -18,6 +18,50 @@
     return e;
   }
 
+  var SKIP_TXT = /^(SCRIPT|STYLE|TITLE|NOSCRIPT)$/;
+  function ownText(e) {
+    var s = '';
+    for (var i = 0; i < e.childNodes.length; i++) if (e.childNodes[i].nodeType === 3) s += e.childNodes[i].nodeValue;
+    return s.replace(/\s+/g, ' ').trim();
+  }
+  function seen(e, fig) { // C0 하네스의 보임 판정을 계산된 스타일로 옮긴 것이다. 숨은 페이지에서도 쓰도록 면적 조건은 뺀다
+    var o = 1, c0 = getComputedStyle(e);
+    if (c0.visibility === 'hidden' || c0.visibility === 'collapse') return false;
+    for (var n = e; n && n !== fig.parentElement; n = n.parentElement) {
+      var c = n === e ? c0 : getComputedStyle(n);
+      if (c.display === 'none' || (c.clipPath && c.clipPath !== 'none')) return false;
+      o *= +c.opacity;
+    }
+    if (o <= 0.05) return false;
+    var col = c0[e instanceof SVGElement ? 'fill' : 'color'];
+    return !/^(transparent|none)$|,\s*0\)$/.test(col);
+  }
+  function textPool(fig) { // 표본마다 다시 찾지 않도록 글을 가질 수 있는 요소를 단계마다 한 번 모은다. 조작 줄·단계 목록·자막·시나리오 줄은 뺀다
+    return [].filter.call(fig.querySelectorAll('*'), function (e) {
+      return !SKIP_TXT.test(e.tagName) && !e.closest('.demo-ctl, .demo-steps, .demo-cap, .demo-scen, defs');
+    });
+  }
+  function texts(fig, pool) { // figure 안 보이는 글 요소와 그 글
+    var m = new Map();
+    pool.forEach(function (e) { var t = ownText(e); if (t && seen(e, fig)) m.set(e, t); });
+    return m;
+  }
+  function sameTexts(a, b) {
+    if (a.size !== b.size) return false;
+    var ok = true;
+    a.forEach(function (v, k) { if (b.get(k) !== v) ok = false; });
+    return ok;
+  }
+  function sampleStep(tl, fig, from, to, before, pool) { // from~to를 0.05초 간격으로 옮기며 글이 마지막으로 바뀐 시각(done)과 새 글자 수(n)를 구한다
+    var prev = before, done = from, ts = [];
+    for (var t = from; t < to - 1e-9; t += 0.05) ts.push(t);
+    ts.push(to);
+    ts.forEach(function (t) { tl.seek(t, false); var cur = texts(fig, pool); if (!sameTexts(prev, cur)) done = t; prev = cur; });
+    var n = 0;
+    prev.forEach(function (v, e) { if (before.get(e) !== v) n += chars(v); });
+    return { done: done, n: n };
+  }
+
   RC.color = function (name) {
     var v = tok(name);
     if (!v) console.error('RC.color: 없는 토큰 이름 ' + name);
@@ -371,7 +415,7 @@
       var $ = function (name) { var e = find(name); if (e && demoStep === rec) rec.last = e; return e; };
       var tl = gsap.timeline({ paused: true }), ends = [], info = [], auto = mode === 'auto';
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
-      /* Task 2: capPrev */
+      var capPrev = null;
       /* Task 4: memo, prevActive */
       /* Task 5: stage, restore, box, vb */
       /* Task 6: usePeep, hideNext, prevIt, NEG */
@@ -393,7 +437,13 @@
           rewindTo(pre);
           /* Task 5: 자동 상자 위치와 it.noteOn */
           /* Task 6: 고민 스틱맨 */
-          /* Task 2: 글 표본으로 it.n·it.done 계산 */
+          var pool = textPool(fig);
+          rewindTo(pre);
+          var before = texts(fig, pool), smp = sampleStep(tl, fig, start, animEnd, before, pool), capText = s.name + ': ' + s.text;
+          it.n = smp.n; it.done = smp.done;
+          if (!it.noteOn && capPrev !== capText) { it.n += chars(capText); it.done = Math.max(it.done, start + 0.05); } // 자막은 타임라인 밖 글이라 따로 센다
+          capPrev = it.noteOn ? null : capText;
+          if (auto && animEnd - it.done > holdFor(it.n) + 3) console.warn('RC.demo: [' + fig.id + '] "' + s.name + '" 단계는 글이 끝난 뒤 연출이 길어 체류 상한을 넘는다');
           var end = auto ? Math.max(animEnd, it.done + holdFor(it.n) + HOLD_PAD) : Math.max(animEnd, start + STEP_MIN);
           if (end > tl.duration()) tl.to({}, { duration: end - tl.duration() });
           tl.addLabel('e' + i, end); ends.push(end);
