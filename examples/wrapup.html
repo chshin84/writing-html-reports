@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>월간 성과 표 개선 마무리 보고</title>
+<style>
+/* BEGIN report-base */
+/* 보고서 규격 기준 CSS — 각 HTML의 <style> 맨 앞에 그대로 붙여 넣는다.
+   규칙의 근거와 금지 목록은 같은 폴더의 보고서-규격.md에 있다. */
+:root{
+  --paper:#FFFFFF; --ink:#111418; --ink-2:#3F4650; --ink-3:#6B7280;
+  --rule:#111418; --hair:#D6D9DE; --tint:#F4F4F1;
+  --accent:#1F3A5F; --accent-2:#8FA3BC; --neg:#A8322A;
+  --s1:#1F3A5F; --s2:#5E8C7E; --s3:#B07A2A; --s4:#8A8F98;
+  --sans:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"D2Coding",Consolas,ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#15171A; --ink:#E9EBEE; --ink-2:#BCC2CA; --ink-3:#8D949E;
+    --rule:#E9EBEE; --hair:#343941; --tint:#1D2024;
+    --accent:#9DB7D8; --accent-2:#4B5E78; --neg:#E0776C;
+    --s1:#9DB7D8; --s2:#86B5A6; --s3:#D6A45A; --s4:#8D949E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15171A; --ink:#E9EBEE; --ink-2:#BCC2CA; --ink-3:#8D949E;
+  --rule:#E9EBEE; --hair:#343941; --tint:#1D2024;
+  --accent:#9DB7D8; --accent-2:#4B5E78; --neg:#E0776C;
+  --s1:#9DB7D8; --s2:#86B5A6; --s3:#D6A45A; --s4:#8D949E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 var(--sans);
+  font-variant-numeric:tabular-nums;word-break:keep-all;padding:48px 16px 72px}
+.doc{max-width:880px;margin:0 auto}
+p{margin:0 0 .9em}
+p:last-child{margin-bottom:0}
+b,strong{font-weight:600}
+a{color:var(--accent);text-underline-offset:2px}
+code,.code{font-family:var(--mono);font-size:.88em;color:var(--ink-2)}
+
+/* 머리말: 소속·날짜 한 줄, 제목, 리드, 이중 괘선 */
+.doc-head{padding-bottom:8px}
+.doc-meta{font-size:13px;color:var(--ink-3);margin:0 0 10px}
+h1{font-size:30px;line-height:1.3;font-weight:700;margin:0 0 14px;letter-spacing:-.01em}
+.lede{font-size:17px;color:var(--ink-2);max-width:68ch;margin:0}
+
+/* 절: 카드 없이 괘선과 여백으로 구분 */
+section{margin-top:56px}
+h2{font-size:21px;line-height:1.4;font-weight:700;margin:0 0 16px}
+h3{font-size:16px;line-height:1.5;font-weight:600;margin:28px 0 8px}
+.prose{max-width:68ch;color:var(--ink)}
+.note,.cap{font-size:13px;line-height:1.6;color:var(--ink-3)}
+
+/* 핵심 수치: 타일 대신 괘선 사이의 한 줄 표 */
+.keyfig{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border-top:1px solid var(--rule);border-bottom:1px solid var(--hair);margin:24px 0 0}
+.keyfig{grid-template-rows:auto auto auto}
+.keyfig>div{padding:12px 16px 12px 0;display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}
+.keyfig>div+div{padding-left:16px;border-left:1px solid var(--hair)}
+.keyfig .k{display:block;font-size:13px;line-height:1.5;color:var(--ink-3);padding-bottom:4px}
+.keyfig .v{display:block;font-size:18px;font-weight:600;line-height:1.4;color:var(--ink)}
+.keyfig .d{display:block;font-size:13px;color:var(--ink-2)}
+
+/* 요지: 문서당 한 번. 옅은 바탕 하나만 허용하고 색 띠는 쓰지 않는다 */
+.gist{background:var(--tint);padding:20px 24px;margin-top:32px}
+.gist h2{font-size:17px;margin-bottom:8px}
+.gist ul{margin:0;padding-left:1.2em}
+.gist li+li{margin-top:4px}
+
+/* 주석성 문단: 굵은 머리말로 구분하고 상자를 쓰지 않는다 */
+.aside{margin:16px 0;padding-top:10px;border-top:1px solid var(--hair);font-size:15px;color:var(--ink-2)}
+.aside>b:first-child{color:var(--ink)}
+.aside.warn>b:first-child{color:var(--neg)}
+
+/* 표: 위아래 괘선만 쓰는 형식 */
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.55}
+caption{caption-side:top;text-align:left;font-weight:600;font-size:15px;padding-bottom:6px;color:var(--ink)}
+thead th{font-size:13px;font-weight:600;color:var(--ink-2);text-align:left;padding:8px 12px 6px 0;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--rule);vertical-align:bottom}
+td{padding:8px 12px 8px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+tbody tr:last-child td{border-bottom:1.5px solid var(--rule)}
+table:has(tfoot) tbody tr:last-child td{border-bottom:1px solid var(--rule)}
+tfoot td{font-weight:600;border-bottom:1.5px solid var(--rule)}
+th.n,td.n{text-align:right;white-space:nowrap}
+th:last-child,td:last-child{padding-right:0}
+tr.pick td{font-weight:600}
+tr.pick td:first-child{box-shadow:none}
+
+/* 도표: 제목(메시지), 단위·기간, 본체, 자료 출처 순서 */
+figure{margin:24px 0}
+figcaption .t{display:block;font-weight:600;font-size:15px}
+figcaption .u{display:block;font-size:13px;color:var(--ink-3)}
+.src{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+svg text{font-family:var(--sans);fill:var(--ink)}
+
+/* 가로 막대 */
+.bars{display:grid;gap:8px;margin-top:12px}
+.brow{display:grid;grid-template-columns:minmax(150px,240px) 1fr 52px;gap:12px;align-items:center;font-size:14px}
+.brow .l{color:var(--ink-2)}
+.brow .l b{color:var(--ink)}
+.track{position:relative;height:12px}
+.fill{position:absolute;left:0;top:0;height:12px;background:var(--accent-2);width:var(--w)}
+.fill.pick{background:var(--accent)}
+.ref{position:absolute;top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--ink-3)}
+.brow .n{text-align:right;font-weight:600}
+
+/* 시각화: 차트 상자, Mermaid 도식. 규칙은 시각화.md에 있다. 애니메이션 조작 UI는 report-demo.css에 있다 */
+.viz{height:320px;margin-top:12px}
+.viz-fail{display:flex;align-items:center;font-size:13px;color:var(--ink-3);border:1px solid var(--hair);padding:0 12px;min-height:48px}
+pre.mermaid{margin:12px 0 0;font:inherit;font-size:13px;white-space:pre;overflow-x:auto;color:var(--ink-3)}
+pre.mermaid.rendered{white-space:normal;text-align:center;color:var(--ink)}
+pre.mermaid rect{rx:0;ry:0}
+
+/* 번호 목록 형태의 단계 */
+.steps{list-style:none;margin:0;padding:0;counter-reset:st}
+.steps>li{counter-increment:st;display:grid;grid-template-columns:2.2em 1fr;gap:0 8px;padding:14px 0;border-bottom:1px solid var(--hair)}
+.steps>li::before{content:counter(st) ".";font-weight:600;color:var(--ink-3)}
+
+/* 정의 목록 */
+.gloss{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin:0}
+.gloss>div{padding:10px 0;border-top:1px solid var(--hair)}
+.gloss dt{font-weight:600}
+.gloss dd{margin:2px 0 0;color:var(--ink-2);font-size:14.5px}
+
+/* 페이지형 문서: <main class="doc paged">. 한 페이지씩 넘겨 보고, 인쇄하면 페이지마다 나뉜다 */
+.pager{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-bottom:1px solid var(--hair);padding:0 0 10px;margin:0 0 8px;font-size:13px;color:var(--ink-3)}
+.pager button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.pager button:disabled{color:var(--ink-3);cursor:default}
+.pager .cnt{min-width:4.5em;color:var(--ink-2)}
+.toc{font-size:13px;line-height:1.9;color:var(--ink-3);margin:0 0 8px}
+.toc a{color:var(--ink-2);text-decoration:none}
+.toc a.on{color:var(--accent);font-weight:600;text-decoration:underline}
+.toc a.core::before,.toc a.key::before{display:inline-block;margin-right:3px;color:var(--accent)}
+.toc a.core::before{content:"\2605"} /* 최고 핵심 페이지(★, 1개) */
+.toc a.key::before{content:"\2606"} /* 뚜렷이 중요한 페이지(☆, 최대 2개) */
+.page{margin-top:32px}
+.js .page{display:none}
+.js .page.on{display:block}
+.pno{font-size:12.5px;color:var(--ink-3);margin:0 0 6px}
+.paged .lede,.paged .prose{max-width:none}
+.page td:first-child{white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* 페이지 안의 블록: 요점 목록, 블록 머리(근거·중요 포인트·유의사항·출처) */
+.pts{margin:0 0 6px;padding-left:1.2em;max-width:none}
+.pts li+li{margin-top:4px}
+.pts li>b:first-child{color:var(--ink)}
+.page>h2+ul.pts{margin-bottom:8px}
+.blk{margin:28px 0 6px;font-size:16px}
+.blk.warn b{color:var(--neg)}
+.src-list{font-size:13px;color:var(--ink-2)}
+.src-list a{word-break:break-all}
+
+footer{margin-top:64px;border-top:1px solid var(--rule);padding-top:12px;font-size:13px;color:var(--ink-3)}
+footer p{margin:0 0 4px}
+
+@media (max-width:760px){
+  body{padding-top:32px}
+  h1{font-size:25px}
+  .keyfig>div+div{border-left:none;padding-left:0}
+  .keyfig>div{border-bottom:1px solid var(--hair)}
+  .gloss{grid-template-columns:1fr}
+  .brow{grid-template-columns:110px 1fr 44px;font-size:13px}
+}
+@media print{
+  .js .page{display:block}
+  .pager,.toc{display:none}
+  .page{break-before:page}
+  @page{size:A4;margin:16mm 14mm}
+  body{padding:0;font-size:10.5pt}
+  section,figure,table,.gist{break-inside:avoid}
+  h2,h3{break-after:avoid}
+  a{color:inherit;text-decoration:none}
+  .viz{height:auto}
+  .viz>div{width:100%!important}
+  pre.mermaid svg{width:100%;max-width:100%;height:auto}
+}
+/* 애니메이션 조작 UI(RC.demo의 버튼·자막·단계 목록). C1 소유. build.py가 report-base.css 뒤에 이어 넣는다. 규칙은 시각화.md에 있다 */
+.demo-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-3)}
+.demo-ctl button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--hair);padding:3px 12px;cursor:pointer}
+.demo-ctl button:disabled{color:var(--ink-3);cursor:default}
+.demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
+.demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
+.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-static .demo-steps{display:block}
+@media print{
+  .demo-ctl,.demo-cap{display:none}
+  .demo-steps{display:block}
+}
+/* END report-base */
+</style>
+</head>
+<body>
+<main class="doc paged" data-kind="wrapup">
+<nav class="pager">
+  <button type="button" class="prev">이전</button>
+  <span class="cnt"></span>
+  <button type="button" class="next">다음</button>
+</nav>
+<p class="toc"><a href="#p1">1. 요약</a> · <a href="#p2">2. 바뀐 것</a> · <a href="#p3">3. 처음 요청 대비 달성</a> · <a href="#p4">4. 남은 일</a> · <a href="#p5" class="core">5. 결정 요청</a> · <a href="#p6">6. 검증 범위</a></p>
+
+<section class="page summary" id="p1">
+  <p class="pno">1 / 6</p>
+  <div class="doc-head">
+    <p class="meta">가상 운용지원팀 · 2026년 10월 4일</p>
+    <h1>월간 성과 표 생성 스크립트 개선</h1>
+    <p class="basis">기준: 변경 커밋 3f9c2a1(가상), 설계 문서 docs/specs/monthly-table-v2.md(가상)</p>
+    <p class="lede">월간 성과 표 생성 스크립트 개선은 처음 요청을 얼마나 채웠고, 끝내려면 무엇을 정해야 하는가? 이 보고서는 가상의 운용지원팀 작업을 예로 든 마무리 보고서 견본이며, 팀 이름과 경로와 수치는 모두 지어낸 값입니다.</p>
+  </div>
+  <div class="keyfig">
+    <div data-src="p2"><span class="k">표 생성 시간(1회)</span><span class="v">6분</span><span class="d">종전 42분</span></div>
+    <div data-src="p3"><span class="k">요청 항목 달성</span><span class="v">4개 중 3개</span><span class="d">PDF 출력은 일부 달성</span></div>
+    <div data-src="p4"><span class="k">남은 일(10월 처리)</span><span class="v">1건</span><span class="d">PDF 서식 보완, 나머지는 미룸·하지 않음</span></div>
+    <div data-src="p5"><span class="k">결정 요청</span><span class="v">1건</span><span class="d">결측 기준가 처리(권장: 빈 칸 표시)</span></div>
+    <div data-src="p6"><span class="k">자동 시험</span><span class="v">18건 통과</span><span class="d">PDF 화면은 확인하지 않음</span></div>
+  </div>
+  <div class="gist">
+    <h2>요약</h2>
+    <ul>
+      <li data-src="p2">월간 성과 표를 한 번 만드는 시간이 종전의 7분의 1로 줄었습니다.</li>
+      <li data-src="p3">처음 요청한 항목 중 PDF 출력만 일부 달성에 그쳤고 나머지는 모두 달성했습니다.</li>
+      <li data-src="p4">남은 일은 PDF 서식 보완만 10월에 끝내고, 나머지는 미루거나 하지 않습니다.</li>
+      <li data-src="p5">결측 기준가 처리 방식의 결정이 필요하며, 권장안은 결측을 감추지 않는 빈 칸 표시입니다.</li>
+      <li data-src="p6">계산 값은 자동 시험으로 확인했지만 PDF 화면은 확인하지 않았습니다.</li>
+    </ul>
+  </div>
+  <dl class="gloss">
+    <div><dt>PDF</dt><dd>인쇄용 문서 파일 형식(Portable Document Format)입니다.</dd></div>
+    <div><dt>CSV</dt><dd>값을 쉼표로 나눠 적은 표 형식의 글 파일(Comma-Separated Values)입니다.</dd></div>
+    <div><dt>기준가</dt><dd>펀드의 하루 단위 평가 가격입니다. 성과 표의 수익률은 기준가로 계산합니다.</dd></div>
+    <div><dt>결측 기준가</dt><dd>원자료에 그날 값이 없는 기준가입니다.</dd></div>
+    <div><dt>마감 실행</dt><dd>매달 말 그달의 성과 표를 확정하려고 스크립트를 실행하는 작업입니다.</dd></div>
+    <div><dt>확인 상태</dt><dd>결론 줄 앞의 표시로, 실행으로 확인함·추론함·가정함 중 하나입니다.</dd></div>
+  </dl>
+</section>
+
+<section class="page" id="p2" data-part="changed">
+  <p class="pno">2 / 6</p>
+  <p class="sec">바뀐 것</p>
+  <h2>표 1회 생성 시간이 42분에서 6분으로 줄었다</h2>
+  <ul class="pts">
+    <li><span class="state" data-state="run">실행으로 확인함</span> 생성 시간은 종전의 7분의 1로 줄었습니다(<code>logs/run-0831.txt</code>와 <code>logs/run-0930.txt</code> 대조).</li>
+    <li><span class="state" data-state="infer">추론함</span> 계산식이 그대로이므로 단축 효과는 원자료 읽기 방식 변경에서 나왔다고 판단합니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 9월 표부터 손으로 고친 셀이 없어져 수정 이력을 따로 관리하지 않아도 됩니다(<code>out/monthly_2026-09.xlsx</code>).</li>
+    <li><span class="state" data-state="assume">가정함</span> 통합 CSV의 열 순서가 매달 같다고 가정하고 읽습니다.</li>
+  </ul>
+  <p class="blk"><b>근거</b></p>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>변경 전</th><th>변경 후</th></tr></thead>
+    <tbody>
+      <tr><td>표 1회 생성 시간</td><td>42분</td><td class="chg">6분</td></tr>
+      <tr><td>원자료 읽기 방식</td><td>펀드별 파일 120개 개별 읽기</td><td class="chg">월 통합 CSV 1개 일괄 읽기</td></tr>
+      <tr><td>수작업 수정 셀(9월)</td><td>37개</td><td class="chg">0개</td></tr>
+      <tr><td>출력 형식</td><td>엑셀</td><td class="chg">엑셀과 PDF</td></tr>
+      <tr><td>수익률 계산식</td><td>기말 기준가 ÷ 기초 기준가 − 1</td><td>변경 없음</td></tr>
+    </tbody>
+  </table></div>
+  <p class="blk"><b>중요 포인트</b></p>
+  <ul class="pts">
+    <li>바뀐 칸은 굵게 표시했습니다. 변경 전 열은 8월 실행 1회, 변경 후 열은 9월 실행 1회의 기록입니다.</li>
+  </ul>
+  <p class="blk warn"><b>유의사항</b></p>
+  <ul class="pts">
+    <li>소요 시간은 개발용 컴퓨터에서 측정한 값이며, 서버 환경에서는 측정하지 않았습니다.</li>
+    <li>통합 CSV의 열 순서가 바뀌면 스크립트가 멈추도록 열 이름 검사를 넣었습니다.</li>
+  </ul>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>변경 전 실행 기록: <code>logs/run-0831.txt</code>(가상)</li>
+    <li>변경 후 실행 기록: <code>logs/run-0930.txt</code>(가상)</li>
+    <li>9월 출력 파일: <code>out/monthly_2026-09.xlsx</code>(가상)</li>
+    <li>변경 커밋: <code>3f9c2a1</code>(가상, 열 이름 검사 포함)</li>
+  </ul>
+</section>
+
+<section class="page" id="p3" data-part="achieved">
+  <p class="pno">3 / 6</p>
+  <p class="sec">처음 요청 대비 달성</p>
+  <h2>처음 요청한 4개 항목 중 3개를 달성했다</h2>
+  <ul class="pts">
+    <li><span class="state" data-state="run">실행으로 확인함</span> 생성 시간은 요청 기준보다 4분 빨라 여유가 있습니다(<code>logs/run-0930.txt</code>).</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 펀드를 추가할 때 코드를 고칠 필요가 없어졌습니다(<code>python -m pytest tests/test_funds.py</code> 통과).</li>
+    <li><span class="state" data-state="infer">추론함</span> PDF 출력의 미달 원인은 긴 펀드명이 표 머리에서 줄바꿈되지 않는 문제 하나라고 판단합니다.</li>
+  </ul>
+  <p class="blk"><b>근거</b></p>
+  <div class="tbl"><table>
+    <thead><tr><th>요청 항목</th><th>결과</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>생성 시간 10분 이내</td><td>달성</td><td>9월 실행 6분</td></tr>
+      <tr><td>수작업 수정 제거</td><td>달성</td><td>9월 표의 수정 셀 0개</td></tr>
+      <tr><td>엑셀·PDF 동시 출력</td><td>일부 달성</td><td>엑셀 완료, PDF 표 머리 줄바꿈 미해결</td></tr>
+      <tr><td>설정 파일만으로 펀드 추가</td><td>달성</td><td>시험 펀드 1개 추가 후 시험 통과</td></tr>
+    </tbody>
+  </table></div>
+  <p class="blk"><b>중요 포인트</b></p>
+  <ul class="pts">
+    <li>결과 열의 '일부 달성'은 요청 항목 안에서 출력 형식 일부만 완료된 상태를 뜻합니다.</li>
+  </ul>
+  <p class="blk warn"><b>유의사항</b></p>
+  <ul class="pts">
+    <li>처음 요청은 9월 1일 요청 메모를 기준으로 판정했고, 이후 구두로 바뀐 요청은 반영하지 않았습니다.</li>
+  </ul>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>요청 메모: <code>docs/request-0901.md</code>(가상)</li>
+    <li>9월 실행 기록: <code>logs/run-0930.txt</code>(가상)</li>
+    <li>펀드 추가 시험: <code>tests/test_funds.py</code>(가상)</li>
+  </ul>
+</section>
+
+<section class="page" id="p4" data-part="remaining">
+  <p class="pno">4 / 6</p>
+  <p class="sec">남은 일</p>
+  <h2>남은 일 3건 중 PDF 서식 보완 1건만 10월에 처리한다</h2>
+  <ul class="pts">
+    <li><span class="state" data-state="infer">추론함</span> 보완 예정일이 10월 마감 실행보다 앞서므로 10월 표부터 PDF를 함께 낼 수 있습니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 8월 표를 새 스크립트로 다시 만들어 기존 표와 대조한 결과 차이가 없어, 8월 이전 표는 다시 만들지 않습니다(<code>python compare.py 2026-08</code> 출력 <code>차이 0건</code>).</li>
+    <li><span class="state" data-state="infer">추론함</span> 결측 기준가 처리를 빈 칸 표시로 정하면 PDF 보완 범위에 빈 칸 표기 규칙이 추가됩니다(<a href="#p5">결정 요청</a> 참조).</li>
+  </ul>
+  <p class="blk"><b>근거</b></p>
+  <div class="tbl"><table>
+    <thead><tr><th>남은 일</th><th>처분</th><th>권장안</th><th>예정 시점</th></tr></thead>
+    <tbody>
+      <tr><td>PDF 표 머리 줄바꿈 보완</td><td>지금 함</td><td>펀드명 열 폭을 고정하고 줄바꿈 허용</td><td>10월 15일</td></tr>
+      <tr><td>서버 환경 소요 시간 측정</td><td>미룸</td><td>11월 마감 실행 때 함께 측정</td><td>11월 3일</td></tr>
+      <tr><td>8월 이전 표 재생성</td><td>하지 않음</td><td>기존 표를 그대로 둠</td><td>해당 없음</td></tr>
+    </tbody>
+  </table></div>
+  <p class="blk"><b>중요 포인트</b></p>
+  <ul class="pts">
+    <li>처분이 '지금 함'인 항목만 이번 작업 범위에서 처리하고, 나머지 항목은 예정 시점에 다시 판단합니다.</li>
+  </ul>
+  <p class="blk warn"><b>유의사항</b></p>
+  <ul class="pts">
+    <li>10월 15일 일정은 작업자 1명이 다른 업무 없이 진행한다는 전제이며, 일정이 밀리면 10월 표는 엑셀만 냅니다.</li>
+  </ul>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>작업 기록: <code>logs/worklog.md</code>(가상)</li>
+    <li>마감 일정: <code>docs/schedule-2026.md</code>(가상, 10월 마감 실행은 10월 31일)</li>
+    <li>8월 대조 출력: <code>logs/compare-2026-08.txt</code>(가상)</li>
+  </ul>
+</section>
+
+<section class="page core" id="p5" data-part="decisions">
+  <p class="pno">5 / 6</p>
+  <p class="sec">결정 요청</p>
+  <h2>결측 기준가는 직전 값 채움 대신 빈 칸 표시를 권장한다</h2>
+  <ul class="pts">
+    <li><span class="state" data-state="run">실행으로 확인함</span> 10월 마감 실행 전에 정하지 않으면 현행 설정인 직전 값 채움이 그대로 적용됩니다(<code>config.yaml</code>의 <code>missing: ffill</code>).</li>
+    <li><span class="state" data-state="assume">가정함</span> 빈 칸 표시를 고르면 엑셀과 PDF에 같은 표기를 넣어야 하며, 이 작업은 PDF 서식 보완 일정 안에서 끝난다고 가정합니다.</li>
+    <li><span class="state" data-state="run">실행으로 확인함</span> 결정한 파일 이름 규칙은 9월 출력 파일에 이미 적용했습니다(<code>out/monthly_2026-09.xlsx</code>).</li>
+  </ul>
+  <p class="blk"><b>근거</b></p>
+  <div class="tbl"><table>
+    <thead><tr><th>정할 사항</th><th>선택안</th><th>권장안과 이유</th><th>기각한 대안과 이유</th></tr></thead>
+    <tbody>
+      <tr><td>결측 기준가 처리<br>(결정 요청, 9월 3건)</td><td>직전 영업일 값으로 채움(현행)<br>빈 칸으로 표시<br>해당 펀드 행 제외</td><td>빈 칸으로 표시. 결측이 표에서 드러나고 수익률을 지어내지 않음</td><td>직전 값 채움은 결측 펀드의 수익률이 0%로 보임. 행 제외는 펀드 수가 달마다 바뀌어 전월 표와 비교하기 어려움</td></tr>
+      <tr><td>출력 파일 이름 규칙<br>(결정한 사항, 9월 28일)</td><td>날짜를 이름 앞에 붙임<br>날짜를 이름 뒤에 붙임</td><td>날짜를 이름 뒤에 붙임. 기존 폴더의 정렬 순서와 같음</td><td>이름 앞에 붙이면 배포 스크립트의 파일 경로를 고쳐야 함</td></tr>
+    </tbody>
+  </table></div>
+  <p class="blk"><b>중요 포인트</b></p>
+  <ul class="pts">
+    <li>권장안은 결측을 감추지 않는다는 기준 하나로 골랐고, 작업량 차이는 판단 기준에 넣지 않았습니다.</li>
+  </ul>
+  <p class="blk warn"><b>유의사항</b></p>
+  <ul class="pts">
+    <li>결측 건수는 9월 원자료 기준이며, 다른 달의 결측 빈도는 확인하지 않았습니다.</li>
+  </ul>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>9월 원자료: <code>data/nav_2026-09.csv</code>(가상)</li>
+    <li>결정 기록: <code>docs/decisions.md</code>(가상)</li>
+    <li>설정 파일: <code>config.yaml</code>(가상)</li>
+  </ul>
+</section>
+
+<section class="page" id="p6" data-part="verification">
+  <p class="pno">6 / 6</p>
+  <p class="sec">검증 범위</p>
+  <h2>자동 시험 18건은 모두 통과했고 PDF 화면은 확인하지 않았다</h2>
+  <ul class="pts">
+    <li><span class="state" data-state="run">실행으로 확인함</span> 실행으로 확인한 범위는 계산 값과 엑셀 출력까지입니다(<code>logs/verify-1003.txt</code>).</li>
+    <li><span class="state" data-state="infer">추론함</span> PDF 화면과 서버 소요 시간은 남은 일과 겹치므로 별도 검증 없이 해당 작업에서 함께 확인한다고 판단합니다.</li>
+    <li><span class="state" data-state="assume">가정함</span> 9월 수작업 수정본의 값이 올바르다고 가정하고 대조 기준으로 썼습니다.</li>
+  </ul>
+  <p class="blk"><b>근거</b></p>
+  <div class="tbl"><table>
+    <thead><tr><th>확인 사항</th><th>명령</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr><td>단위 시험</td><td><code>python -m pytest tests</code></td><td>18건 통과</td></tr>
+      <tr><td>9월 표 값 대조</td><td><code>python compare.py 2026-09</code></td><td>차이 0건</td></tr>
+      <tr><td>PDF 화면 대조</td><td>실행하지 않음</td><td>확인하지 않음</td></tr>
+      <tr><td>서버 환경 소요 시간</td><td>실행하지 않음</td><td>확인하지 않음</td></tr>
+    </tbody>
+  </table></div>
+  <p class="blk"><b>중요 포인트</b></p>
+  <ul class="pts">
+    <li>결과가 '확인하지 않음'인 행은 실패가 아니고 실행하지 않은 상태입니다.</li>
+  </ul>
+  <p class="blk warn"><b>유의사항</b></p>
+  <ul class="pts">
+    <li>단위 시험은 계산 함수만 다루며, 엑셀 서식(열 폭·글꼴)은 시험하지 않습니다.</li>
+    <li>엑셀 서식은 PDF 서식 보완 때 화면으로 함께 대조합니다.</li>
+  </ul>
+  <p class="blk"><b>출처</b></p>
+  <ul class="pts src-list">
+    <li>검증 기록: <code>logs/verify-1003.txt</code>(가상)</li>
+    <li>시험 폴더: <code>tests/</code>(가상)</li>
+  </ul>
+</section>
+</main>
+<script>
+document.documentElement.classList.add('js');
+(function () {
+  var pages = Array.prototype.slice.call(document.querySelectorAll('section.page'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var cnt = document.querySelector('.pager .cnt');
+  var prev = document.querySelector('.pager .prev');
+  var next = document.querySelector('.pager .next');
+  var cur = 0;
+  function show(i) {
+    cur = Math.max(0, Math.min(pages.length - 1, i));
+    var id = pages[cur].id;
+    pages.forEach(function (p, k) { p.classList.toggle('on', k === cur); });
+    links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + id); });
+    cnt.textContent = (cur + 1) + ' / ' + pages.length;
+    prev.disabled = cur === 0;
+    next.disabled = cur === pages.length - 1;
+  }
+  function indexOfHash() {
+    var m = /^#(p\d+)$/.exec(location.hash);
+    if (!m) return -1;
+    for (var k = 0; k < pages.length; k++) { if (pages[k].id === m[1]) return k; }
+    return -1;
+  }
+  function go(i) {
+    show(i);
+    history.replaceState(null, '', '#' + pages[cur].id);
+  }
+  prev.addEventListener('click', function () { go(cur - 1); });
+  next.addEventListener('click', function () { go(cur + 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') go(cur - 1);
+    if (e.key === 'ArrowRight') go(cur + 1);
+  });
+  window.addEventListener('hashchange', function () {
+    var i = indexOfHash();
+    if (i >= 0) show(i);
+  });
+  var start = indexOfHash();
+  show(start >= 0 ? start : 0);
+})();
+</script>
+</body>
+</html>
