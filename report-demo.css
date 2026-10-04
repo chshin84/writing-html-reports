@@ -4,10 +4,22 @@
 .demo-ctl button:disabled{color:var(--ink-3);cursor:default}
 .demo-ctl .cnt{min-width:3.5em;color:var(--ink-2)}
 .demo-cap{font-size:14.5px;color:var(--ink-2);margin:6px 0 0}
+.demo-cap{min-height:1.5em}
+.demo-cap.rc-off{visibility:hidden}
 .demo-steps{display:none;font-size:13px;color:var(--ink-2);margin:8px 0 0;padding-left:1.4em}
-.demo-static .demo-ctl,.demo-static .demo-cap{display:none}
+.demo-scen{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:13px}
+.demo-scen button{font:inherit;font-size:13px;background:var(--paper);color:var(--ink-2);border:1px solid var(--hair);padding:2px 10px;cursor:pointer}
+.demo-scen button.on{color:var(--ink);border-color:var(--ink-3)}
+.demo-static .demo-ctl,.demo-static .demo-cap,.demo-static .demo-scen{display:none}
 .demo-static .demo-steps{display:block}
+.rc-scroll{overflow-x:auto;max-width:100%}
+.rc-scroll>svg{display:block}
+@media screen and (max-width:760px){ /* 도식이 스크롤 상자보다 넓을 때(엔진이 rc-over를 단다) 넓은 표의 단서와 같은 글자 모양으로 알린다 */
+  .rc-scroll.rc-over::before{content:"도식이 화면보다 넓으면 옆으로 밀어 볼 수 있습니다";display:block;position:sticky;left:0;text-align:left;font-size:12.5px;color:var(--ink-3);padding-bottom:4px}
+}
 @media print{
-  .demo-ctl,.demo-cap{display:none}
+  .demo-ctl,.demo-cap,.demo-scen{display:none}
   .demo-steps{display:block}
+  .rc-scroll{overflow:visible}
+  .rc-scroll>svg{min-width:0 !important}
 }

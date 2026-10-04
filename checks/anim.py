@@ -68,8 +68,43 @@ def anim_violations(html):
     return out
 
 
+NUM = r"(-?\d+(?:\.\d+)?)"
+NOTE_AT = re.compile(r"\bfx\.pair\s*\(\s*[^,()]+,\s*[^,()]+,\s*(?:\[[^\]]*\]|[^,()]+),\s*" + NUM + r"\s*,\s*" + NUM + r"\s*,"
+                     r"|\bfx\.say\s*\(\s*[^,()]+,\s*[^,()]+,\s*" + NUM + r"\s*,\s*" + NUM + r"\s*,")
+
+
+def note_fixed_violations(html):
+    """설명 상자 위치: 한 애니메이션의 모든 단계(play 수)에서 RC.fx.pair·say가 같은 숫자 좌표를 쓰면 상자를 한 위치에 고정한 것이다.
+    호출은 그 앞의 가장 가까운 RC.demo 호출에 속한다고 본다. 좌표가 변수인 호출은 판정하지 않는다."""
+    js, out = doc_scripts(html), []
+    starts = [m.start() for m in re.finditer(r"\bRC\.demo\s*\(", js)]
+    for k, s in enumerate(starts):
+        seg = js[s:starts[k + 1] if k + 1 < len(starts) else len(js)]
+        at = [(m.group(1) or m.group(3), m.group(2) or m.group(4)) for m in NOTE_AT.finditer(seg)]
+        steps = len(re.findall(r"\bplay\s*:", seg))
+        if len(at) >= max(2, steps) and len(set(at)) == 1:
+            m = DEMO_ID.match(seg)
+            fid = m.group(1) if m else f"RC.demo {k + 1}번째 호출"
+            out.append(f"설명 상자 고정 위치: {fid}의 설명 상자가 모든 단계에서 ({at[0][0]}, {at[0][1]})에 있다"
+                       "(현재 노드 48px 안으로 옮기거나 RC.note를 지우고 엔진 자동 상자에 맡긴다)")
+    return out
+
+
+def baseline_mark_violations(html):
+    """전후 비교의 기준선: 전후 전환 figure는 기준선 도형에 data-rc-base를 달아 RC.check가 마지막 단계까지 남는지 보게 한다."""
+    out = []
+    for attrs, body in re.findall(r"<figure\b([^>]*)>(.*?)</figure>", html, re.S):
+        if re.search(r'\bdata-anim="전후 전환"', attrs) and not re.search(r"\bdata-rc-base\b", body):
+            m = re.search(r'\bid="([^"]+)"', attrs)
+            out.append(f"전후 전환 기준선 표시 누락: {m.group(1) if m else '이름 없는 figure'}에 data-rc-base를 단 기준선 도형이 없다"
+                       "(기준선은 바뀐 값과 별도 도형으로 두고 마지막 단계까지 남긴다)")
+    return out
+
+
 RULES = [
     (script_motion_violations, "prefix"),
     (anim_count_violations, "plain"),
     (anim_violations, "exact"),
+    (note_fixed_violations, "exact"),
+    (baseline_mark_violations, "exact"),
 ]
