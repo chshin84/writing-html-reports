@@ -33,6 +33,7 @@
       o *= +c.opacity;
     }
     if (o <= 0.05) return false;
+    if (!ownText(e)) return true; // C0처럼 글자색은 글을 가진 요소에만 본다. 채움이 없는 도형도 보이는 무대 요소다
     var col = c0[e instanceof SVGElement ? 'fill' : 'color'];
     return !/^(transparent|none)$|,\s*0\)$/.test(col);
   }
@@ -172,6 +173,15 @@
 
   /* 애니메이션 아이콘: 스틱맨(Open Peeps 상반신 80×80, report-peeps.js)과 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
   var SVGNS = 'http://www.w3.org/2000/svg';
+  var authored = { note: new WeakSet(), icon: new WeakSet() }; // 작성자가 RC.note·RC.icon을 만든 figure. 자동 상자·스틱맨을 두지 않는다
+  function own(kind, svg) { var f = svg && svg.closest && svg.closest('figure'); if (f) authored[kind].add(f); }
+  function peepEl(svg, name, x, y, size) { // 스틱맨 그림. (x, y)는 중심, size는 한 변이다. 처음에는 투명하다
+    var P = window.RC_PEEPS, body = P.figures[name].replace(/class="pk"/g, 'fill="' + tok('ink') + '"').replace(/class="pw"/g, 'fill="' + tok('paper') + '"');
+    var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + P.viewBox + '">' + body + '</svg>');
+    var pg = sv('g', { 'class': 'rc-icon', opacity: 0, 'data-rc-peep': name }, svg);
+    sv('image', { x: x - size / 2, y: y - size / 2, width: size, height: size, href: src }, pg);
+    return pg;
+  }
   function sv(tag, attrs, parent) {
     var e = document.createElementNS(SVGNS, tag);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
@@ -200,13 +210,9 @@
   };
   var ICON_COLOR = { question: 'accent', check: 'accent', cross: 'neg' };
   RC.icon = function (svg, name, x, y) {
-    var P = window.RC_PEEPS;
+    own('icon', svg); var P = window.RC_PEEPS;
     if (svg && P && P.figures[name]) { // 스틱맨: 80×80 image(SVG data URI)로 넣어 경계와 변형 원점이 그림 칸과 같게 한다. 선은 ink, 바탕은 paper 토큰 값을 만들 때 넣는다
-      var body = P.figures[name].replace(/class="pk"/g, 'fill="' + tok('ink') + '"').replace(/class="pw"/g, 'fill="' + tok('paper') + '"');
-      var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + P.viewBox + '">' + body + '</svg>');
-      var pg = sv('g', { 'class': 'rc-icon', opacity: 0 }, svg);
-      sv('image', { x: x - 40, y: y - 40, width: 80, height: 80, href: src }, pg);
-      return pg;
+      return peepEl(svg, name, x, y, 80);
     }
     if (!svg || !ICONS[name]) { console.error('RC.icon: 무대가 없거나 없는 아이콘 이름 ' + name); return null; }
     var c = tok(ICON_COLOR[name] || 'ink');
@@ -220,6 +226,7 @@
      돌려주는 값 { g: 상자, t: 문장 칸, n: 숫자 칸 }. 위치는 RC.fx.say가 단계마다 옮긴다 */
   RC.note = function (svg, w, h) {
     if (!svg) { console.error('RC.note: 무대가 없다'); return null; }
+    own('note', svg);
     var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
     sv('rect', { x: 0, y: 0, width: w, height: h, fill: tok('paper'), stroke: tok('hair') }, g);
     var fo = sv('foreignObject', { x: 0, y: 0, width: w, height: h }, g);
@@ -434,6 +441,86 @@
       if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
     });
   }
+  var NOTE_W = 220, GAP = 8, PEEP = 56;
+  function reveal(fig) { // 숨은 페이지의 figure를 계산하는 동안만 화면 밖에 펼친다. 되돌리는 함수를 돌려준다
+    var undo = [];
+    for (var k = 0; k < 6 && !fig.getClientRects().length; k++) {
+      var n = fig;
+      while (n && n !== document.body && getComputedStyle(n).display !== 'none') n = n.parentElement;
+      if (!n || n === document.body) break;
+      undo.push([n, n.getAttribute('style')]);
+      var w = (n.parentElement && n.parentElement.clientWidth) || document.documentElement.clientWidth;
+      n.style.cssText += ';display:block !important;position:absolute !important;left:-99999px !important;top:0 !important;width:' + w + 'px !important';
+    }
+    return function () { undo.reverse().forEach(function (u) { if (u[1] == null) u[0].removeAttribute('style'); else u[0].setAttribute('style', u[1]); }); };
+  }
+  function autoNote(svg) { // 자동 설명 상자 하나를 만들어 단계마다 글과 위치만 바꾼다
+    var g = sv('g', { 'class': 'rc-note', opacity: 0 }, svg);
+    var rect = sv('rect', { x: 0, y: 0, width: NOTE_W, height: 30, style: 'fill:' + tok('paper') + ';stroke:' + tok('hair') }, g);
+    var fo = sv('foreignObject', { x: 0, y: 0, width: NOTE_W, height: 30 }, g);
+    var div = document.createElement('div'), t = document.createElement('span');
+    div.style.cssText = 'padding:6px 8px;font:12.5px/1.45 var(--sans);color:var(--ink);word-break:keep-all';
+    div.appendChild(t); fo.appendChild(div);
+    return { g: g, rect: rect, fo: fo, div: div, t: t, text: '' };
+  }
+  function noteHeight(box, text) {
+    box.t.textContent = text;
+    var h = box.div.offsetHeight;
+    box.t.textContent = box.text;
+    return h ? Math.ceil(h) + 1 : 18 * Math.ceil(chars(text) * 13 / 204) + 13;
+  }
+  function userBox(inv, e) { // 화면 경계 상자를 무대 좌표로 바꾼다
+    var r = e.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
+    return { l: Math.min(a.x, b.x), t: Math.min(a.y, b.y), r: Math.max(a.x, b.x), b: Math.max(a.y, b.y) };
+  }
+  var STAGE_GEOM = 'text, rect, polygon, circle, ellipse, path, line, polyline, foreignObject, image';
+  function obstacles(svg, fig, into) { // 무대 요소(도형·글자·간선·간선 이름표·보이는 아이콘)의 상자와 간선 점을 무대 좌표로 into에 더한다
+    var inv = svg.getScreenCTM().inverse(), dots = !!svg.closest('pre.mermaid'); // Mermaid 선은 점으로(C0 하네스), 직접 그린 무대의 선은 경계 상자로(RC.check) 본다
+    [].forEach.call(svg.querySelectorAll(STAGE_GEOM), function (e) {
+      if (e.closest('.rc-note, defs, marker, clipPath, mask, pattern') || !seen(e, fig)) return;
+      var c = getComputedStyle(e), tag = e.tagName.toLowerCase();
+      var line = tag === 'line' || tag === 'polyline' || (tag === 'path' && (c.fill === 'none' || /,\s*0\)$/.test(c.fill)));
+      if (line && dots && e.getTotalLength) {
+        var m = e.getScreenCTM(), L = e.getTotalLength();
+        for (var s = 0; s <= L; s += 3) { var p = e.getPointAtLength(s); into.pts.push(new DOMPoint(p.x, p.y).matrixTransform(m).matrixTransform(inv)); }
+        return;
+      }
+      var b = userBox(inv, e), k = line ? 1.5 : 0;
+      if ((b.r - b.l) * (b.b - b.t) >= 1 || line) into.boxes.push({ l: b.l - k, t: b.t - k, r: b.r + k, b: b.b + k });
+    });
+    return into;
+  }
+  function freeAt(u, obs) {
+    var l = u.l - 3, t = u.t - 3, r = u.r + 3, b = u.b + 3;
+    for (var i = 0; i < obs.boxes.length; i++) { var o = obs.boxes[i]; if (Math.min(r, o.r) - Math.max(l, o.l) > 0.5 && Math.min(b, o.b) - Math.max(t, o.t) > 0.5) return false; }
+    for (var k = 0; k < obs.pts.length; k++) { var p = obs.pts[k]; if (p.x >= l && p.x <= r && p.y >= t && p.y <= b) return false; }
+    return true;
+  }
+  function placeUnit(a, nh, peepW, obs, vb) { // 상자 묶음(상자 폭 220, 높이 nh, 스틱맨 칸 폭 peepW)의 위치를 오른쪽·왼쪽·아래·위 순서로 찾는다. 표시 범위 vb 안에서만 찾는다
+    var w = NOTE_W + peepW, h = Math.max(nh, peepW ? PEEP : 0);
+    function sweep(lo, hi, mid) { var v = [mid]; for (var d = 6; mid - d >= lo || mid + d <= hi; d += 6) { if (mid + d <= hi) v.push(mid + d); if (mid - d >= lo) v.push(mid - d); } return v; }
+    function at(side, ux, uy, nx) { return { side: side, u: { l: ux, t: uy, r: ux + w, b: uy + h }, note: { x: nx, y: uy }, peep: { x: nx === ux ? ux + NOTE_W + 4 : ux, y: uy } }; }
+    var ys = sweep(a.t - h + 10, a.b - 10, (a.t + a.b - h) / 2), xs = sweep(a.l - NOTE_W + 10, a.r - 10, (a.l + a.r - NOTE_W) / 2);
+    var sides = [
+      ys.map(function (y) { return at(0, a.r + GAP, y, a.r + GAP); }),                   // 오른쪽: 노드 | 상자 | 스틱맨
+      ys.map(function (y) { return at(1, a.l - GAP - w, y, a.l - GAP - NOTE_W); }),      // 왼쪽: 스틱맨 | 상자 | 노드
+      xs.map(function (x) { return at(2, x, a.b + GAP, x); }),                          // 아래: 상자 | 스틱맨
+      xs.map(function (x) { return at(3, x, a.t - GAP - h, x); })                       // 위
+    ];
+    for (var s = 0; s < 4; s++) for (var i = 0; i < sides[s].length; i++) {
+      var c = sides[s][i];
+      if (c.u.l >= vb.l && c.u.t >= vb.t && c.u.r <= vb.r && c.u.b <= vb.b && freeAt(c.u, obs)) return c;
+    }
+    return null;
+  }
+  function showNote(tl, box, at, p, text, h) { // 단계 시작에 자동 상자의 글과 위치를 바꾼다. p가 null이면 숨긴다
+    if (!p) { tl.set(box.g, { opacity: 0 }, at); return; }
+    var prev = box.text, o = { v: 0 };
+    tl.set(box.g, { x: p.x, y: p.y, opacity: 1 }, at);
+    tl.set([box.rect, box.fo], { attr: { height: h } }, at);
+    tl.to(o, { v: 1, duration: 0.01, onUpdate: function () { box.t.textContent = o.v > 0 ? text : prev; } }, at); // 되감으면 앞 단계 글로 돌아간다
+    box.text = text;
+  }
   RC.demo = function (fig, steps) {
     if (!fig) { console.error('RC.demo: figure가 없다'); return null; }
     if (!Array.isArray(steps) || !steps.length) { console.error('RC.demo: 단계 배열이 없다'); return null; }
@@ -479,8 +566,12 @@
       function rewindTo(t) { tl.seek(0, false); tl.seek(t, false); } // 처음부터 다시 옮겨 빌드 중 gsap.set이 끼어도 화면 상태를 맞춘다
       var capPrev = null;
       var memo = { author: new Set(), fill: new Map() }, prevActive = null;
-      /* Task 5: stage, restore, box, vb */
+      var stage = fig.querySelector('svg'), restore = reveal(fig);
+      var box = stage && !authored.note.has(fig) && !stage.querySelector('.rc-note') ? autoNote(stage) : null;
+      var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
+      var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       /* Task 6: usePeep, hideNext, prevIt, NEG */
+      var usePeep = false;
       try {
         steps.forEach(function (s, i) {
           var start = tl.duration(), pre = Math.max(0, start - 0.01), sub = gsap.timeline();
@@ -501,7 +592,22 @@
           /* Task 6: 앞 단계 스틱맨 숨김과 판정 스틱맨 */
           var animEnd = Math.max(sub.endTime(), tl.duration());
           rewindTo(pre);
-          /* Task 5: 자동 상자 위치와 it.noteOn */
+          if (box && vb && it.active && stage.contains(it.active) && stage.getScreenCTM()) {
+            try { // 위치 계산이 실패해도 그 단계에 상자를 두지 않을 뿐 애니메이션은 만든다
+              var obs = { boxes: [], pts: [] }, ots = [];
+              for (var ot = start; ot < animEnd - 1e-9; ot += 0.25) ots.push(ot);
+              ots.push(animEnd);
+              ots.forEach(function (t) { tl.seek(t, false); obstacles(stage, fig, obs); });
+              var a = userBox(stage.getScreenCTM().inverse(), it.active), nh = noteHeight(box, s.text);
+              var peepW = usePeep && it.diamond ? PEEP + 4 : 0;
+              it.note = placeUnit(a, nh, peepW, obs, vb);
+              showNote(tl, box, start, it.note && it.note.note, s.text, nh);
+            } catch (err) { console.error('RC.demo: 자동 설명 상자 위치 계산', err); it.note = null; tl.set(box.g, { opacity: 0 }, start); }
+            rewindTo(pre);
+          } else if (box) tl.set(box.g, { opacity: 0 }, start);
+          var authorNotes = [].filter.call(fig.querySelectorAll('.rc-note'), function (n) { return !box || n !== box.g; });
+          if (authorNotes.length) { tl.seek(animEnd, false); it.noteOn = authorNotes.some(function (n) { return seen(n, fig); }); rewindTo(pre); } // 작성자 상자가 단계 끝에 보이는지
+          if (it.note) it.noteOn = true;
           /* Task 6: 고민 스틱맨 */
           var pool = textPool(fig);
           rewindTo(pre);
@@ -521,10 +627,10 @@
         console.error('RC.demo', e);
         tl.kill();
         fig.classList.add('demo-static');
-        /* Task 5: restore() */
+        restore();
         return;
       }
-      /* Task 5: restore() */
+      restore();
       rewindTo(0); // 빌드를 끝낸 화면을 처음 상태로 맞춘다
       var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, last = steps.length - 1;
       var at = null, tw = null, timer = null, quiet = true, pend = null, from = 0, to = last, saved = -1, activeEl = null;

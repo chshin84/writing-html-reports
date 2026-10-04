@@ -358,5 +358,62 @@ class EngineActive(EngineCase):
         self.assertEqual(r, [["A"], ["B"], ["C"]])  # 단계 끝마다 정확히 하나
 
 
+
+# 상자 폭 220은 표시 범위(viewBox) 안에서만 찾는다. MMD는 viewBox 폭이 242라 어느 노드 옆에도 자리가 없어,
+# D 아래에 자식 노드를 두어 폭을 넓힌 흐름도로 자동 상자를 본다. A·B·C 모두 한 쪽 이상에 자리가 난다
+MMD_WIDE = MMD.replace("D[거부]", "D[거부]" + "".join(
+    f"\n  D --> {k}[{v}]" for k, v in zip("EFGHIJ", ["보류", "재검토", "취소", "이관", "보고", "종결"])))
+SIDE = """<figure id="d1" data-anim="구조"><svg viewBox="0 0 600 300" width="600" height="300">
+<rect id="a" x="40" y="120" width="100" height="40" fill="none" stroke="currentColor"/></svg></figure>"""
+
+
+class EngineNote(EngineCase):
+    def judged(self, p):
+        r = self.js(p, "id => __c0.noteSteps(id)", "d1")
+        return measure.note_steps(r["steps"], r["view"])
+
+    def test_auto_note_beside_node_and_caption_hidden(self):
+        p = self.open(MMD_WIDE, mmd_steps(FLOW))
+        for s in self.judged(p):
+            self.assertTrue(s["near"] and s["visible"], s)
+        r = self.js(p, """() => { const f = document.getElementById('d1');
+          return {tag: f.querySelector('svg .rc-note').tagName, text: f.querySelector('svg .rc-note').textContent.trim(),
+                  cap: getComputedStyle(f.querySelector('.demo-cap')).visibility}; }""")
+        self.assertEqual(r, {"tag": "g", "text": "주문을 체결합니다.", "cap": "hidden"})
+
+    def test_right_side_first(self):
+        p = self.open(SIDE, "RC.demo(document.getElementById('d1'),[{name:'가',text:'오른쪽에 둡니다.',play:function(tl,$){$('a');}}]);")
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          return [f.querySelector('.rc-note').getBoundingClientRect().left, document.getElementById('a').getBoundingClientRect().right]; }""")
+        self.assertGreater(r[0], r[1])
+
+    def test_author_note_means_no_auto_note(self):
+        body = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 400 200" width="100%">'
+                '<rect id="a" x="20" y="120" width="80" height="40" fill="none" stroke="currentColor"/></svg></figure>')
+        script = ("var st=document.querySelector('#d1 svg'),nt=RC.note(st,150,40);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 단계입니다.',play:function(tl,$){RC.fx.say(tl,nt,200,20,'작성자 글',0.2);$('a');}}]);")
+        p = self.open(body, script)
+        self.assertEqual(self.js(p, "() => document.querySelectorAll('#d1 .rc-note').length"), 1)
+
+    def test_no_place_shows_caption(self):  # 사방이 막힌 노드는 자동 상자 없이 자막을 보인다
+        cells = "".join(f'<rect id="c{r}{c}" x="{c * 90}" y="{r * 50}" width="84" height="44" fill="none" stroke="currentColor"/>'
+                        for r in range(9) for c in range(9))
+        body = f'<figure id="d1" data-anim="구조"><svg viewBox="0 0 810 450" width="100%">{cells}</svg></figure>'
+        script = ("RC.demo(document.getElementById('d1'),[{name:'가',text:'가운데 칸입니다.',play:function(tl,$){"
+                  "tl.to($('c44'),{strokeWidth:2,duration:0.3});}}]);")
+        p = self.open(body, script)
+        r = self.js(p, """() => { const f = document.getElementById('d1'); f._rcTl.seek('e0', false);
+          const n = f.querySelector('.rc-note');
+          return {note: n ? +getComputedStyle(n).opacity : 0, cap: getComputedStyle(f.querySelector('.demo-cap')).visibility}; }""")
+        self.assertEqual(r, {"note": 0, "cap": "visible"})
+
+    def test_hidden_page_figure_gets_note_when_shown(self):
+        body = f'<section class="page" id="p1"><p>첫 페이지</p></section><section class="page core" id="p2">{MMD_WIDE}</section>'
+        p = self.open(body, mmd_steps(FLOW), paged=True)  # p1로 열려 figure는 숨은 상태에서 만들어진다
+        self.js(p, "() => { showPage(1); scrollTo(0, 0); }")
+        for s in self.judged(p):
+            self.assertTrue(s["near"], s)
+
+
 if __name__ == "__main__":
     unittest.main()
