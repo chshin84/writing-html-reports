@@ -1,5 +1,6 @@
 """서식·라벨·스크립트 주소 규칙. C2(페이지 틀·CSS) 소유."""
 import re
+from html.parser import HTMLParser
 
 from checks.common import css_of, doc_scripts, mermaid_sources, script_urls, visible_text
 
@@ -56,17 +57,100 @@ def script_style_violations(html):
     return out
 
 
+VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+TITLE_MAX = 40  # 결론 제목은 공백 포함 40자 이하
+SENTENCE_END = re.compile(r"[가-힣]다\.?$")
+
+
+class _Heads(HTMLParser):
+    """모든 h2의 (시작 위치, 글자)와, section.page마다 직계 <p class="sec"> 유무와 직계 h2를 모은다."""
+
+    def __init__(self, html):
+        super().__init__(convert_charrefs=True)
+        self.starts = [0] + [m.end() for m in re.finditer("\n", html)]
+        self.stack, self.pages, self.h2, self.cur = [], [], [], None
+        self.feed(html)
+        self.close()
+
+    def handle_starttag(self, tag, attrs):
+        if tag in VOID:
+            return
+        cls = (dict(attrs).get("class") or "").split()
+        top = self.stack[-1] if self.stack else None
+        if tag == "h2":
+            line, col = self.getpos()
+            self.cur = {"start": self.starts[line - 1] + col, "text": ""}
+            self.h2.append(self.cur)
+        if top and top[1] is not None:  # 바로 위가 section.page면 직계 자식이다
+            pg = self.pages[top[1]]
+            if tag == "p" and "sec" in cls:
+                pg["sec"] = True
+            elif tag == "h2":
+                pg["h2"].append(self.cur)
+        if tag == "section" and "page" in cls:
+            self.pages.append({"sec": False, "h2": []})
+            self.stack.append((tag, len(self.pages) - 1))
+        else:
+            self.stack.append((tag, None))
+
+    def handle_endtag(self, tag):
+        if tag == "h2":
+            self.cur = None
+        for i in range(len(self.stack) - 1, -1, -1):  # 닫는 태그가 빠진 요소는 함께 닫는다
+            if self.stack[i][0] == tag:
+                del self.stack[i:]
+                break
+
+    def handle_data(self, data):
+        if self.cur is not None:
+            self.cur["text"] += data
+
+
+def _squash(text):
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def conclusion_titles(html):
+    """<p class="sec">가 있는 section.page의 직계 h2: [(문서 안 시작 위치, 공백을 하나로 줄인 글자)]."""
+    return [(h["start"], _squash(h["text"])) for p in _Heads(html).pages if p["sec"] for h in p["h2"]]
+
+
+def conclusion_violations(new_html, old_html=None):
+    """결론 제목(.sec 페이지의 직계 h2)은 공백 포함 40자 이하이고 문장 어미 '다'로 끝나야 한다.
+    원본을 주면 원본의 h2와 같은 글자인 제목은 위반으로 세지 않는다(기존 문서의 본문 문장은 고치지 않는다).
+    원본 h2도 같은 파서로 읽어 두 글자의 정규화가 같다."""
+    old = {_squash(h["text"]) for h in _Heads(old_html).h2} if old_html is not None else set()
+    out = []
+    for _, t in conclusion_titles(new_html):
+        if t in old:
+            continue
+        why = []
+        if len(t) > TITLE_MAX:
+            why.append(f"{len(t)}자(기준 {TITLE_MAX}자)")
+        if not SENTENCE_END.search(t):
+            why.append("문장 어미 없음")
+        if why:
+            out.append(f"결론 제목이 규격에 맞지 않음({', '.join(why)}): {t[:60]}")
+    return out
+
+
 HANGUL = re.compile("[가-힣]")
-LABEL_TAGS = re.compile(r'<(title|h1|h2|h3|caption|th)\b[^>]*>(.*?)</\1>|<span class="(?:t|k)">(.*?)</span>', re.S)
-LABEL_MAX = {"title": 24, "h1": 24}  # 나머지 라벨은 18자
+LABEL_TAGS = re.compile(r'<(title|h1|h2|h3|caption|th)\b[^>]*>(.*?)</\1>|<span class="(?:t|k)">(.*?)</span>'
+                        r'|<p class="sec">(.*?)</p>', re.S)
+LABEL_MAX = {"title": 24, "h1": 24}  # 나머지 라벨(절 이름 .sec 포함)은 18자
 
 
 def label_violations(html):
-    """제목·소제목·표 머리·도표 제목이 명사구인지 본다. 문장 어미, 질문형 어미,
-    목적격 조사(을·를), 콜론 뒤 문장, 세 어절 이상 앞의 관형절, 길이 초과를 검출한다."""
+    """제목·소제목·표 머리·도표 제목·절 이름(.sec)이 명사구인지 본다. 문장 어미, 질문형 어미,
+    목적격 조사(을·를), 콜론 뒤 문장, 세 어절 이상 앞의 관형절, 길이 초과를 검출한다.
+    결론 제목(.sec 페이지의 직계 h2)은 conclusion_violations가 보므로 여기서 뺀다."""
     out = []
-    for tag, inner, span in LABEL_TAGS.findall(html):
-        t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", inner or span)).strip()
+    skip = {start for start, _ in conclusion_titles(html)}
+    for m in LABEL_TAGS.finditer(html):
+        if m.start() in skip:
+            continue
+        tag, inner, span, sec = m.groups()
+        t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", inner or span or sec or "")).strip()
         letters = re.findall(r"[A-Za-z가-힣]", t)
         if not HANGUL.search(t) or "${" in t or len(HANGUL.findall(t)) * 2 < len(letters):
             continue  # 코드·자료 형태 이름이 주가 되는 라벨은 보지 않는다
@@ -99,4 +183,5 @@ RULES = [
     (style_violations, "plain"),
     (script_style_violations, "prefix"),
     (label_violations, "plain"),
+    (conclusion_violations, "old"),
 ]
