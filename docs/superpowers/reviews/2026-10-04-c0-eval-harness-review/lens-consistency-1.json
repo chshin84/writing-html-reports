@@ -1,0 +1,15 @@
+{"lens":"lens-consistency","target":"docs/superpowers/specs/2026-10-04-c0-eval-harness-design.md","issues":[
+{"where":"실현 가능성 ↔ 함정 1단계 생략","type":"contradiction","claim":"현재 엔진은 1단계를 생략하므로 minimal-anim이 step1을 통과할 수 없다. data-rc-active와 달리 우회가 정해지지 않았다."},
+{"where":"기계 판정 --mode","type":"gap","claim":"방식마다 dwell·step-anim 중 무엇을 실행하는지, --mode 생략 시 동작이 없다."},
+{"where":"rules-* ↔ 완료 기준 C1·C3","type":"drift","claim":"C3의 'check.py 전 규칙'을 지목할 플래그가 없고, C1 목록에 없는 rules-motion이 --only motion에 들어간다."},
+{"where":"rules-*의 common RULES","type":"gap","claim":"금지어 검사를 어느 rules 항목이 실행하는지 미정(세 번 세거나 아무도 안 셈)."},
+{"where":"'애니메이션 항목' 하위 집합","type":"drift","claim":"svg-font-390·figure-overflow-390이 애니메이션 항목인지 모호해 정적 도식 결함이 n/a가 될 수 있다."},
+{"where":"결함 검출 note-near ↔ 단위 시험","type":"gap","claim":"data-rc-active가 있는데 설명 상자가 없거나 먼 경우의 실패 경로를 검증하지 않는다."},
+{"where":"체크리스트 ↔ 충족률·하락","type":"gap","claim":"검토 출력 JSON, 3회 다수결 집계, 대상별 충족률 분모(n/a), 기준선 다수결 저장 형태가 없다."},
+{"where":"결함 덮기 ↔ 판별력","type":"gap","claim":"기준선 결함 일부는 고정 견본이 아닌 03-groups.html에만 있고 sample-viz는 기준선 검토 기록이 없다."},
+{"where":"prompts/ 쌍대 판정","type":"scope","claim":"상위 설계에서 쌍대 판정을 뺐는데 틀이 남았다."},
+{"where":"dwell의 n","type":"drift","claim":"공백 제외가 빠졌고 글 출처를 세 선택자로 한정했으며 차이 계산 방식이 모호하다."},
+{"where":"contrast-text·graphic","type":"contradiction","claim":"큰 글자 3:1 완화 추가와 토큰 기반 그래픽 대비가 상위 설계와 다른데 표시하지 않았다."},
+{"where":"eval/rebuild.py","type":"gap","claim":"명령 형식과 bench/ 불변 조건을 옮기지 않았다."}],
+"principles_applied":["CHECKABLE","TERM-ONE","YAGNI","NO-ASSUME","WRITTEN-ONLY"],
+"notes":"격리·실행 순서 2단계·견본 출처는 맞음. Mermaid 노드 글자가 foreignObject HTML인지 미확인 — n과 svg-font-390에 영향. step1 '0 근처' 수치 기준 없음."}

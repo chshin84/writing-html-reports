@@ -1,0 +1,16 @@
+{"lens":"lens-fit","target":"docs/superpowers/specs/2026-10-04-c0-eval-harness-design.md","issues":[
+{"where":"17, 27행","principle":"COUNT-EARNS","claim":"견본 개수 예고와 '앞의 두 파일·뒤의 두 파일' 순서 지칭."},
+{"where":"7, 9, 106, 119행","principle":"TERM-EXPLAIN","claim":"C1·C2·C3, L1, L2 첫 등장 풀이 없음."},
+{"where":"9, 22행","principle":"TERM-EXPLAIN","claim":"보류 견본, 재생성 원자료, 쌍대 판정, 제목 연결 풀이 없음."},
+{"where":"9, 47, 102행","principle":"TERM-EXPLAIN","claim":"엔진(report-charts.js), data-rc-active, RC.note·RC.icon·RC.fx 풀이 없음."},
+{"where":"36, 44, 75행","principle":"TERM-EXPLAIN","claim":"motion·layout·content가 무엇을 덮는지, 체크리스트 항목에 content를 붙이는 기준이 없다."},
+{"where":"103행","principle":"CHECKABLE","claim":"체크리스트 문구 수정 뒤 재측정의 통과 조건과 반복 상한이 없다."},
+{"where":"18, 20, 22행 / 99~104행","principle":"CHECKABLE","claim":"rebuild.py, shoot.py, prompts/에 검증 기준이 없다."},
+{"where":"17~25행 표","principle":"ONE-ENDING, FULL-SENTENCE","claim":"내용 열의 말끝이 서술문·명사구·명사 조각으로 섞였다."},
+{"where":"112~115행","principle":"ONE-ENDING","claim":"함정 라벨 하나만 '~않음'이다."},
+{"where":"69~71, 101~104, 112~115행","principle":"BULLET-SCOPE","claim":"여러 문장 불릿."},
+{"where":"44행","principle":"NO-MID-MOD","claim":"n 정의의 관형절 겹침."},
+{"where":"38, 75, 93, 102행","principle":"NO-MID-MOD","claim":"중간 관형절."},
+{"where":"49, 57, 75행","principle":"NO-STACK-MOD","claim":"수식어 겹침."}],
+"principles_applied":["TITLE-LAYERS","COUNT-EARNS","TERM-EXPLAIN","CHECKABLE","ONE-ENDING","FULL-SENTENCE","BULLET-SCOPE","NO-MID-MOD","NO-STACK-MOD","COMMA-CUT","DOC-TYPE"],
+"notes":"TITLE-LAYERS 위반 없음. COMMA-CUT 위반 없음. 상위 설계는 계약 밖이라 읽지 않음."}

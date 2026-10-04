@@ -1,0 +1,10 @@
+{"lens":"lens-grounding","target":"docs/superpowers/specs/2026-10-04-c0-eval-harness-design.md","issues":[
+{"where":"결함 검출, table-col-390","type":"contradiction","claim":"session-report의 표는 모두 .tbl(overflow-x:auto) 안에 있어 측정 대상이 없다. 실측 p6: 상자 358px, 스크롤 폭 626px, 셀 314·75·75·163px."},
+{"where":"svg-font-390, html-font-390","type":"omission","claim":"foreignObject HTML 글자의 귀속이 없다. 04-rules d-flow는 text 0, foreignObject 20, 라벨 14px × 0.67 ≈ 9.4px."},
+{"where":"실현 가능성","type":"unsupported","claim":"현재 엔진만으로는 step1과 1단계 dwell을 통과할 수 없다(430행 go(0,false), 재생 9~12ms 뒤 2단계)."},
+{"where":"--mode, dwell·step-anim","type":"omission","claim":"방식별 항목 대응이 없다. 공유 타임라인에서 dwell과 step-anim을 함께 통과하려면 단계 글 12자 이하 제약이 생긴다."},
+{"where":"dwell","type":"mismatch","claim":"페이지형 견본에서 pager의 .cnt가 애니메이션 .cnt보다 앞선다(04-rules: '2 / 3', '1/28')."},
+{"where":"dwell n","type":"contradiction","claim":".demo-cap과 .cnt는 상위 설계 계측 지점 밖이다."},
+{"where":"rebuild.py, hash-nav","type":"omission","claim":"페이지 전환 스크립트는 관리 블록 밖 문서 코드라 다시 빌드해도 C2 변경이 고정 견본에 반영되지 않는다."}],
+"principles_applied":["NO-ASSUME","STATE-ASSUME","CHECKABLE","FOCUSED","WRITTEN-ONLY","TERM-ONE"],
+"notes":"ECharts는 renderer 'svg'(68행), canvas 0개 — 그래픽 대비를 DOM에서 잴 수 있다. 상태 색은 --neg 하나. page-number 기준선 실패(pno와 pager .cnt 동시 표시) 성립. hash-nav 기준선 실패(hashchange 없음) 성립. 결함 수치 출처 확인. 기준 커밋 512d308 확인. active-visible 측정 전 스크롤 정책 미정."}
