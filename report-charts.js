@@ -126,6 +126,32 @@
       if (g.right == null || (typeof g.right === 'number' && g.right < 72)) g.right = 72;
     });
   }
+  function pieLabels(option) { // 좁은 화면에서 파이 이름표를 '...'로 줄이지 않고 줄을 바꾼다. 작성자가 준 overflow는 둔다
+    [].concat(option.series || []).forEach(function (s) {
+      if (s.type !== 'pie') return;
+      var L = s.label || (s.label = {});
+      if (L.overflow == null) L.overflow = 'break';
+    });
+  }
+  var PIE_ROOM = 105; // 좁은 상자에서 파이 한쪽에 남기는 이름표 폭(px). 두 줄로 바꾼 이름표 '유가증권시장'(12px 6자)과 지시선이 들어간다
+  function pieFit(it, w) { // 상자가 좁아 이름표 자리가 모자라면 파이 반지름을 줄이고 이름표의 첫 빈칸에서 줄을 바꾼다. 넓어지면 작성자 값으로 돌린다
+    var base = Math.min(w, it.h) / 2, changed = false;
+    var patch = [].concat(it.option.series || []).map(function (s, i) {
+      var L = s.label || {}, LL = s.labelLine || {};
+      if (s.type !== 'pie' || L.show === false || /^(inside|inner|center)$/.test(L.position || '')) return {}; // 바깥 이름표가 없으면 줄이지 않는다
+      var r = s.radius == null ? [0, '75%'] : Array.isArray(s.radius) ? s.radius : [0, s.radius]; // 하나만 준 반지름은 바깥 반지름이다
+      var px = function (v) { return typeof v === 'string' && /%$/.test(v) ? parseFloat(v) / 100 * base : +v; };
+      var k = Math.max(0.3, Math.min(1, (w / 2 - PIE_ROOM) / px(r[1]))), narrow = k < 1; // 아주 좁은 상자에서도 반지름이 음수가 되지 않게 한다
+      if (narrow === !!it.narrow[i] && !narrow) return {};
+      changed = true; it.narrow[i] = narrow;
+      if (!narrow) return { radius: s.radius != null ? s.radius : r, label: { formatter: L.formatter != null ? L.formatter : '{b}' },
+                            labelLine: { length: LL.length != null ? LL.length : 15, length2: LL.length2 != null ? LL.length2 : 15 } };
+      return { radius: r.map(function (v) { return typeof v === 'string' && /%$/.test(v) ? parseFloat(v) * k + '%' : +v * k; }),
+               label: { formatter: typeof L.formatter === 'string' ? L.formatter.replace(' ', '\n') : L.formatter != null ? L.formatter : '{b}' },
+               labelLine: { length: 8, length2: 6 } };
+    });
+    if (changed) it.chart.setOption({ series: patch });
+  }
   RC.chart = function (box, option) {
     if (!box) { console.error('RC.chart: 차트 상자가 없다'); return null; }
     if (typeof echarts === 'undefined') { fail(box); return null; }
@@ -136,6 +162,7 @@
       var chart = echarts.init(box, 'report', { renderer: 'svg', width: w, height: h });
       option.animation = false;
       lineLabels(option);
+      pieLabels(option);
       if (!option.tooltip) {
         var pie = [].concat(option.series || []).some(function (s) { return s.type === 'pie'; });
         option.tooltip = { trigger: pie ? 'item' : 'axis' };
@@ -147,18 +174,20 @@
       fail(box);
       return null;
     }
-    charts.push({ chart: chart, box: box, h: h });
+    var rec = { chart: chart, box: box, h: h, option: option, narrow: [] };
+    charts.push(rec);
+    pieFit(rec, w);
     new ResizeObserver(function () {
-      if (box.clientWidth > 0 && box.clientWidth !== chart.getWidth()) chart.resize({ width: box.clientWidth, height: h });
+      if (box.clientWidth > 0 && box.clientWidth !== chart.getWidth()) { chart.resize({ width: box.clientWidth, height: h }); pieFit(rec, box.clientWidth); }
     }).observe(box);
     return chart;
   };
   addEventListener('beforeprint', function () {
-    charts.forEach(function (it) { it.chart.resize({ width: PRINT_W, height: it.h }); });
+    charts.forEach(function (it) { it.chart.resize({ width: PRINT_W, height: it.h }); pieFit(it, PRINT_W); });
   });
   addEventListener('afterprint', function () {
     charts.forEach(function (it) {
-      if (it.box.clientWidth > 0) it.chart.resize({ width: it.box.clientWidth, height: it.h });
+      if (it.box.clientWidth > 0) { it.chart.resize({ width: it.box.clientWidth, height: it.h }); pieFit(it, it.box.clientWidth); }
     });
   });
 
@@ -200,26 +229,31 @@
   function scaleOf(m) { return m ? Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) : 0; }
   function fitSvg(fig) {
     [].forEach.call(fig.querySelectorAll('svg'), function (svg) {
-      if (svg.parentElement.closest('svg') || svg.closest('[_echarts_instance_]') || !svg.getAttribute('viewBox')) return; // ECharts는 상자 폭대로 그려 글자가 줄지 않는다
-      var keep = svg.style.minWidth;
-      svg.style.minWidth = '';
-      var w = svg.getBoundingClientRect().width;
-      if (!w) { svg.style.minWidth = keep; return; } // 숨은 페이지(폭 0)는 보일 때 다시 계산한다
-      var small = Infinity;
-      [].forEach.call(svg.querySelectorAll('text, tspan, foreignObject *'), function (e) {
-        if (e.closest('defs') || !(ownText(e) || e.closest('.rc-note'))) return; // 설명 상자 글은 처음 상태에서 비어 있어도 단계마다 나타나므로 센다
-        var host = e instanceof SVGElement ? e : e.closest('foreignObject'), k = scaleOf(host.getScreenCTM());
-        if (k) small = Math.min(small, parseFloat(getComputedStyle(e).fontSize) * k);
-      });
-      if (!(small < MIN_PX)) return;
-      if (!svg.parentElement.classList.contains('rc-scroll')) {
-        var box = document.createElement('div');
-        box.className = 'rc-scroll';
-        svg.parentNode.insertBefore(box, svg);
-        box.appendChild(svg);
-      }
-      svg.style.minWidth = Math.ceil(w * MIN_PX / small) + 1 + 'px';
+      fitOne(svg);
+      var sb = svg.parentElement;
+      if (sb.classList.contains('rc-scroll')) sb.classList.toggle('rc-over', sb.scrollWidth > sb.clientWidth + 1); // 도식이 상자보다 넓을 때만 밀어 보라는 단서를 보인다(report-demo.css)
     });
+  }
+  function fitOne(svg) {
+    if (svg.parentElement.closest('svg') || svg.closest('[_echarts_instance_]') || !svg.getAttribute('viewBox')) return; // ECharts는 상자 폭대로 그려 글자가 줄지 않는다
+    var keep = svg.style.minWidth;
+    svg.style.minWidth = '';
+    var w = svg.getBoundingClientRect().width;
+    if (!w) { svg.style.minWidth = keep; return; } // 숨은 페이지(폭 0)는 보일 때 다시 계산한다
+    var small = Infinity;
+    [].forEach.call(svg.querySelectorAll('text, tspan, foreignObject *'), function (e) {
+      if (e.closest('defs') || !(ownText(e) || e.closest('.rc-note'))) return; // 설명 상자 글은 처음 상태에서 비어 있어도 단계마다 나타나므로 센다
+      var host = e instanceof SVGElement ? e : e.closest('foreignObject'), k = scaleOf(host.getScreenCTM());
+      if (k) small = Math.min(small, parseFloat(getComputedStyle(e).fontSize) * k);
+    });
+    if (!(small < MIN_PX)) return;
+    if (!svg.parentElement.classList.contains('rc-scroll')) {
+      var box = document.createElement('div');
+      box.className = 'rc-scroll';
+      svg.parentNode.insertBefore(box, svg);
+      box.appendChild(svg);
+    }
+    svg.style.minWidth = Math.ceil(w * MIN_PX / small) + 1 + 'px';
   }
   function watchFit(fig) { // 페이지가 보일 때와 창 크기가 바뀔 때 다시 계산한다
     if (fig._rcFit) { fitSvg(fig); return; }
@@ -310,11 +344,17 @@
     return e.getBBox();
   }
   /* 애니메이션 초점 틀: 현재 도형의 네 모서리에 붙는 괄호. RC.fx.spot이 도형에서 도형으로 미끄러지듯 옮긴다 */
+  function brackets(svg, cls) { // 네 모서리 괄호. 괄호마다 꼭짓점이 (0, 0)이라 GSAP x·y로 모서리에 옮긴다
+    var A = 9, g = sv('g', { 'class': cls, fill: 'none', stroke: tok('accent'), 'stroke-width': 1.5, opacity: 0 }, svg);
+    var d = ['M0 ' + A + 'V0H' + A, 'M-' + A + ' 0H0V' + A, 'M0 -' + A + 'V0H-' + A, 'M' + A + ' 0H0V-' + A]; // 왼위, 오른위, 오른아래, 왼아래
+    return { g: g, c: d.map(function (p) { return sv('path', { d: p }, g); }) };
+  }
+  var focusFrames = []; // RC.focus가 만든 초점 틀. 엔진 꺾쇠는 초점 틀이 붙은 노드에 겹쳐 그리지 않는다
   RC.focus = function (svg) {
     if (!svg) { console.error('RC.focus: 무대가 없다'); return null; }
-    var A = 9, g = sv('g', { 'class': 'rc-focus', fill: 'none', stroke: tok('accent'), 'stroke-width': 1.5, opacity: 0 }, svg);
-    var d = ['M0 ' + A + 'V0H' + A, 'M-' + A + ' 0H0V' + A, 'M0 -' + A + 'V0H-' + A, 'M' + A + ' 0H0V-' + A]; // 왼위, 오른위, 오른아래, 왼아래
-    return { g: g, c: d.map(function (p) { return sv('path', { d: p }, g); }), cur: null };
+    var f = brackets(svg, 'rc-focus');
+    f.cur = null; focusFrames.push(f);
+    return f;
   };
 
   /* 애니메이션 효과: play(tl, $) 안에서 RC.fx.이름(tl, …)으로 부른다. 단계 하나의 연출은 2초 안팎으로 맞춘다.
@@ -480,7 +520,7 @@
   }
   function mmdShape(e) { return !!(e && e.closest && e.closest('pre.mermaid svg g.node')); }
   function closedShape(e) { // 닫힌 도형: rect·polygon·circle·ellipse와, Mermaid 노드이거나 채움이 있는 path
-    if (!e || !e.tagName || e.closest('.rc-note, .rc-icon, .rc-focus')) return false;
+    if (!e || !e.tagName || e.closest('.rc-note, .rc-icon, .rc-focus, .rc-corner')) return false;
     var tag = e.tagName.toLowerCase();
     return /^(rect|polygon|circle|ellipse)$/.test(tag) || (tag === 'path' && (mmdShape(e) || alpha(getComputedStyle(e).fill) > 0));
   }
@@ -522,6 +562,20 @@
       var v = t.vars.stroke != null ? t.vars.stroke : t.vars.attr && t.vars.attr.stroke;
       if (v != null) t.targets().forEach(function (e) { memo.author.add(e); });
     });
+  }
+  function cornerStep(tl, st, cur, start, end) { // 작성자 채움이 불투명한 현재 노드는 엔진 채움 0.08이 보이지 않으므로 네 모서리에 강조색 꺾쇠를 둔다
+    var on = closedShape(cur) && st.svg.contains(cur) && !cur.classList.contains('rc-token') && !focusFrames.some(function (f) { return f.cur === cur; }); // 이동 표식과 초점 틀이 그리는 노드는 뺀다
+    if (on) { // 단계 끝 상태(호출한 쪽이 end로 옮겨 둔 화면)의 채움과 위치를 본다
+      var cs = getComputedStyle(cur), cm = st.svg.getScreenCTM();
+      on = !!cm && seen(cur, st.svg) && alpha(cs.fill) * +cs.fillOpacity >= 0.5;
+    }
+    if (!on && !st.c) return;
+    if (!st.c) st.c = brackets(st.svg, 'rc-corner');
+    tl.set(st.c.g, { opacity: 0 }, start); // 지나온 노드의 꺾쇠는 단계 시작에 지운다
+    if (!on) return;
+    var b = userBox(cm.inverse(), cur), P = 4; // 노드 경계에서 띄워야 작성자 채움과 같은 색이어도 꺾쇠가 보인다
+    [[b.l - P, b.t - P], [b.r + P, b.t - P], [b.r + P, b.b + P], [b.l - P, b.b + P]].forEach(function (q, i) { tl.set(st.c.c[i], { x: q[0], y: q[1] }, start); });
+    tl.to(st.c.g, { opacity: 1, duration: 0.3 }, Math.max(start, end - 0.3)); // 노드의 크기 변화가 끝날 무렵 나타난다
   }
   var NOTE_W = 220, GAP = 8, PEEP = 56;
   function reveal(fig) { // 숨은 페이지의 figure를 계산하는 동안만 화면 밖에 펼친다. 되돌리는 함수를 돌려준다
@@ -821,7 +875,7 @@
       var vbv = stage && stage.viewBox && stage.viewBox.baseVal && stage.viewBox.baseVal.width ? stage.viewBox.baseVal : null;
       var vb = vbv ? { l: vbv.x, t: vbv.y, r: vbv.x + vbv.width, b: vbv.y + vbv.height } : null;
       var usePeep = !!(box && window.RC_PEEPS && !authored.icon.has(fig) && !stage.querySelector('.rc-icon')); // 작성자 아이콘이 없을 때만 자동 스틱맨을 둔다
-      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], fars = [], widened = false;
+      var hideNext = [], prevIt = null, NEG = tok('neg'), waits = [], fars = [], widened = false, corner = { svg: stage, c: null };
       tl.to({}, { duration: 0.01 }); // 시각 0의 즉시 설정은 seek(0)으로 되돌릴 수 없어, 1단계의 모든 설정(작성자 tl.set, 자동 상자·스틱맨)을 시각 0 뒤에 둔다
       try {
         steps.forEach(function (s, i) {
@@ -847,6 +901,9 @@
             tl.set(vd, { opacity: 1 }, start); hideNext.push(vd);
           }
           var animEnd = Math.max(sub.endTime(), tl.duration());
+          if (stage && it.active) { // 꺾쇠 위치는 단계 끝 화면에서 읽는다. 위치 계산이 실패해도 애니메이션은 만든다
+            try { rewindTo(animEnd); cornerStep(tl, corner, it.active, start, animEnd); } catch (err) { console.error('RC.demo: 꺾쇠 위치 계산', err); if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start); }
+          } else if (corner.c) tl.set(corner.c.g, { opacity: 0 }, start);
           rewindTo(pre);
           if (box && vb && it.active && stage.contains(it.active) && stage.getScreenCTM()) {
             try { // 위치 계산이 실패해도 그 단계에 상자를 두지 않을 뿐 애니메이션은 만든다
@@ -1043,7 +1100,7 @@
     var texts = fixed.filter(function (e) { return e.tagName === 'text'; });
     function frame() {
       var dyn = [].filter.call(st.querySelectorAll('.rc-icon, .rc-note'), function (e) { return op(e) > 0.05; });
-      var f = st.querySelector('.rc-focus'), fc = f && op(f) > 0.05 ? [].slice.call(f.children) : [];
+      var fc = [].concat.apply([], [].map.call(st.querySelectorAll('.rc-focus, .rc-corner'), function (f) { return op(f) > 0.05 ? [].slice.call(f.children) : []; })); // 초점 틀과 엔진 꺾쇠
       var bad = [], pair = function (a, c) { if (hit(box(a), box(c))) bad.push(nm(a) + ' × ' + nm(c)); };
       dyn.forEach(function (a, i) { dyn.slice(i + 1).concat(fixed, fc).forEach(function (c) { pair(a, c); }); });
       fc.forEach(function (a) { texts.forEach(function (c) { pair(a, c); }); }); // 초점 틀은 이동 중 가는 선을 스칠 수 있어 글자만 본다

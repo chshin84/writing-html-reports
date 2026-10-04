@@ -412,6 +412,55 @@ class EngineActive(EngineCase):
           tl.seek(tl.labels.e0 + 0.05, false); const mid = id(); tl.seek('e1', false); const e1 = id(); tl.seek('e2', false); return [mid, e1, id()]; }""")
         self.assertEqual(r, [["A"], ["B"], ["C"]])  # 단계 끝마다 정확히 하나
 
+    BARS = ('<figure id="d1" data-anim="구조"><svg viewBox="0 0 700 300" width="100%">'
+            '<rect id="ba" x="110" y="60" width="400" height="24" style="fill:var(--s4)"/>'
+            '<rect id="bb" x="110" y="140" width="200" height="24" style="fill:var(--s4)"/>'
+            '<rect id="bc" x="110" y="220" width="200" height="24" fill="none" stroke="currentColor"/></svg></figure>')
+    CORNERS = """() => { const f = document.getElementById('d1'), tl = f._rcTl, out = [];
+      const near = (g, id) => { const r = document.getElementById(id).getBoundingClientRect();
+        const ps = [...g.children].map(c => c.getBoundingClientRect());
+        const l = Math.min(...ps.map(q => q.left)), rt = Math.max(...ps.map(q => q.right)), t = Math.min(...ps.map(q => q.top)), b = Math.max(...ps.map(q => q.bottom));
+        return l < r.left && rt > r.right && t < r.top && b > r.bottom && l > r.left - 12 && rt < r.right + 12 && t > r.top - 12 && b < r.bottom + 12; };
+      const at = k => { tl.seek(k, false); const g = f.querySelector('.rc-corner'), on = g && +getComputedStyle(g).opacity > 0.5;
+        return on ? ['ba', 'bb', 'bc'].filter(id => near(g, id)).join('') || '?' : ''; };
+      for (const k of ARGS) out.push(at(k)); return out; }"""
+
+    def corners(self, p, keys):
+        return self.js(p, self.CORNERS.replace("ARGS", json.dumps(keys)))
+
+    def test_corners_on_opaque_current_node(self):  # 작성자 채움이 불투명한 현재 노드에만 꺾쇠를 두고, 지나오면 지운다. 되감기에서도 같다
+        script = ("function grow(tl,$,id,w){tl.to($(id),{attr:{width:w},fill:RC.color('s1'),duration:0.6});}"
+                  "RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){grow(tl,$,'ba',248);}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){grow(tl,$,'bb',208);}},"
+                  "{name:'다',text:'채움 없는 막대입니다.',play:function(tl,$){tl.to($('bc'),{attr:{width:300},duration:0.3});}}]);")
+        p = self.open(self.BARS, script)
+        self.assertEqual(self.corners(p, ["e0", "e1", "e2", "e1", "e0"]), ["ba", "bb", "", "bb", "ba"])
+
+    def test_corners_with_scenario_select_and_token(self):  # 시나리오를 고른 첫 단계에 앞 시나리오의 꺾쇠가 남지 않고, 이동 표식(rc-token)에는 꺾쇠를 두지 않는다
+        body = self.BARS.replace('</svg>', '<circle id="tk" class="rc-token" cx="600" cy="150" r="5" style="fill:var(--neg)"/></svg>')
+        items = []
+        for i in range(13):
+            sc, bar = ("A", "ba") if i < 7 else ("B", "bb")
+            play = f"tl.to($('{bar}'),{{attr:{{width:{200 + i * 10}}},duration:0.3}});" if i not in (6, 7) else (
+                "tl.to($('tk'),{attr:{cx:620},duration:0.3});" if i == 6 else "tl.to($('bc'),{attr:{width:250},duration:0.3});")
+            items.append("{name:'시나리오 %s · 단계%d',text:'단계 %d입니다.',play:function(tl,$){%s}}" % (sc, i, i, play))
+        p = self.open(body, f"RC.demo(document.getElementById('d1'),[{','.join(items)}]);")
+        self.assertEqual(self.corners(p, ["e5", "e6", "e7", "e8"]), ["ba", "", "", "bb"])
+        r = self.js(p, """() => { const f = document.getElementById('d1');
+          f._rcTl.seek('e5', false);
+          [...f.querySelectorAll('.demo-scen button')].find(x => x.textContent === '시나리오 B').click();
+          f.querySelectorAll('.demo-ctl button')[1].click();  // 재생을 멈춘다
+          const g = f.querySelector('.rc-corner'); return +getComputedStyle(g).opacity; }""")
+        self.assertLess(r, 0.5)  # 시나리오 B 시작 화면에는 시나리오 A 막대의 꺾쇠가 없다
+
+    def test_no_engine_corners_with_spot(self):  # RC.fx.spot이 초점 틀을 그리는 노드에는 엔진 꺾쇠를 겹쳐 그리지 않는다
+        script = ("var st=document.querySelector('#d1 svg'),fr=RC.focus(st);RC.demo(document.getElementById('d1'),["
+                  "{name:'가',text:'첫 막대입니다.',play:function(tl,$){RC.fx.spot(tl,fr,$('ba'));}},"
+                  "{name:'나',text:'둘째 막대입니다.',play:function(tl,$){tl.to($('bb'),{attr:{width:208},duration:0.3});}}]);")
+        p = self.open(self.BARS, script)
+        self.assertEqual(self.corners(p, ["e0", "e1"]), ["", "bb"])
+
 
 
 # 상자 폭 220은 표시 범위(viewBox) 안에서만 찾는다. MMD는 viewBox 폭이 242라 어느 노드 옆에도 자리가 없어,
@@ -687,7 +736,7 @@ class EngineFit(EngineCase):
         lay = self.js(p, "() => __c0.layout()")
         self.assertTrue(all(f["px"] >= 11 for f in lay["svgFonts"]), lay["svgFonts"])
         self.assertLessEqual(lay["scrollWidth"], lay["width"])
-        self.assertEqual(self.js(p, "() => document.querySelector('#d1 svg').parentElement.className"), "rc-scroll")
+        self.assertTrue(self.js(p, "() => document.querySelector('#d1 svg').parentElement.classList.contains('rc-scroll')"))
 
     def test_animated_note_text_at_390(self):  # 자동 설명 상자 글도 390 폭에서 11px 이상이다. MMD는 220px 상자가 들어갈 폭이 없어 MMD_WIDE를 쓴다
         p = self.open(MMD_WIDE, mmd_steps(FLOW), width=390)
@@ -707,6 +756,29 @@ class EngineFit(EngineCase):
         p.emulate_media(media="print")
         r = self.js(p, "() => { const s = document.querySelector('#d1 svg'); return [getComputedStyle(s).minWidth, getComputedStyle(s.parentElement).overflowX]; }")
         self.assertEqual(r, ["0px", "visible"])
+
+    CUE = """() => { const b = document.querySelector('#d1 .rc-scroll'); if (!b) return null;
+      const s = getComputedStyle(b, '::before'); return [s.content, s.fontSize, s.color, s.paddingBottom]; }"""
+
+    def test_scroll_cue_when_wider_than_box(self):  # 도식이 스크롤 상자보다 넓으면 넓은 표와 같은 글자 모양의 단서를 상자 위에 보인다
+        p = self.open(WIDE, "", width=390)
+        ink3 = self.js(p, "() => { const d = document.createElement('i'); d.style.color = 'var(--ink-3)'; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; }")
+        r = self.js(p, self.CUE)
+        self.assertEqual(r, ['"도식이 화면보다 넓으면 옆으로 밀어 볼 수 있습니다"', "12.5px", ink3, "4px"])
+        p.emulate_media(media="print")
+        self.assertEqual(self.js(p, self.CUE)[0], "none")  # 인쇄에서는 숨긴다
+
+    def test_scroll_cue_on_static_mermaid(self):  # 애니메이션이 아닌 Mermaid 도식도 같은 단서를 받는다
+        p = self.open(MMD_WIDE.replace(' data-anim="구조"', ''), "", width=390)
+        r = self.js(p, "() => { const b = document.querySelector('#d1 .rc-scroll'); return b && [b.scrollWidth > b.clientWidth, getComputedStyle(b, '::before').content]; }")
+        self.assertEqual(r, [True, '"도식이 화면보다 넓으면 옆으로 밀어 볼 수 있습니다"'])
+
+    def test_no_scroll_cue_when_svg_fits(self):  # 스크롤 상자가 남아도 도식이 들어맞으면 단서를 보이지 않는다
+        p = self.open(WIDE.replace("0 0 820 200", "0 0 500 200").replace('x="300"', 'x="200"'), "", width=390)  # 700 폭에서는 글자가 11px을 넘는다
+        p.set_viewport_size({"width": 700, "height": 900})
+        r = self.js(p, "async () => { await new Promise(r => setTimeout(r, 300)); const b = document.querySelector('#d1 .rc-scroll'); "
+                       "return [b.scrollWidth <= b.clientWidth, getComputedStyle(b, '::before').content]; }")
+        self.assertEqual(r, [True, "none"])
 
 
 CHART = '<figure><div class="viz" id="c1"></div></figure>'
@@ -744,6 +816,33 @@ class EngineChart(EngineCase):
         js = "window.ch=RC.chart(document.getElementById('c1'),{series:{type:'pie',data:[{name:'가',value:1},{name:'나',value:2}]}});"
         p = self.open(CHART, js)
         self.assertEqual(self.js(p, "() => ch && ch.getOption().tooltip[0].trigger"), "item")
+
+    def test_pie_scalar_radius_and_narrow_box(self):  # 반지름을 하나만 줘도, 상자가 210px보다 좁아도 파이를 그린다
+        js = ("RC.chart(document.getElementById('c1'),{series:[{type:'pie',radius:'60%',data:[{name:'유가증권시장',value:58},{name:'코스닥시장',value:35}]}]});"
+              "window.c2=RC.chart(document.getElementById('c2'),{series:[{type:'pie',radius:['40%','60%'],data:[{name:'가',value:1},{name:'나',value:2}]}]});")
+        p = self.open('<figure><div class="viz" id="c1"></div><div class="viz" id="c2" style="width:180px"></div></figure>', js, width=390)
+        r = self.js(p, """() => ['c1', 'c2'].map(id => [...document.querySelectorAll('#' + id + ' svg path')].filter(e => { const q = e.getBoundingClientRect(); return q.width > 5 && q.height > 5; }).length)""")
+        self.assertTrue(all(n >= 2 for n in r), r)  # 조각 둘이 보인다
+        self.assertTrue(all(float(v[:-1]) > 0 for v in self.js(p, "() => c2.getOption().series[0].radius")))
+
+    def test_pie_labels_not_truncated_at_390(self):  # 좁은 화면에서도 파이 이름표를 '…'로 줄이지 않고 화면 안에 둔다. 작성자 formatter는 둔다
+        js = ("window.opt={legend:{top:0,left:0},series:[{name:'시장별 비중',type:'pie',"
+              "radius:['45%','70%'],label:{formatter:'{b} {d}%'},data:[{name:'유가증권시장',value:58},{name:'코스닥시장',value:35},{name:'코넥스시장',value:7}]}]};"
+              "window.ch=RC.chart(document.getElementById('c1'),opt);")
+        body = f'<section class="page" id="p1"><p>첫 페이지</p></section><section class="page core" id="p2">{CHART}</section>'
+        p = self.open(body, js, width=390, page="p2", paged=True)  # 숨은 페이지에서 만든 차트가 보일 때 견본 장면처럼 '…'가 생겼다
+        r = self.js(p, """() => { const ts = [...document.querySelectorAll('#c1 svg text')];
+          return {fmt: [opt.series[0].label.formatter, opt.series[0].radius.join()], dots: ts.filter(t => /…|\.\.\./.test(t.textContent)).map(t => t.textContent),
+                  pct: ts.map(t => t.textContent).join('').split('%').length - 1, whole: ts.filter(t => t.textContent === '유가증권시장').length,
+                  out: ts.filter(t => { const q = t.getBoundingClientRect(); return q.width && (q.left < 0 || q.right > innerWidth); }).map(t => t.textContent)}; }""")
+        self.assertEqual(r["fmt"], ["{b} {d}%", "45%,70%"])  # 문서가 넘긴 옵션은 바꾸지 않는다
+        self.assertEqual(r["dots"], [])  # ECharts는 줄인 글자를 '...'로 그린다
+        self.assertEqual(r["pct"], 3)     # 이름표 셋이 모두 그려진다(줄을 바꾸면 '%'는 한 번씩 나온다)
+        self.assertEqual(r["out"], [])
+        self.assertEqual(r["whole"], 2)   # 범례와 이름표 모두 이름을 낱말 중간에서 끊지 않는다
+        p.set_viewport_size({"width": 1280, "height": 900})  # 넓어지면 작성자 반지름과 이름표로 돌아간다
+        r = self.js(p, "async () => { await new Promise(r => setTimeout(r, 300)); const s = ch.getOption().series[0]; return [s.radius.join(), s.label.formatter]; }")
+        self.assertEqual(r, ["45%,70%", "{b} {d}%"])
 
 
 class SampleSelfCheck(EngineCase):
