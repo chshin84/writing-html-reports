@@ -1323,9 +1323,9 @@ footer p{margin:0 0 4px}
      data-rc-base를 단 기준선 도형이 마지막 단계에 보이고 처음 보인 때의 위치·크기 그대로인지(baseLost) */
   RC.check = function (id) {
     var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
-    if (!st) return Promise.resolve({ error: '애니메이션 figure가 없다: ' + id });
+    if (!st) return Promise.resolve({ pass: false, error: '애니메이션 figure가 없다: ' + id });
     var b = fig.querySelectorAll('.demo-ctl button');
-    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
+    if (b.length < 4) return Promise.resolve({ pass: false, error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
     var op = function (e) { return +getComputedStyle(e).opacity; };
     var box = function (e) {
       if (e.classList.contains('rc-note')) { // 설명 상자는 보조선을 빼고 본다

@@ -1323,9 +1323,9 @@ footer p{margin:0 0 4px}
      data-rc-base를 단 기준선 도형이 마지막 단계에 보이고 처음 보인 때의 위치·크기 그대로인지(baseLost) */
   RC.check = function (id) {
     var fig = document.getElementById(id), st = fig && fig.querySelector('svg');
-    if (!st) return Promise.resolve({ error: '애니메이션 figure가 없다: ' + id });
+    if (!st) return Promise.resolve({ pass: false, error: '애니메이션 figure가 없다: ' + id });
     var b = fig.querySelectorAll('.demo-ctl button');
-    if (b.length < 4) return Promise.resolve({ error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
+    if (b.length < 4) return Promise.resolve({ pass: false, error: '조작 버튼이 없다(RC.demo를 부르지 않았다)' });
     var op = function (e) { return +getComputedStyle(e).opacity; };
     var box = function (e) {
       if (e.classList.contains('rc-note')) { // 설명 상자는 보조선을 빼고 본다
@@ -1438,8 +1438,8 @@ addEventListener('DOMContentLoaded',function(){
   <h1>문서 제목</h1>
   <p class="lede">문서 전체의 결론을 수치를 넣은 단정문으로 적습니다.</p>
   <div class="keyfig">
-    <div><span class="k">수치 이름</span><span class="v">0.85 → 1.11</span><span class="d">단위나 설명</span></div>
-    <div><span class="k">수치 이름</span><span class="v">0.62</span><span class="d">단위나 설명</span></div>
+    <div data-src="p2"><span class="k">수치 이름</span><span class="v">0.85 → 1.11</span><span class="d">단위나 설명</span></div>
+    <div data-src="p2"><span class="k">수치 이름</span><span class="v">0.62</span><span class="d">단위나 설명</span></div>
   </div>
 </header>
 <div class="superseded"><b>대체됨</b> 원본 문서나 spec이 바뀐 문서에만 둡니다. 새 문서의 위치와 바뀐 날짜를 적습니다.</div>

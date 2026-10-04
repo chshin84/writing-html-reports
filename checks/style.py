@@ -143,7 +143,7 @@ def conclusion_violations(new_html, old_html=None):
 
 HANGUL = re.compile("[가-힣]")
 LABEL_TAGS = re.compile(r'<(title|h1|h2|h3|caption|th)\b[^>]*>(.*?)</\1>|<span class="(?:t|k)">(.*?)</span>'
-                        r'|<p class="[^"]*\bsec\b[^"]*">(.*?)(?:</p>|(?=<(?:h[1-6]|ul|ol|div|p|table|dl|figure|section)\b))', re.S)
+                        r'|<p\b[^>]*\bclass="[^"]*\bsec\b[^"]*"[^>]*>(.*?)(?:</p>|(?=<(?:h[1-6]|ul|ol|div|p|table|dl|figure|section)\b))', re.S)
 LABEL_MAX = {"title": 24, "h1": 24}  # 나머지 라벨(절 이름 .sec 포함)은 18자
 
 
