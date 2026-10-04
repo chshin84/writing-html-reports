@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-shift-s1.png: 단계 시간 2.45초(약 20자)인데 설명 상자 '모델 A: 비슷한 변형 7개'와 자막 '전후 전환 · 모델 A: 비슷한 변형 7개를 한 묶음으로 보아 비중을 줄입니다.'를 합치면 50자 안팎이라 읽을 수 없다. d-rule-s4.png도 자막과 상자 글이 약 55자인데 2.87초뿐이다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-shift-s1.png: 설명 상자가 화면 위쪽(y≈440)에 있고 강조된 모델 A 막대(y≈605)와 떨어져 있다. d-shift-s3.png에서도 상자는 위에 고정되고 모델 C 막대(y≈730)는 멀리 있다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "예",
+  "evidence": "d-shift-s1~s3.png와 d-rule-s1~s4.png: 모든 단계 장면에서 도식과 설명 상자, 자막이 1280×800 안에 함께 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-shift-s3.png: 모델 A, B, C 막대가 모두 같은 짙은 색이라 현재 강조된 모델 C와 지나온 모델 A, B가 구분되지 않는다. d-shift-s2.png에서도 현재인 모델 B와 지나온 모델 A가 같은 색이다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "아니오",
+  "evidence": "d-shift-s3.png: 마지막 단계에서 회색 기준선 막대가 사라지고 제안안 막대만 남아 모델 A 50%, 모델 C 25% 같은 바뀌기 전 값이 도식에 없다. 표에만 있다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png, p3-390.png: 애니메이션 도식이 390폭에 맞춰 줄어 모델 이름, 비중 숫자, 설명 상자 글, 축 글자가 5~6px 크기라 확대하지 않으면 읽을 수 없다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png: 표 열이 모델, 기준선, 제안안과 구분, 4개월째, 10개월째로 단어 단위로 읽히고 잘리지 않는다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "p2-390.png, p3-390.png: 표가 모두 화면 폭 안에 들어가 잘리는 표가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 상단 조작줄에 '1 / 3'이 있고 본문 위에 '1 / 3'이 한 번 더 나온다. p2, p3 장면도 같다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "해당 없음",
+  "evidence": "p1~p3 장면에 용어 풀이 목록이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "p1-1280.png, p2-1280.png, p3-1280.png: 제목이 '애니메이션 견본', '모델 비중 변화', '손절 규칙 효과'로 주제 이름이다. 결론은 제목 아래 불릿에 있다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 모델 A 50%에서 31%, 모델 C 25%에서 43%가 불릿, 애니메이션, 표에 되풀이된다. p3-1280.png도 38bp에서 22bp가 불릿, 도식, 표에 반복된다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "p1~p3: 독자에게 결정을 요청하는 항목이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿의 A 50에서 31, C 25에서 43, B 25에서 26이 표와 일치한다. p3-1280.png: 38bp에서 22bp, 4개월째 -2bp가 표와 도식에서 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: '비슷한 변형 7개' 근거가 표나 출처에 없다. p3-1280.png: 고점 15bp, 10bp 하락, 회복 14bp 수치도 표에 없고 출처는 '시험용 가상 자료' 한 줄뿐이다."
+ }
+]

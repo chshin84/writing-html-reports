@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "index.json: d-flow-s1~s28 단계의 seconds가 0.3~0.32초다. 새 글 한 줄만 읽어도 1초에 글자 수÷8초를 보탠 시간이 필요하므로 모든 단계가 모자란다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-flow-s1.png, d-flow-s6.png, d-flow-s12.png, d-flow-s20.png, d-flow-s28.png: 강조된 노드 옆에 설명 상자가 없다. 도식만 보인다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-flow-s6.png는 현재 노드(발동 기준 해당)가 붉은 테두리여서 지나온 노드와 구분된다. d-flow-s12.png, d-flow-s20.png, d-flow-s28.png는 보이는 노드가 모두 같은 굵은 남색 테두리이고 현재 노드를 구분할 수 없다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png: 표의 칸이 낱말이나 식별자를 중간에서 끊지 않고 어절 단위로 줄을 바꾼다. 호출자 열의 review-docs와 audit-repo-docs도 한 줄에 온전히 보인다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 직접 요청, L2, 발동 기준, 기록의 분기를 위쪽 불릿, 흐름 도식, 공통 규칙 표가 모두 되풀이한다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png와 p3-390.png: 불릿의 직접 요청, L2, review-docs, audit-repo-docs 설명이 표와 도식의 행과 수치에 일치하고 빠뜨리거나 다르게 적은 항목이 없다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 판단 분기 4개와 readability 기준 1개 같은 수치와 요약 주장이 있는데, 같은 페이지에 표나 그림이나 출처 목록이 없어 근거를 찾을 수 없다."
+ }
+]

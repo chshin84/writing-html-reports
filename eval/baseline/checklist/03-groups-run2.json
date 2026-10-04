@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 page 장면만 있다. 애니메이션이 없다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "p2-1280.png의 도식은 정적이고 노드를 차례로 강조하는 연출이 없다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 애니메이션이 없다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png: 도식이 390 폭에 맞춰 축소되어 lens-grounding, 문서 단위 그룹 같은 노드 글자가 확대 없이는 읽기 어려울 만큼 작다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png, p4-390.png: 표 열이 한두 글자로 잘리지 않고 한국어 단어 단위로 줄바꿈된다. 다만 p2-390.png의 review-specs, audit-repo-docs 같은 식별자는 하이픈에서 끊겨 읽기 불편하다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "해당 없음",
+  "evidence": "p2-390.png, p3-390.png, p4-390.png: 모든 표가 화면 폭 안에 들어가고 오른쪽으로 잘리지 않는다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "p1-1280.png, p2-1280.png 등 모든 페이지에서 상단 조작줄의 '1 / 4'와 본문 위의 '1 / 4'가 두 번 보인다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 하단 용어 풀이(전체 입력, L2)에 제목이 없고, 1280 폭에서 용어는 왼쪽 끝, 풀이는 오른쪽 열에 멀리 떨어져 있다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "절 제목이 '렌즈 그룹표', '그룹별 렌즈', '호출자별 전체 입력', '예외 목록의 이관'처럼 주제 이름이다. 결론은 제목이 아니라 본문 첫 불릿에 있다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿, 도식, 표가 그룹 3개와 소속 렌즈를 되풀이한다. p1-1280.png: 상단 지표, 부제, 요약 불릿이 같은 사실을 반복한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "해당 없음",
+  "evidence": "독자에게 결정을 요청하는 항목이 어느 페이지에도 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 'adversarial과 필요할 때 그룹의 렌즈는 어느 렌즈와도 컨텍스트를 나누지 않는다'고 적는다. 표에서는 consistency도 함께 두는 렌즈가 '없음'인데 불릿에서는 빠져 있다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 6개, 2개, 변화 없음 같은 수치와 단정 주장에 출처 목록이 없고 표나 그림으로 받쳐 주지도 않는다. p2-1280.png~p4-1280.png에는 출처가 있다."
+ }
+]

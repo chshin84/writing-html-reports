@@ -1,0 +1,358 @@
+[
+ {
+  "file": "D:\\projects\\Structure\\whr-c0\\eval\\validation\\minimal-anim.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "d-req": {
+      "steps": 3,
+      "fails": 0,
+      "time_scale": 1,
+      "min_dwell": 2.8,
+      "fails_after_step1": 0
+     }
+    },
+    "detail": {
+     "d-req": [
+      {
+       "step": 1,
+       "end": 3.65,
+       "done": 0.85,
+       "dwell": 2.8,
+       "n": 8,
+       "lo": 2.0,
+       "hi": 5.0,
+       "ok": true
+      },
+      {
+       "step": 2,
+       "end": 9.945,
+       "done": 4.5,
+       "dwell": 5.445,
+       "n": 29,
+       "lo": 4.625,
+       "hi": 7.625,
+       "ok": true
+      },
+      {
+       "step": 3,
+       "end": 16.115,
+       "done": 10.8,
+       "dwell": 5.315,
+       "n": 28,
+       "lo": 4.5,
+       "hi": 7.5,
+       "ok": true
+      }
+     ]
+    }
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": {
+     "d-req": null
+    },
+    "detail": {
+     "d-req": "자동 재생 방식"
+    }
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-req": {
+      "initial": 3.65,
+      "e0": 3.65,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     }
+    },
+    "detail": null
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "d-req": {
+      "steps": 3,
+      "fails": 0
+     }
+    },
+    "detail": {
+     "d-req": [
+      {
+       "step": 1,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      },
+      {
+       "step": 2,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      },
+      {
+       "step": 3,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      }
+     ]
+    }
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "d-req": {
+      "steps": 3,
+      "fails": 0
+     }
+    },
+    "detail": {
+     "d-req": [
+      {
+       "step": 1,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      },
+      {
+       "step": 2,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      },
+      {
+       "step": 3,
+       "distance": 21.2,
+       "overlaps": 0,
+       "edge_points": 0,
+       "near": true,
+       "visible": true
+      }
+     ]
+    }
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "count": 16,
+     "min_px": 13.16,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 14,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 4,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 11.48
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 10,
+     "min_px": 12.5,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "cells": 0,
+     "min_w": null
+    },
+    "detail": null
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "n/a",
+    "value": null,
+    "detail": "페이지형 문서가 아니다"
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "n/a",
+    "value": null,
+    "detail": "페이지형 문서가 아니다"
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "D:\\projects\\Structure\\whr-c0\\eval\\validation\\minimal-anim.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 14,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 4,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 8.72
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ }
+]

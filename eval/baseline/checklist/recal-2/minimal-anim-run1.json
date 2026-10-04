@@ -1,0 +1,12 @@
+[
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "v1-1280.png, v1-390.png: 도입 문장이 세 단계를 적고 도식이 같은 단계를 보이지만, 도입은 산문이고 불릿이나 표가 없어 형식 두 가지 이상의 되풀이는 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png, v1-390.png, doc.txt: 불릿 목록과 표가 문서에 없어 대조할 대상이 없다."
+ }
+]

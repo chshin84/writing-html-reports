@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-shift-s1.png: 자막(공백 제외 약 32자)과 설명 상자(약 11자)를 합해 약 43자라 필요 시간이 약 6.4초인데 index.json의 seconds는 2.45초다. d-rule 단계 장면도 자막이 길어 seconds 2.07~2.87초로 모자란다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "아니오",
+  "evidence": "d-shift-s2.png: 설명 상자가 그림 위쪽에 고정돼 있고 강조된 모델 B 막대와 떨어져 있으며 캐릭터도 없다. d-shift-s1.png, d-shift-s3.png도 상자가 막대 위쪽에 멀리 떠 있다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "아니오",
+  "evidence": "d-shift-s2.png: 현재 강조된 모델 B 막대와 지나온 모델 A 막대가 같은 짙은 색이다. d-shift-s3.png도 세 막대가 모두 같은 색이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "예",
+  "evidence": "p2-390.png, p3-390.png: 표 칸이 모두 낱말 중간에서 끊기지 않고 한 줄로 읽힌다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 모델 A 50→31, 모델 C 25→43, 모델 B 25→26을 불릿, 막대 도식, 표에서 모두 되풀이한다. p3-1280.png도 38bp→22bp를 불릿, 꺾은선, 표에서 되풀이한다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿의 모델 A 50→31, 모델 C 25→43, 모델 B 25→26이 표 행과 일치한다. p3-1280.png: 38bp→22bp와 4개월째 −2도 표와 일치한다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 50%→31%, 43%, 38bp→22bp, −16bp를 적었으나 같은 페이지에 표나 그림이나 출처 목록이 없다. p3-1280.png: '14bp로 회복'과 '고점 15'는 표에 없다."
+ }
+]

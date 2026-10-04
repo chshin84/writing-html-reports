@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 p1~p4 장면은 모두 정적 페이지다. 애니메이션이 없다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고, 노드 옆에 나오는 설명 상자도 없다. p2-1280.png의 도식은 정적이다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "차례로 강조하는 애니메이션이 없다. p2-1280.png의 도식은 정적이고 모든 노드가 같은 모양이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png: 표에서 'lens-/grounding', 'review-/specs,', 'audit-/repo-/docs', 'review-/docs'처럼 식별자가 하이픈 위치에서 줄바꿈된다. 칸이 좁아 '문서/단위'와 '모든/호출자'도 쪼개진다. p3-390.png에서도 'lens-/adversarial의'가 끊긴다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 'grounding과 fit만 함께 실행한다'는 사실이 불릿, 도식(문서 단위 그룹 안의 lens-grounding과 lens-fit 연결), 표('함께 두는 렌즈' 열)에 모두 나온다. '렌즈 6개를 그룹 3개로 나눈다'는 사실도 불릿, 도식, 표에서 되풀이된다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿의 'adversarial과 필요할 때 그룹은 컨텍스트를 나누지 않음'은 표의 '함께 두는 렌즈: 없음'과 일치한다. '중요 포인트'의 readability와 prior-art 실행 호출자 설명도 표의 호출자 열과 일치한다. p3-1280.png와 p4-1280.png의 불릿에도 표와 다른 항목이나 수치가 없다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p3-1280.png: '레포 감사에서 승인된 readability 호출도 에이전트 상한 10개 안에 센다'는 주장의 근거가 표와 출처 목록에 없다. p1-1280.png: 'review-specs 호출 수 변화 없음'과 '그룹 3개' 등 요약 주장에는 같은 페이지에 표, 그림, 출처 목록이 없다."
+ }
+]

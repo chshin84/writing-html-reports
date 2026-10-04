@@ -1,0 +1,49 @@
+{
+ "04-rules": {
+  "anim-readable": "28단계가 8.7초에 끝나 단계마다 0.32초만 머문다.",
+  "note-beside": "설명은 그림 아래 자막에만 있고 노드 옆 설명 상자가 없다.",
+  "focus-note-one-screen": "흐름도가 1149px라 강조 노드와 자막을 함께 볼 수 없다.",
+  "current-vs-past": "현재 노드와 지나온 노드가 같은 2px 테두리다.",
+  "svg-text-390": "390 폭에서 노드 글자가 약 9px로 줄어든다.",
+  "glossary-layout": "1페이지 용어 풀이에 제목이 없고 용어와 풀이가 멀리 떨어진다.",
+  "single-page-number": "상단 페이지 넘김 막대와 본문 첫 줄에 페이지 번호가 두 번 보인다.",
+  "no-triple-repeat": "2페이지 공통 규칙 표가 흐름도와 결론 불릿을 세 번째로 반복한다.",
+  "titles-tell-story": "본문 제목이 명사구다."
+ },
+ "03-groups": {
+  "bullet-table-agree": "2페이지 셋째 불릿이 표에서 함께 두는 렌즈가 없는 consistency를 빠뜨린다.",
+  "claims-sourced": "3페이지 '에이전트 상한 10개' 주장에 근거가 없다.",
+  "no-triple-repeat": "2페이지 결론 불릿·도식·표가 같은 세 사실을 반복한다.",
+  "svg-text-390": "390 폭에서 도식 글자가 약 6px다.",
+  "glossary-layout": "용어 풀이 배치가 session-report와 같이 깨진다.",
+  "single-page-number": "페이지 번호가 두 번 보인다(같은 페이지 틀).",
+  "titles-tell-story": "본문 제목이 명사구다."
+ },
+ "session-report": {
+  "decision-recommend": "8페이지 결정 두 건에 권장안이 없다.",
+  "glossary-layout": "1페이지 용어 풀이에 제목이 없고 용어와 풀이가 떨어진다.",
+  "table-cols-390": "6페이지 4열 표의 '변경 전' 열이 1~2글자 폭으로 잘린다.",
+  "table-scroll-cue-390": "가로 스크롤 단서가 없다.",
+  "single-page-number": "모든 페이지에서 페이지 번호가 두 번 보인다.",
+  "no-triple-repeat": "2페이지 9단계 흐름도와 표가 같은 정보를 반복한다.",
+  "titles-tell-story": "본문 제목이 모두 명사구다."
+ },
+ "sample-anim": {
+  "baseline-kept": "전후 전환 마지막 장면에서 기준선 막대가 사라진다.",
+  "svg-text-390": "390 폭에서 설명 상자 글자가 약 5px다.",
+  "titles-tell-story": "본문 제목이 명사구다.",
+  "single-page-number": "페이지 번호가 두 번 보인다(같은 페이지 틀)."
+ },
+ "minimal-anim": {
+  "positive": [
+   "note-beside",
+   "focus-note-one-screen",
+   "current-vs-past",
+   "svg-text-390"
+  ],
+  "positive_excluded": {
+   "anim-readable": "현재 엔진이 1단계 자막을 처음부터 보여 1단계 체류가 모자라고, spec이 실현 가능성 확인에서 1단계를 뺐다."
+  }
+ },
+ "_source": "docs/superpowers/research/2026-10-04-report-quality/visual-review-baseline.md"
+}

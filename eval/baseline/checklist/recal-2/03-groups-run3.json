@@ -1,0 +1,12 @@
+[
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 그룹 3개 구성과 grounding·fit만 함께 실행한다는 사실을 불릿, 도식, 표(함께 두는 렌즈 열)가 같은 내용으로 되풀이한다. p1-1280.png도 수치 카드와 요약 불릿이 같은 사실을 다시 적는다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 adversarial과 필요할 때 그룹만 함께 두는 렌즈가 없다고 적지만, 표의 함께 두는 렌즈 열에서 lens-consistency도 없음이라 불릿 목록에서 빠졌다."
+ }
+]

@@ -1,0 +1,12 @@
+[
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 위쪽 불릿 네 개가 아래 흐름도의 분기(직접 요청, L2, 발동 기준, 기록)를 같은 내용으로 되풀이한다. p3-1280.png: review-docs와 audit-repo-docs의 제안 시점을 불릿과 표가 각각 다시 적는다. p1-1280.png: 요약 불릿의 제안 시점이 p3 표와 겹친다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p3-1280.png: 불릿은 review-docs와 audit-repo-docs만 적고, 표에 있는 review-specs(리뷰 결과 전달 때 묻는다)와 L2(제안하지 않는다)가 불릿에서 빠졌다. 수치 불일치는 보이지 않는다."
+ }
+]

@@ -1,0 +1,77 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 모든 장면이 page다. p2-1280.png의 흐름도는 정지 도식이다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다. 설명 상자도 보이지 않는다."
+ },
+ {
+  "id": "focus-note-one-screen",
+  "answer": "해당 없음",
+  "evidence": "애니메이션 단계 장면이 없다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "p2-1280.png의 흐름도는 정지 상태이고 노드를 차례로 강조하는 연출이 없다."
+ },
+ {
+  "id": "baseline-kept",
+  "answer": "해당 없음",
+  "evidence": "전후 비교 애니메이션이 없다."
+ },
+ {
+  "id": "svg-text-390",
+  "answer": "예",
+  "evidence": "p2-390.png: 흐름도 노드 글자가 확대하지 않아도 읽힌다. 다만 글자가 작은 편이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p4-390.png는 '변경 내용' 열이 한두 글자 폭으로 잘려 세로로 쪼개진다. p5-390.png와 p6-390.png는 '변경 전' 열 이후가 잘리고, p8-390.png는 '필요한 결정' 열이 잘린다."
+ },
+ {
+  "id": "table-scroll-cue-390",
+  "answer": "아니오",
+  "evidence": "p5-390.png, p6-390.png, p8-390.png: 표가 오른쪽으로 잘리지만 그림자, 안내 문구, 잘린 열 표시가 없다."
+ },
+ {
+  "id": "single-page-number",
+  "answer": "아니오",
+  "evidence": "모든 페이지 장면: 상단 조작줄의 '2 / 8'과 본문 위의 '2 / 8'이 두 번 나온다."
+ },
+ {
+  "id": "glossary-layout",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: 렌즈·호출자·e4 용어 목록에 제목이 없고, 용어(x≈200)와 풀이(x≈656)가 멀리 떨어져 있다. p1-390.png도 목록 제목이 없다."
+ },
+ {
+  "id": "titles-tell-story",
+  "answer": "아니오",
+  "evidence": "절 제목이 '작업 흐름', '바뀐 규칙', '남은 일' 같은 주제 이름이다. 제목만 읽어서는 결론이 이어지지 않는다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p4-1280.png: 불릿의 '스킬 7개, 117줄 추가'와 '가장 큰 파일'을 표가 되풀이한다. p7-1280.png: 불릿이 표의 결함을 그대로 요약한다. p8-1280.png: 불릿과 표가 같은 두 사실을 되풀이한다."
+ },
+ {
+  "id": "decision-recommend",
+  "answer": "아니오",
+  "evidence": "p8-1280.png: '원격 푸시 여부'와 '삭제 또는 재생성' 결정을 요청하지만 권장안과 이유가 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿은 '9단계'라고 하지만 도식 노드와 표 행은 8개다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png: '612개 통과', '14개 커밋', '117줄 추가' 수치에 같은 페이지의 출처나 근거 표가 없다. p3-1280.png: '배정 기준이 호출자 4곳에 흩어져 있었다'는 주장도 표에서 확인되지 않는다."
+ }
+]

@@ -1,0 +1,2 @@
+# 고정 견본은 바이트 그대로 보관한다. SOURCES.json의 SHA-256이 checkout 뒤에도 맞게 줄바꿈 변환을 끈다.
+* -text

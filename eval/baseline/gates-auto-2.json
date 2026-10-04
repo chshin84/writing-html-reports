@@ -1,0 +1,2158 @@
+[
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\03-groups.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "count": 12,
+     "min_px": 7.68,
+     "small": 12
+    },
+    "detail": [
+     {
+      "px": 7.68,
+      "text": "필요할 때 그룹"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-readability"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-prior-art"
+     },
+     {
+      "px": 7.68,
+      "text": "묶음 전체 그룹"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-adversarial"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-consistency"
+     },
+     {
+      "px": 7.68,
+      "text": "문서 단위 그룹"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-grounding"
+     },
+     {
+      "px": 7.68,
+      "text": "lens-fit"
+     },
+     {
+      "px": 7.68,
+      "text": "대상 문서 하나"
+     },
+     {
+      "px": 7.68,
+      "text": "전체 입력"
+     },
+     {
+      "px": 7.68,
+      "text": "사용자 승인"
+     }
+    ]
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 200,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 9,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 18.47
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 188,
+     "min_px": 11.44,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "cells": 56,
+     "min_w": 39.6
+    },
+    "detail": [
+     {
+      "w": 51,
+      "text": "그룹",
+      "page": "p2"
+     },
+     {
+      "w": 39.6,
+      "text": "자세",
+      "page": "p2"
+     },
+     {
+      "w": 51,
+      "text": "문서 단위",
+      "page": "p2"
+     },
+     {
+      "w": 39.6,
+      "text": "대조",
+      "page": "p2"
+     },
+     {
+      "w": 51,
+      "text": "문서 단위",
+      "page": "p2"
+     },
+     {
+      "w": 39.6,
+      "text": "대조",
+      "page": "p2"
+     },
+     {
+      "w": 51,
+      "text": "묶음 전체",
+      "page": "p2"
+     },
+     {
+      "w": 39.6,
+      "text": "공격",
+      "page": "p2"
+     },
+     {
+      "w": 51,
+      "text": "묶음 전체",
+      "page": "p2"
+     },
+     {
+      "w": 39.6,
+      "text": "대조",
+      "page": "p2"
+     }
+    ]
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "p1": 2,
+     "p2": 2,
+     "p3": 2,
+     "p4": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "open_with_hash": true,
+     "hash_change": false,
+     "recorded_only": true
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\03-groups.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 200,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 9,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 15.04
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\04-rules.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-flow": {
+      "steps": 28,
+      "fails": 28,
+      "time_scale": 1,
+      "min_dwell": 0.27,
+      "fails_after_step1": 27
+     }
+    },
+    "detail": {
+     "d-flow": [
+      {
+       "step": 1,
+       "end": 0.3,
+       "done": 0.0,
+       "dwell": 0.3,
+       "n": 0,
+       "lo": 1.0,
+       "hi": 4.0,
+       "ok": false
+      },
+      {
+       "step": 2,
+       "end": 0.62,
+       "done": 0.35,
+       "dwell": 0.27,
+       "n": 29,
+       "lo": 4.625,
+       "hi": 7.625,
+       "ok": false
+      },
+      {
+       "step": 3,
+       "end": 0.94,
+       "done": 0.65,
+       "dwell": 0.29,
+       "n": 26,
+       "lo": 4.25,
+       "hi": 7.25,
+       "ok": false
+      },
+      {
+       "step": 4,
+       "end": 1.26,
+       "done": 0.95,
+       "dwell": 0.31,
+       "n": 26,
+       "lo": 4.25,
+       "hi": 7.25,
+       "ok": false
+      },
+      {
+       "step": 5,
+       "end": 1.58,
+       "done": 1.3,
+       "dwell": 0.28,
+       "n": 28,
+       "lo": 4.5,
+       "hi": 7.5,
+       "ok": false
+      },
+      {
+       "step": 6,
+       "end": 1.9,
+       "done": 1.6,
+       "dwell": 0.3,
+       "n": 21,
+       "lo": 3.625,
+       "hi": 6.625,
+       "ok": false
+      },
+      {
+       "step": 7,
+       "end": 2.22,
+       "done": 1.95,
+       "dwell": 0.27,
+       "n": 26,
+       "lo": 4.25,
+       "hi": 7.25,
+       "ok": false
+      },
+      {
+       "step": 8,
+       "end": 2.54,
+       "done": 2.25,
+       "dwell": 0.29,
+       "n": 24,
+       "lo": 4.0,
+       "hi": 7.0,
+       "ok": false
+      },
+      {
+       "step": 9,
+       "end": 2.86,
+       "done": 2.55,
+       "dwell": 0.31,
+       "n": 26,
+       "lo": 4.25,
+       "hi": 7.25,
+       "ok": false
+      },
+      {
+       "step": 10,
+       "end": 3.18,
+       "done": 2.9,
+       "dwell": 0.28,
+       "n": 21,
+       "lo": 3.625,
+       "hi": 6.625,
+       "ok": false
+      },
+      {
+       "step": 11,
+       "end": 3.5,
+       "done": 3.2,
+       "dwell": 0.3,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 12,
+       "end": 3.82,
+       "done": 3.55,
+       "dwell": 0.27,
+       "n": 25,
+       "lo": 4.125,
+       "hi": 7.125,
+       "ok": false
+      },
+      {
+       "step": 13,
+       "end": 4.14,
+       "done": 3.85,
+       "dwell": 0.29,
+       "n": 27,
+       "lo": 4.375,
+       "hi": 7.375,
+       "ok": false
+      },
+      {
+       "step": 14,
+       "end": 4.46,
+       "done": 4.15,
+       "dwell": 0.31,
+       "n": 24,
+       "lo": 4.0,
+       "hi": 7.0,
+       "ok": false
+      },
+      {
+       "step": 15,
+       "end": 4.78,
+       "done": 4.5,
+       "dwell": 0.28,
+       "n": 21,
+       "lo": 3.625,
+       "hi": 6.625,
+       "ok": false
+      },
+      {
+       "step": 16,
+       "end": 5.1,
+       "done": 4.8,
+       "dwell": 0.3,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 17,
+       "end": 5.42,
+       "done": 5.15,
+       "dwell": 0.27,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 18,
+       "end": 5.74,
+       "done": 5.45,
+       "dwell": 0.29,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 19,
+       "end": 6.06,
+       "done": 5.75,
+       "dwell": 0.31,
+       "n": 19,
+       "lo": 3.375,
+       "hi": 6.375,
+       "ok": false
+      },
+      {
+       "step": 20,
+       "end": 6.38,
+       "done": 6.1,
+       "dwell": 0.28,
+       "n": 21,
+       "lo": 3.625,
+       "hi": 6.625,
+       "ok": false
+      },
+      {
+       "step": 21,
+       "end": 6.7,
+       "done": 6.4,
+       "dwell": 0.3,
+       "n": 24,
+       "lo": 4.0,
+       "hi": 7.0,
+       "ok": false
+      },
+      {
+       "step": 22,
+       "end": 7.02,
+       "done": 6.75,
+       "dwell": 0.27,
+       "n": 21,
+       "lo": 3.625,
+       "hi": 6.625,
+       "ok": false
+      },
+      {
+       "step": 23,
+       "end": 7.34,
+       "done": 7.05,
+       "dwell": 0.29,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 24,
+       "end": 7.66,
+       "done": 7.35,
+       "dwell": 0.31,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 25,
+       "end": 7.98,
+       "done": 7.7,
+       "dwell": 0.28,
+       "n": 22,
+       "lo": 3.75,
+       "hi": 6.75,
+       "ok": false
+      },
+      {
+       "step": 26,
+       "end": 8.3,
+       "done": 8,
+       "dwell": 0.3,
+       "n": 19,
+       "lo": 3.375,
+       "hi": 6.375,
+       "ok": false
+      },
+      {
+       "step": 27,
+       "end": 8.62,
+       "done": 8.35,
+       "dwell": 0.27,
+       "n": 20,
+       "lo": 3.5,
+       "hi": 6.5,
+       "ok": false
+      },
+      {
+       "step": 28,
+       "end": 8.94,
+       "done": 8.65,
+       "dwell": 0.29,
+       "n": 24,
+       "lo": 4.0,
+       "hi": 7.0,
+       "ok": false
+      }
+     ]
+    }
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": {
+     "d-flow": null
+    },
+    "detail": {
+     "d-flow": "자동 재생 방식"
+    }
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-flow": {
+      "initial": 0.3,
+      "e0": 0.3,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     }
+    },
+    "detail": null
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-flow": null
+    },
+    "detail": {
+     "d-flow": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-flow": null
+    },
+    "detail": {
+     "d-flow": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "count": 493,
+     "min_px": 9.38,
+     "small": 493
+    },
+    "detail": [
+     {
+      "px": 9.38,
+      "text": "예"
+     },
+     {
+      "px": 9.38,
+      "text": "아니오"
+     },
+     {
+      "px": 9.38,
+      "text": "승인"
+     },
+     {
+      "px": 9.38,
+      "text": "거절"
+     },
+     {
+      "px": 9.38,
+      "text": "필요할 때 렌즈 후보"
+     },
+     {
+      "px": 9.38,
+      "text": "사용자 직접 요청"
+     },
+     {
+      "px": 9.38,
+      "text": "렌즈 실행"
+     },
+     {
+      "px": 9.38,
+      "text": "L2 실행자"
+     },
+     {
+      "px": 9.38,
+      "text": "판정만 L1에 넘김"
+     },
+     {
+      "px": 9.38,
+      "text": "발동 기준 해당"
+     },
+     {
+      "px": 9.38,
+      "text": "판정과 이유 기록"
+     },
+     {
+      "px": 9.38,
+      "text": "호출자 시점에 제안"
+     },
+     {
+      "px": 9.38,
+      "text": "사용자 승인"
+     }
+    ]
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 152,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 261,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 6.66
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 135,
+     "min_px": 11.44,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "cells": 27,
+     "min_w": 105.1
+    },
+    "detail": null
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "p1": 2,
+     "p2": 2,
+     "p3": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "open_with_hash": true,
+     "hash_change": false,
+     "recorded_only": true
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\04-rules.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 152,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 261,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 6.01
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\sample-anim.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-shift": {
+      "steps": 3,
+      "fails": 3,
+      "time_scale": 1,
+      "min_dwell": 1.47,
+      "fails_after_step1": 2
+     },
+     "d-rule": {
+      "steps": 4,
+      "fails": 4,
+      "time_scale": 1,
+      "min_dwell": 1.15,
+      "fails_after_step1": 3
+     }
+    },
+    "detail": {
+     "d-shift": [
+      {
+       "step": 1,
+       "end": 2.45,
+       "done": 0.95,
+       "dwell": 1.5,
+       "n": 13,
+       "lo": 2.625,
+       "hi": 5.625,
+       "ok": false
+      },
+      {
+       "step": 2,
+       "end": 4.72,
+       "done": 3.25,
+       "dwell": 1.47,
+       "n": 42,
+       "lo": 6.25,
+       "hi": 9.25,
+       "ok": false
+      },
+      {
+       "step": 3,
+       "end": 7.39,
+       "done": 5.7,
+       "dwell": 1.69,
+       "n": 45,
+       "lo": 6.625,
+       "hi": 9.625,
+       "ok": false
+      }
+     ],
+     "d-rule": [
+      {
+       "step": 1,
+       "end": 2.55,
+       "done": 1.4,
+       "dwell": 1.15,
+       "n": 19,
+       "lo": 3.375,
+       "hi": 6.375,
+       "ok": false
+      },
+      {
+       "step": 2,
+       "end": 5.02,
+       "done": 3.2,
+       "dwell": 1.82,
+       "n": 48,
+       "lo": 7.0,
+       "hi": 10.0,
+       "ok": false
+      },
+      {
+       "step": 3,
+       "end": 7.09,
+       "done": 5.6,
+       "dwell": 1.49,
+       "n": 46,
+       "lo": 6.75,
+       "hi": 9.75,
+       "ok": false
+      },
+      {
+       "step": 4,
+       "end": 9.96,
+       "done": 8.05,
+       "dwell": 1.91,
+       "n": 57,
+       "lo": 8.125,
+       "hi": 11.125,
+       "ok": false
+      }
+     ]
+    }
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": {
+     "d-shift": null,
+     "d-rule": null
+    },
+    "detail": {
+     "d-shift": "자동 재생 방식",
+     "d-rule": "자동 재생 방식"
+    }
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-shift": {
+      "initial": 2.45,
+      "e0": 2.45,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     },
+     "d-rule": {
+      "initial": 2.55,
+      "e0": 2.55,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     }
+    },
+    "detail": null
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-shift": null,
+     "d-rule": null
+    },
+    "detail": {
+     "d-shift": "data-rc-active가 붙은 요소가 없다",
+     "d-rule": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-shift": null,
+     "d-rule": null
+    },
+    "detail": {
+     "d-shift": "data-rc-active가 붙은 요소가 없다",
+     "d-rule": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "count": 47,
+     "min_px": 5.97,
+     "small": 47
+    },
+    "detail": [
+     {
+      "px": 7.16,
+      "text": "모델 A"
+     },
+     {
+      "px": 7.16,
+      "text": "모델 B"
+     },
+     {
+      "px": 7.16,
+      "text": "모델 C"
+     },
+     {
+      "px": 7.16,
+      "text": "31%"
+     },
+     {
+      "px": 7.16,
+      "text": "25%"
+     },
+     {
+      "px": 6.39,
+      "text": "모델 A: 비슷한 변형 7개"
+     },
+     {
+      "px": 5.97,
+      "text": "0"
+     },
+     {
+      "px": 5.97,
+      "text": "규칙 없음 38"
+     },
+     {
+      "px": 6.21,
+      "text": "규칙 없이 보유한 누적 손익"
+     },
+     {
+      "px": 6.21,
+      "text": "38bp"
+     },
+     {
+      "px": 7.16,
+      "text": "26%"
+     },
+     {
+      "px": 6.39,
+      "text": "모델 B: 거의 그대로"
+     },
+     {
+      "px": 7.16,
+      "text": "43%"
+     },
+     {
+      "px": 6.39,
+      "text": "모델 C: 따로 움직여 비중 증가"
+     },
+     {
+      "px": 6.21,
+      "text": "고점 15 → -2bp, 손절 발동"
+     }
+    ]
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 4
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 119,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 0,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": null
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 108,
+     "min_px": 12.5,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "cells": 21,
+     "min_w": 92.7
+    },
+    "detail": null
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "p1": 2,
+     "p2": 2,
+     "p3": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "open_with_hash": true,
+     "hash_change": false,
+     "recorded_only": true
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\sample-anim.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 119,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 0,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": null
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\sample-viz.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-order": {
+      "steps": 7,
+      "fails": 7,
+      "time_scale": 1,
+      "min_dwell": 1.19,
+      "fails_after_step1": 6
+     },
+     "d-mmd": {
+      "steps": 3,
+      "fails": 3,
+      "time_scale": 1,
+      "min_dwell": 0.37,
+      "fails_after_step1": 2
+     }
+    },
+    "detail": {
+     "d-order": [
+      {
+       "step": 1,
+       "end": 3.2,
+       "done": 1.5,
+       "dwell": 1.7,
+       "n": 16,
+       "lo": 3.0,
+       "hi": 6.0,
+       "ok": false
+      },
+      {
+       "step": 2,
+       "end": 8.27,
+       "done": 6.3,
+       "dwell": 1.97,
+       "n": 45,
+       "lo": 6.625,
+       "hi": 9.625,
+       "ok": false
+      },
+      {
+       "step": 3,
+       "end": 10.89,
+       "done": 9.7,
+       "dwell": 1.19,
+       "n": 40,
+       "lo": 6.0,
+       "hi": 9.0,
+       "ok": false
+      },
+      {
+       "step": 4,
+       "end": 13.91,
+       "done": 12.1,
+       "dwell": 1.81,
+       "n": 40,
+       "lo": 6.0,
+       "hi": 9.0,
+       "ok": false
+      },
+      {
+       "step": 5,
+       "end": 17.13,
+       "done": 15.45,
+       "dwell": 1.68,
+       "n": 49,
+       "lo": 7.125,
+       "hi": 10.125,
+       "ok": false
+      },
+      {
+       "step": 6,
+       "end": 22.55,
+       "done": 20.55,
+       "dwell": 2.0,
+       "n": 41,
+       "lo": 6.125,
+       "hi": 9.125,
+       "ok": false
+      },
+      {
+       "step": 7,
+       "end": 25.77,
+       "done": 23.75,
+       "dwell": 2.02,
+       "n": 47,
+       "lo": 6.875,
+       "hi": 9.875,
+       "ok": false
+      }
+     ],
+     "d-mmd": [
+      {
+       "step": 1,
+       "end": 0.4,
+       "done": 0.0,
+       "dwell": 0.4,
+       "n": 0,
+       "lo": 1.0,
+       "hi": 4.0,
+       "ok": false
+      },
+      {
+       "step": 2,
+       "end": 0.82,
+       "done": 0.45,
+       "dwell": 0.37,
+       "n": 17,
+       "lo": 3.125,
+       "hi": 6.125,
+       "ok": false
+      },
+      {
+       "step": 3,
+       "end": 1.24,
+       "done": 0.85,
+       "dwell": 0.39,
+       "n": 16,
+       "lo": 3.0,
+       "hi": 6.0,
+       "ok": false
+      }
+     ]
+    }
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": {
+     "d-order": null,
+     "d-mmd": null
+    },
+    "detail": {
+     "d-order": "자동 재생 방식",
+     "d-mmd": "자동 재생 방식"
+    }
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "d-order": {
+      "initial": 3.2,
+      "e0": 3.2,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     },
+     "d-mmd": {
+      "initial": 0.4,
+      "e0": 0.4,
+      "reached": true,
+      "seconds": 0,
+      "timeScale": 1
+     }
+    },
+    "detail": null
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-order": null,
+     "d-mmd": null
+    },
+    "detail": {
+     "d-order": "data-rc-active가 붙은 요소가 없다",
+     "d-mmd": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "unmeasurable",
+    "value": {
+     "d-order": null,
+     "d-mmd": null
+    },
+    "detail": {
+     "d-order": "data-rc-active가 붙은 요소가 없다",
+     "d-mmd": "data-rc-active가 붙은 요소가 없다"
+    }
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "fail",
+    "value": {
+     "count": 113,
+     "min_px": 4.8,
+     "small": 81
+    },
+    "detail": [
+     {
+      "px": 6.11,
+      "text": "주문 접수"
+     },
+     {
+      "px": 5.68,
+      "text": "금액 < 한도"
+     },
+     {
+      "px": 6.11,
+      "text": "체결"
+     },
+     {
+      "px": 6.11,
+      "text": "정산"
+     },
+     {
+      "px": 6.11,
+      "text": "거부"
+     },
+     {
+      "px": 5.24,
+      "text": "통과"
+     },
+     {
+      "px": 5.24,
+      "text": "초과"
+     },
+     {
+      "px": 5.46,
+      "text": "주문 A: 삼성전자 10주 × 72,000원"
+     },
+     {
+      "px": 5.46,
+      "text": "720,000원"
+     },
+     {
+      "px": 8.81,
+      "text": "거래소"
+     },
+     {
+      "px": 8.81,
+      "text": "주문 시스템"
+     },
+     {
+      "px": 8.81,
+      "text": "고객"
+     },
+     {
+      "px": 8.81,
+      "text": "매수 주문"
+     },
+     {
+      "px": 8.81,
+      "text": "체결 요청"
+     },
+     {
+      "px": 8.81,
+      "text": "체결 통보"
+     }
+    ]
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 10
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 173,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 16,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 3.71
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 131,
+     "min_px": 12.5,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "cells": 21,
+     "min_w": 70.8
+    },
+    "detail": null
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "p1": 2,
+     "p2": 2,
+     "p3": 2,
+     "p4": 2,
+     "p5": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "open_with_hash": true,
+     "hash_change": false,
+     "recorded_only": true
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\sample-viz.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 173,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 16,
+     "unmeasurable": 1,
+     "fails": 0,
+     "min_ratio": 7.85
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\session-report.html",
+  "mode": "auto",
+  "theme": "light",
+  "env": "ok",
+  "items": [
+   {
+    "id": "dwell",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "step-anim",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "step1",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "note-near",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "active-visible",
+    "target": "motion",
+    "status": "n/a",
+    "value": null,
+    "detail": "원문에 RC.demo 호출이 없다"
+   },
+   {
+    "id": "svg-font-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "count": 9,
+     "min_px": 14,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "figure-overflow-390",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "figures": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 483,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 4.83
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 9,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 18.47
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#1F3A5F",
+      "s2": "#5E8C7E",
+      "s3": "#B07A2A",
+      "s4": "#8A8F98"
+     },
+     "min_de": 8.39
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 8.39
+     }
+    ]
+   },
+   {
+    "id": "html-font-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "count": 474,
+     "min_px": 11.41,
+     "small": 0
+    },
+    "detail": null
+   },
+   {
+    "id": "overflow-390",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "max_scroll_width": 390
+    },
+    "detail": null
+   },
+   {
+    "id": "table-col-390",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "cells": 179,
+     "min_w": 34.5
+    },
+    "detail": [
+     {
+      "w": 53.9,
+      "text": "그룹",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "문서 단위",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "문서 단위",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "묶음 전체",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "묶음 전체",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "필요할 때",
+      "page": "p3"
+     },
+     {
+      "w": 53.9,
+      "text": "필요할 때",
+      "page": "p3"
+     },
+     {
+      "w": 34.5,
+      "text": "추가",
+      "page": "p4"
+     },
+     {
+      "w": 34.5,
+      "text": "삭제",
+      "page": "p4"
+     },
+     {
+      "w": 51.5,
+      "text": "변경 내용",
+      "page": "p4"
+     }
+    ]
+   },
+   {
+    "id": "page-number",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "p1": 2,
+     "p2": 2,
+     "p3": 2,
+     "p4": 2,
+     "p5": 2,
+     "p6": 2,
+     "p7": 2,
+     "p8": 2
+    },
+    "detail": null
+   },
+   {
+    "id": "hash-nav",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "open_with_hash": true,
+     "hash_change": false,
+     "recorded_only": true
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-motion",
+    "target": "motion",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-layout",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   },
+   {
+    "id": "rules-all",
+    "target": "content",
+    "status": "pass",
+    "value": {
+     "candidate": 0,
+     "base": null
+    },
+    "detail": null
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ },
+ {
+  "file": "C:\\Users\\ho381\\AppData\\Local\\Temp\\claude\\D--projects-Structure-writing-html-reports\\d5fb1593-166c-41a5-bca7-de1d08dffdcb\\scratchpad\\c0\\rebuilt\\session-report.html",
+  "mode": "auto",
+  "theme": "dark",
+  "env": "ok",
+  "items": [
+   {
+    "id": "contrast-text",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 483,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 5.87
+    },
+    "detail": null
+   },
+   {
+    "id": "contrast-graphic",
+    "target": "layout",
+    "status": "pass",
+    "value": {
+     "checked": 9,
+     "unmeasurable": 0,
+     "fails": 0,
+     "min_ratio": 15.04
+    },
+    "detail": null
+   },
+   {
+    "id": "cvd",
+    "target": "layout",
+    "status": "fail",
+    "value": {
+     "tokens": {
+      "s1": "#9DB7D8",
+      "s2": "#86B5A6",
+      "s3": "#D6A45A",
+      "s4": "#8D949E"
+     },
+     "min_de": 11.14
+    },
+    "detail": [
+     {
+      "a": "s2",
+      "b": "s4",
+      "de": 11.14
+     }
+    ]
+   }
+  ],
+  "load_errors": [],
+  "render_fail": []
+ }
+]

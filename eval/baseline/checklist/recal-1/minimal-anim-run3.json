@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "아니오",
+  "evidence": "d-req-s1.png: 새 글은 자막 '흐름 · 접수: 요청서를 접수 칸에 넣습니다.'(약 19자)와 설명 상자 '접수: 요청서 1건'(8자)로 합계 약 27자이고, 필요 시간은 27÷8+1=약 4.4초인데 index.json의 seconds는 3.65라 모자란다. s2(6.29초, 약 30자)와 s3(6.17초, 약 29자)는 충분하다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "예",
+  "evidence": "d-req-s1.png, d-req-s2.png, d-req-s3.png: 설명 상자가 매 단계 강조된 노드(접수, 검토, 승인) 바로 오른쪽에 붙어 있다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "예",
+  "evidence": "d-req-s2.png: 현재 검토는 굵은 실선, 지나온 접수는 점선이다. d-req-s3.png: 승인은 굵은 실선과 체크 표시, 접수와 검토는 점선이다. d-req-s1.png는 지나온 노드가 없다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "해당 없음",
+  "evidence": "v1-390.png: 표가 없다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "예",
+  "evidence": "v1-1280.png: 본문 문장과 도식만 있고 불릿과 표가 없어 세 형식 반복이 없다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "해당 없음",
+  "evidence": "v1-1280.png: 불릿 목록이 없다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "예",
+  "evidence": "v1-1280.png: 본문의 세 단계 주장은 같은 페이지 도식(접수, 검토, 승인)이 뒷받침하고 '자료: 요청 처리 절차(가상 예시)' 출처가 있다."
+ }
+]

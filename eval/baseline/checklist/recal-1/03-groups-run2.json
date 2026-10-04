@@ -1,0 +1,37 @@
+[
+ {
+  "id": "anim-readable",
+  "answer": "해당 없음",
+  "evidence": "index.json에 step 장면이 없고 p1~p4 장면에도 애니메이션이 없다."
+ },
+ {
+  "id": "note-beside",
+  "answer": "해당 없음",
+  "evidence": "p2-1280.png의 도식은 정지 그림이고 설명 상자를 쓰는 애니메이션이 없다."
+ },
+ {
+  "id": "current-vs-past",
+  "answer": "해당 없음",
+  "evidence": "노드를 차례로 강조하는 애니메이션이 없다. p2-1280.png 도식은 정적이다."
+ },
+ {
+  "id": "table-cols-390",
+  "answer": "아니오",
+  "evidence": "p2-390.png: 표의 '실행하는 호출자' 칸에서 review-specs, audit-repo-docs가 'review-/specs,', 'audit-/repo-/docs'로 낱말 중간에서 끊긴다. 'lens-/grounding'도 같은 방식으로 끊긴다."
+ },
+ {
+  "id": "no-triple-repeat",
+  "answer": "아니오",
+  "evidence": "p2-1280.png: 불릿이 그룹 3개와 grounding·fit 짝을 말하고, 도식이 그룹별 렌즈 배치를 그리며, 표가 같은 그룹 구성과 함께 두는 렌즈를 다시 적는다. 같은 사실이 불릿, 도식, 표에 모두 나온다."
+ },
+ {
+  "id": "bullet-table-agree",
+  "answer": "예",
+  "evidence": "p2-1280.png: 불릿의 'readability는 review-specs에서 실행되지 않음', 'prior-art는 레포 감사에서 실행되지 않음'이 표 호출자 칸과 맞는다. adversarial과 필요할 때 그룹의 '함께 두는 렌즈 없음'도 표와 같다. p3-1280.png와 p4-1280.png에서도 불릿과 표가 충돌하지 않는다."
+ },
+ {
+  "id": "claims-sourced",
+  "answer": "아니오",
+  "evidence": "p1-1280.png에는 출처 목록과 표가 없어 '렌즈 6개, 그룹 3개, 함께 실행 2개' 수치의 근거가 같은 페이지에 없다. p2-1280.png의 'readability 오염 ... 결과가 나빠지지는 않습니다'와 p3-1280.png의 '에이전트 상한 10개'도 표나 그림이 아니라 파일 경로만 있고 근거 내용이 없다."
+ }
+]
