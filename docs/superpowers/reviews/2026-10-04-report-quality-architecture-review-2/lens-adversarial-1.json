@@ -1,0 +1,17 @@
+{"lens":"lens-adversarial","target":"docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md (2차 개정본)","issues":[
+{"where":"완료 기준 기본 재생 방식 선택(87행)","type":"failure-mode","claim":"정지 장면으로 측정하므로 두 방식의 차이를 재지 못한다. 통과 브랜치는 정답률 100%라 첫 비교는 늘 동률이다.","consequence":"잡음으로 결정된다. 완화: 동률이면 사용자에게 묻고 쌍대 비교는 뺀다."},
+{"where":"계측 지점 data-rc-mode(146행), 실행 순서 4단계","type":"failure-mode","claim":"C0이 한 견본을 두 방식으로 재생할 수단이 계약에 없고, 기본값 전환 주체가 없다.","consequence":"한 판정 항목이 측정되지 않거나 L1 구현 겸직 재발. 완화: 전환 수단을 계약에, 기본값 전환은 C1 재디스패치로."},
+{"where":"문턱값 표(52행), C0 확인(170행)","type":"risk","claim":"근거 있는 문턱값은 체류 시간뿐이고 C0 확인은 결함 검출 한 방향만 본다. 넓은 Mermaid는 스크롤 상자가 표에만 허용되어 11px를 지킬 길이 없다. 체류 시간 상한이 없다.","consequence":"숫자 맞추기. 완화: 근거 없는 값은 가정 표시, C0 확인에 수정본 통과 추가."},
+{"where":"문턱값 표 문구","type":"failure-mode","claim":"'그 단계 글자 수', '무대 요소', '화면 안'의 정의가 없어 C0 코드가 정의를 정하고 C1이 그에 맞춘다.","consequence":"설명 상자 글을 안 세거나 간선을 빼면 우회 통과. 완화: 정의를 표에 적기."},
+{"where":"평가 자료의 격리(159~160행), 위험(202행)","type":"risk","claim":"보류 경로·조건이 main의 spec 본문에 있어 모든 L2 워크트리에 들어간다. 노출 탐지가 L2 리포트에 기댄다.","consequence":"견본 과적합 완화가 약해진다."},
+{"where":"실행 순서 2단계(170행), 159행","type":"failure-mode","claim":"C0 한 L2가 보류 질문·정답·도구·체크리스트를 만들고 보정 기준이 일치율 하나뿐이라 항목을 흐리게 할수록 일치율이 오른다.","consequence":"늘 '예'인 항목이 하락 금지·85%를 무력화. 완화: 알려진 결함 항목이 기준선에서 '아니오'인지 판별력 확인."},
+{"where":"L1 사전 정리 확인(128~132행), 기준선(163행)","type":"failure-mode","claim":"검사 출력 대조가 원본 대조 분기를 실행하지 않고, 스타일 확인이 인쇄 매체를 보지 않는다. 기준선이 사전 정리 직후라 파손이 고정된다.","consequence":"완화: 원본 쌍 두 인자 실행 대조, 인쇄 에뮬레이션 비교, 변경별 커밋."},
+{"where":"SKILL.md 분할(124행), C3 행","type":"failure-mode","claim":"「시각화」 절의 RC 함수 표·범례 규칙·견본 안내와 「완료 기준」의 RC.check 판정이 C3 소유 SKILL.md에 남는다.","consequence":"C1 변경이 SKILL.md에 반영되지 않거나 C3가 C1 규칙과 어긋난다. 완화: 함께 옮기거나 C3 spec에 포인터만 두라는 금지."},
+{"where":"실행 순서 5단계(174행)","type":"failure-mode","claim":"쌍별 교집합만 보아 한 브랜치가 남의 파일을 혼자 고친 경우를 잡지 못한다.","consequence":"완화: 브랜치별 변경 파일을 소유 표 경로 패턴과 대조."},
+{"where":"C3 내용 규칙(105~108행), C2 행","type":"failure-mode","claim":"바뀐 칸 강조·확인 상태 표시·대체됨 배너의 CSS는 C2 소유 파일에만 둘 수 있는데 C2 일에 없다.","consequence":"C3가 BLOCKED이거나 문서 전용 CSS로 만든다."},
+{"where":"실행 순서 6단계(181행)","type":"irreversible","claim":"백업 위치와 복사 범위가 없다. skills 안 백업은 같은 이름 스킬 중복 로드 가능(가정). 통째 복사는 .git·미추적 파일까지 들어간다.","consequence":"완화: 백업은 skills 밖, 복사는 git ls-files 기준."},
+{"where":"고정 견본(161행), 6단계 push","type":"risk","claim":"원자료는 사내 내용이라 숨기면서 그 원자료로 만든 보고서 사본은 bench/fixed로 push 대상이 된다(원격 공개 저장소).","consequence":"공개 판단 없이 push될 수 있다."},
+{"where":"완료 기준(67행), 위험 비용","type":"risk","claim":"L2 체크리스트 자가 점검 횟수 상한이 없다.","consequence":"완화: 상한과 도달 시 BLOCKED."},
+{"where":"재생성(162행), 이해도 기준","type":"failure-mode","claim":"생성본 2개 × 3회 측정의 집계 규칙이 없다.","consequence":"판정자 재량에 맡겨진다."}],
+"principles_applied":["YAGNI","REVERSIBLE","NO-ASSUME","STATE-ASSUME","CHECKABLE","FOCUSED","ASK-OPTIONS","SECRETS","WRITTEN-ONLY","SPECIFIC-NAME","TERM-ONE"],
+"notes":"1차 지적 해소: 자기 측정, 이중 개발, 하락 0, 심어 둔 오류 범위, 구조 견본, 시험 소유, 흔들림 기록, 근거 휘발. 일부 해소: 시험지 노출, 과적합, 동작 보존, 구현 겸직, 비용, 설치본, 재생성 편차, 심판 편향. 고정 질문이 spec에 공개되어 정답률 100%는 C3 규칙 준수 검사에 가깝다(설계 의도로 봐 이슈 아님)."}

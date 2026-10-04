@@ -1,0 +1,10 @@
+{"lens":"lens-grounding","target":"docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md (2차 개정본)","issues":[
+{"where":"L1 사전 정리 · SKILL.md 분할","type":"omission","claim":"report-charts.js 5행 주석(관리 블록으로 템플릿·견본 206행에 복사)과 SKILL.md 103행 선택 표도 '애니메이션' 절을 가리키는데 갱신 목록에 없다.","consequence":"분할 뒤 없어진 절을 가리킨다."},
+{"where":"목적과 범위 · 첫째 근거","type":"unsupported","claim":"8.96초와 RC.check pass:true가 research 폴더 어느 파일에도 기록되어 있지 않다.","consequence":"다시 확인할 기록이 없다."},
+{"where":"L1 사전 정리 · check.py 분할","type":"mismatch","claim":"script_violations는 주소뿐 아니라 차트 애니메이션, GSAP 직접 호출, 차트 장식, 색 리터럴도 검사한다. GSAP 직접 호출은 애니메이션 규칙이다.","consequence":"배정 문구로는 C2/C1 귀속을 판단할 수 없다."},
+{"where":"인터페이스 · check 모듈","type":"mismatch","claim":"(html, old_html) 계약이 현재 서명과 다르다(대부분 html만, score_violations는 (html, show)). 원본 대조가 함수마다 다르다(접두어, 문장 집합, 통째 비움).","consequence":"감싸기나 서명 변경 방법이 spec에 없다."},
+{"where":"L1 사전 정리 · 시험 분할","type":"omission","claim":"check.py를 명령줄로 실행하는 Templates·DemoCount·Original 시험의 귀속이 없다.","consequence":"집계기·원본 대조 시험의 소유자 미정."},
+{"where":"함정 · 설명 위치의 근거","type":"omission","claim":"g=0.63의 약점은 동적·모바일 둘인데 좁은 화면만 옮겼다.","consequence":"애니메이션 조건에서 효과를 직접 뒷받침하는 것처럼 읽힌다."},
+{"where":"목적과 범위 · 셋째 근거","type":"unsupported","claim":"'5점 만점'이 기준선 파일에 없다.","consequence":"척도 정의 출처 없음."}],
+"principles_applied":["NO-ASSUME","STATE-ASSUME","SPECIFIC-NAME","CHECKABLE","TITLE-CLAIM","FOCUSED","WRITTEN-ONLY"],
+"notes":"함수 배정 공백 없음. PAGE_ID(anim·content 공용), TOC(star·score 공용) 상수 위치 미정. 179~180행은 @media print 안이라 블록째 옮겨야 함. 1초를 '권장값'이라 부른 것은 원문 '약 1초'보다 강함. 1차 지적 대부분 해소, RC.check 출처와 참조 갱신 남음. session-report.html의 용어 목록·페이지 번호는 C0 spec 때 확인 필요."}

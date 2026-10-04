@@ -1,0 +1,13 @@
+{"lens":"lens-fit","target":"docs/superpowers/specs/2026-10-04-report-quality-architecture-design.md (2차 개정본)","issues":[
+{"where":"128, 170, 161행","principle":"COUNT-EARNS","claim":"목록 앞 개수 예고가 남았다('확인 방법은 세 가지다', '확인 기준은 두 가지다', '다음 네 파일').","consequence":"항목이 바뀌면 숫자가 조용히 틀린다."},
+{"where":"169, 161, 126, 42행","principle":"COUNT-EARNS","claim":"개수를 대명사처럼 쓴다('그 절의 세 가지', '뒤의 두 파일', '두 개(d-order, d-mmd)', '세 층').","consequence":"목록 순서가 바뀌면 다른 대상을 가리킨다."},
+{"where":"7행, 3행","principle":"TERM-EXPLAIN","claim":"용어 목록보다 앞서 L1·L2와 네스티드 오케스트레이션을 쓴다.","consequence":"결론 문장을 용어 모른 채 읽는다."},
+{"where":"7·12·170·171행, 175, 28, 122, 46행","principle":"TERM-EXPLAIN","claim":"spec 잠금, 리뷰 마커, 보류 견본(28행 선행), 별 상한, preservation 풀이가 없다.","consequence":"사전 정리의 star_violations 분할 기준과 통합 확인 대상이 문서 밖 지식에 기댄다."},
+{"where":"169~181행","principle":"ONE-ENDING","claim":"확인 문장 머리가 '확인 방법은', '확인 기준은', '확인:'으로 섞였다.","consequence":"방법과 기준이 다른 뜻인지 따져야 한다."},
+{"where":"50행","principle":"NO-MID-MOD","claim":"제목 연결 문장의 중간 관형절이 남았다.","consequence":"누가 요약을 쓰는지 드러나지 않는다."},
+{"where":"20, 38, 185, 191, 162행","principle":"NO-MID-MOD","claim":"새 문장에 중간 관형절이 있다.","consequence":"38행은 무엇을 넣지 않는지가 끝에 가서야 드러난다."},
+{"where":"12·13, 47·48, 32, 162행","principle":"NO-STACK-MOD","claim":"명사 앞 수식어 겹침이 있다(48행 체크리스트 구절 미해소).","consequence":"48행의 수식 관계가 모호하다."},
+{"where":"12행","principle":"COMMA-CUT","claim":"L1 정의에서 '-고' 뒤 쉼표가 두 번 온다.","consequence":"관형절이 어디까지 받는지 모호하다."},
+{"where":"138, 122, 160·162, 190·191, 11·13·28·32행","principle":"BULLET-SCOPE, ONE-IDEA","claim":"여러 문장 불릿이 남았고 28행은 생각 셋이 섞였다.","consequence":"C1 L2에 넘길 제약을 항목 단위로 떼어 낼 수 없다."}],
+"principles_applied":["DOC-TYPE","TITLE-LAYERS","TITLE-CLAIM","LABEL-NOUN","NO-MID-MOD","NO-STACK-MOD","COMMA-CUT","ANTI-LIMIT","WRITTEN-ONLY","FULL-SENTENCE","ONE-ENDING","BOTTOM-LINE","BULLET-SCOPE","ONE-IDEA","TERM-EXPLAIN","TERM-ONE","COUNT-EARNS","NAME-ITEMS","CHECKABLE"],
+"notes":"해소: 인터페이스 개수 예고, 표 머리, 화살표, CHECKABLE, 완료 기준 쉼표, RC·g·superseded·#p2·팬아웃·BLOCKED·L1~L3 풀이. TITLE-LAYERS 위반 없음. 완료 기준 첫 문장은 TITLE-CLAIM 경계 사례."}
