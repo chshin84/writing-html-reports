@@ -171,6 +171,40 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', res); else res();
   }).then(function () { return document.fonts ? document.fonts.ready : null; }).then(renderMermaid);
 
+  /* 도식 글자: 화면상 11px보다 작아지면 figure 안 가로 스크롤 상자에 넣고 SVG 최소 폭을 글자가 11px이 되는 폭으로 정한다 */
+  var MIN_PX = 11;
+  function scaleOf(m) { return m ? Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) : 0; }
+  function fitSvg(fig) {
+    [].forEach.call(fig.querySelectorAll('svg'), function (svg) {
+      if (svg.parentElement.closest('svg') || svg.closest('[_echarts_instance_]') || !svg.getAttribute('viewBox')) return; // ECharts는 상자 폭대로 그려 글자가 줄지 않는다
+      var keep = svg.style.minWidth;
+      svg.style.minWidth = '';
+      var w = svg.getBoundingClientRect().width;
+      if (!w) { svg.style.minWidth = keep; return; } // 숨은 페이지(폭 0)는 보일 때 다시 계산한다
+      var small = Infinity;
+      [].forEach.call(svg.querySelectorAll('text, tspan, foreignObject *'), function (e) {
+        if (e.closest('defs') || !(ownText(e) || e.closest('.rc-note'))) return; // 설명 상자 글은 처음 상태에서 비어 있어도 단계마다 나타나므로 센다
+        var host = e instanceof SVGElement ? e : e.closest('foreignObject'), k = scaleOf(host.getScreenCTM());
+        if (k) small = Math.min(small, parseFloat(getComputedStyle(e).fontSize) * k);
+      });
+      if (!(small < MIN_PX)) return;
+      if (!svg.parentElement.classList.contains('rc-scroll')) {
+        var box = document.createElement('div');
+        box.className = 'rc-scroll';
+        svg.parentNode.insertBefore(box, svg);
+        box.appendChild(svg);
+      }
+      svg.style.minWidth = Math.ceil(w * MIN_PX / small) + 1 + 'px';
+    });
+  }
+  function watchFit(fig) { // 페이지가 보일 때와 창 크기가 바뀔 때 다시 계산한다
+    if (fig._rcFit) { fitSvg(fig); return; }
+    fig._rcFit = true;
+    var w = -1;
+    new ResizeObserver(function () { if (fig.clientWidth && fig.clientWidth !== w) { w = fig.clientWidth; fitSvg(fig); } }).observe(fig);
+  }
+  RC.ready.then(function () { [].forEach.call(document.querySelectorAll('figure'), watchFit); });
+
   /* 애니메이션 아이콘: 스틱맨(Open Peeps 상반신 80×80, report-peeps.js)과 1px 선으로 그린 상태 표시. (x, y)는 아이콘 중심이고, 처음에는 투명하다 */
   var SVGNS = 'http://www.w3.org/2000/svg';
   var authored = { note: new WeakSet(), icon: new WeakSet() }; // 작성자가 RC.note·RC.icon을 만든 figure. 자동 상자·스틱맨을 두지 않는다
@@ -776,7 +810,7 @@
       addEventListener('afterprint', function () { go(saved, false); quiet = false; });
       seekTo(0); quiet = false;
       fig._rcTl = tl; fig.dataset.rcReady = '1'; // C0 하네스와 RC.check가 쓴다
-      /* Task 8: watchFit(fig) */
+      watchFit(fig); // 자동 상자 글이 생긴 뒤 다시 계산한다
     });
     return null;
   };

@@ -507,5 +507,38 @@ class EngineScroll(EngineCase):
         self.assertEqual(r[0], r[1])
 
 
+WIDE = """<figure id="d1" data-anim="구조"><figcaption><span class="t">넓은 무대</span></figcaption>
+<svg viewBox="0 0 820 200" width="100%"><text x="10" y="100" font-size="12">작은 글자</text>
+<rect id="a" x="300" y="80" width="80" height="40" fill="none" stroke="currentColor"/></svg><p class="src">자료: 시험</p></figure>"""
+
+
+class EngineFit(EngineCase):
+    def test_390_min_width_scroll_box(self):
+        p = self.open(WIDE, "", width=390)
+        lay = self.js(p, "() => __c0.layout()")
+        self.assertTrue(all(f["px"] >= 11 for f in lay["svgFonts"]), lay["svgFonts"])
+        self.assertLessEqual(lay["scrollWidth"], lay["width"])
+        self.assertEqual(self.js(p, "() => document.querySelector('#d1 svg').parentElement.className"), "rc-scroll")
+
+    def test_animated_note_text_at_390(self):  # 자동 설명 상자 글도 390 폭에서 11px 이상이다. MMD는 220px 상자가 들어갈 폭이 없어 MMD_WIDE를 쓴다
+        p = self.open(MMD_WIDE, mmd_steps(FLOW), width=390)
+        self.assertTrue(self.js(p, "() => !!document.querySelector('#d1 svg .rc-note')"))
+        fonts = self.js(p, "id => __c0.svgFontSteps(id)", "d1")
+        self.assertTrue(all(f["px"] >= 11 for f in fonts), [f for f in fonts if f["px"] < 11][:5])
+
+    def test_hidden_page_skipped_then_fitted(self):
+        body = f'<section class="page" id="p1"><p>첫 페이지</p></section><section class="page core" id="p2">{WIDE}</section>'
+        p = self.open(body, "", width=390, paged=True)
+        self.assertEqual(self.js(p, "() => document.querySelector('#d1 svg').style.minWidth"), "")
+        r = self.js(p, "async () => { showPage(1); await new Promise(r => setTimeout(r, 300)); return document.querySelector('#d1 svg').style.minWidth; }")
+        self.assertTrue(r.endswith("px") and float(r[:-2]) > 358, r)
+
+    def test_print_releases_min_width(self):
+        p = self.open(WIDE, "", width=390)
+        p.emulate_media(media="print")
+        r = self.js(p, "() => { const s = document.querySelector('#d1 svg'); return [getComputedStyle(s).minWidth, getComputedStyle(s.parentElement).overflowX]; }")
+        self.assertEqual(r, ["0px", "visible"])
+
+
 if __name__ == "__main__":
     unittest.main()

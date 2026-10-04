@@ -12,7 +12,11 @@
 .demo-scen button.on{color:var(--ink);border-color:var(--ink-3)}
 .demo-static .demo-ctl,.demo-static .demo-cap,.demo-static .demo-scen{display:none}
 .demo-static .demo-steps{display:block}
+.rc-scroll{overflow-x:auto;max-width:100%}
+.rc-scroll>svg{display:block}
 @media print{
   .demo-ctl,.demo-cap,.demo-scen{display:none}
   .demo-steps{display:block}
+  .rc-scroll{overflow:visible}
+  .rc-scroll>svg{min-width:0 !important}
 }
