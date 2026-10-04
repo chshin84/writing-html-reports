@@ -1,0 +1,14 @@
+{"lens":"lens-consistency","target":"docs/superpowers/specs/2026-10-04-c3-content-rules-design.md","issues":[
+{"where":"검증 1·2, 견본","type":"contradiction","claim":"C3 워크트리에는 C2 결론 제목 규칙이 없어 새 페이지 구성 견본은 현재 label_violations에서 위반이 나 검증 1·2를 통과할 수 없다. 처리 방법이 없다."},
+{"where":"약어 풀이","type":"gap","claim":"'본문' 범위(코드·pre.mermaid·스크립트 제외)가 없고, visible_text에는 'flowchart LR'의 'LR'이 들어 템플릿 Templates 시험이 실패한다."},
+{"where":"old 방식","type":"drift","claim":"check.py의 old는 원본을 함수에 넘길 뿐이고 제외는 함수가 해야 한다."},
+{"where":"필수 절·원본 기준","type":"gap","claim":"필수 절과 보고서 머리의 식별 마크업, 기준 표기 판정 모양이 없고 절 이름이 상위 설계('처음 요청 대비 달성')와 다르다."},
+{"where":"제목 체계 이전","type":"gap","claim":"SKILL.md의 다른 h2 명사구 규정(글쓰기 규칙 표, 완료 기준 목차 읽기, 흔한 실수)을 함께 고치라는 요구가 없다."},
+{"where":"포인터 조건","type":"gap","claim":"SKILL.md에는 시각화·스타일 규칙을 포인터로만 두라는 상위 조건이 없다."},
+{"where":"검증·공식 측정","type":"gap","claim":"이해도 기준값, 재생성 2×3, 하락 금지, 판정 차례, 3회째 미달 처리가 없다."},
+{"where":"기준 규칙 제외 대상","type":"gap","claim":"'페이지 이름 읽기'는 함수 이름이 아니라 L1이 제외할 위반을 지목할 수 없다."},
+{"where":"확인 상태 값","type":"drift","claim":"run|infer|assume는 C3에만 있고 C2 spec은 run 예시 하나."},
+{"where":"산출 계약","type":"gap","claim":"마커 값, 리포트 비커밋, plan 리뷰 반영 항목이 빠졌다."},
+{"where":"원자료 이름","type":"drift","claim":"'고정 원자료'와 '보류 원자료' 혼용."}],
+"principles_applied":["NO-ASSUME","STATE-ASSUME","TERM-ONE","CHECKABLE","DOC-PLACE","TITLE-LAYERS","FOCUSED","WRITTEN-ONLY"],
+"notes":"C3 목록 9개 대응 절 존재. C2 마크업과 대체로 일치. 견본에 build.py 실행 지시 없음. 완료 기준의 Edge 스크린샷 단계와 C0 하네스 관계 미정."}

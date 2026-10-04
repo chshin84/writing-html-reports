@@ -19,8 +19,17 @@
   function norm(c) { // oklch()·color()·8자리 hex 같은 표기를 1×1 캔버스로 'rgba(r, g, b, a)'로 바꾼다. 판정 쪽이 읽는 표기와 none·transparent·url(…)은 그대로 둔다
     if (!c || RGB.test(c) || /^(none|transparent)$/i.test(c) || /^url\(/i.test(c) || !CSS.supports('color', c)) return c;
     if (!pen) { var cv = document.createElement('canvas'); cv.width = cv.height = 1; pen = cv.getContext('2d', { willReadFrequently: true }); }
+    // light-dark()처럼 캔버스가 받지 않는 표기는 fillStyle이 앞 색으로 남는다. 문서 요소의 계산값으로 먼저 풀고, 그래도 안 받으면 원문을 돌려준다
+    var tmp = document.createElement('i');
+    tmp.style.color = c;
+    document.documentElement.appendChild(tmp);
+    var solved = cs(tmp).color;
+    tmp.remove();
+    if (RGB.test(solved)) return solved;
+    pen.fillStyle = '#010203';
+    pen.fillStyle = solved;
+    if (pen.fillStyle === '#010203' && !/^#010203$/i.test(solved)) return c;
     pen.clearRect(0, 0, 1, 1);
-    pen.fillStyle = c;
     pen.fillRect(0, 0, 1, 1);
     var d = pen.getImageData(0, 0, 1, 1).data;
     return 'rgba(' + d[0] + ', ' + d[1] + ', ' + d[2] + ', ' + +(d[3] / 255).toFixed(3) + ')';

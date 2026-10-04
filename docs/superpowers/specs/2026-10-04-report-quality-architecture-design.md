@@ -116,7 +116,7 @@ C1의 기본 재생 방식은 L1이 보류 견본에서 두 방식을 각각 측
 | C0 평가 하네스 | 고정 견본, 측정 도구, 체크리스트, 기준선 | `eval/**`, `bench/**`, `tests/test_eval_*.py` |
 | C1 애니메이션 엔진 | 아래 C1 목록 | `report-charts.js`, `report-demo.css`, `report-peeps.js`, `tools/build-peeps.py`, `checks/anim.py`, `시각화.md`, `tests/sample-anim.html`, `tests/sample-viz.html`, `tests/test_anim.py`, `tests/test_peeps.py` |
 | C2 페이지 틀·CSS | 아래 C2 목록 | `report-base.css`, `template.html`, `template-paged.html`, `checks/style.py`, `보고서-규격.md`, `tests/test_style.py` |
-| C3 내용 규격 | 아래 C3 목록 | `SKILL.md`, `checks/content.py`, `examples/**`, `tests/test_content.py` |
+| C3 내용 규격 | 아래 C3 목록 | `SKILL.md`, `마무리-보고서.md`(새 파일, 마무리 보고서 전용 규칙), `checks/content.py`, `examples/**`, `tests/test_content.py` |
 
 각 L2가 쓰는 plan과 리뷰 기록은 그 컴포넌트 소유다. 파일 이름에 컴포넌트 이름을 넣는다. 예: `docs/superpowers/plans/2026-10-05-c1-animation-engine.md`.
 
