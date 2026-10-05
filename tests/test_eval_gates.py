@@ -213,7 +213,6 @@ class Rules(unittest.TestCase):
         self.html.write_text("<html><body><p>글</p></body></html>", encoding="utf-8")
         base = Path(self.tmp.name, "base", "checks")
         shutil.copytree(ROOT / "checks", base)
-        shutil.copy(ROOT / "금지어.md", base.parent / "금지어.md")
         (base / "anim.py").write_text((ROOT / "checks/anim.py").read_text(encoding="utf-8").replace(
             "RULES = [", "def always(html):\n    return ['기준 규칙 위반']\n\n\nRULES = [(always, 'plain'),"), encoding="utf-8")
         r = {i["id"]: i for i in rules.rule_items(self.html, {"rules-motion", "rules-all"}, base_checks=base)}
@@ -224,6 +223,7 @@ class Rules(unittest.TestCase):
         self.html.write_text("<html><body><p>글</p></body></html>", encoding="utf-8")
         base = Path(self.tmp.name, "nobanned", "checks")
         shutil.copytree(ROOT / "checks", base)
+        (base / "common.py").write_text('BANNED_FILE = "금지어.md"  # 옛 checks: 부모 폴더의 사본을 읽는다\n', encoding="utf-8")
         with self.assertRaises(RuntimeError):
             rules.rule_items(self.html, {"rules-all"}, base_checks=base)
 

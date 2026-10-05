@@ -6,7 +6,7 @@
 env는 ok·env-fail·error다. env-fail과 error 기록에는 error 메시지가 붙는다.
 종료 코드: 환경 실패가 하나라도 있으면 2, 측정기 오류가 있으면 3, fail·unmeasurable·같은 출처 요청 실패·렌더 실패가 하나라도 있으면 1, 모두 통과하면 0.
 hash-nav는 --judge-hash-nav가 없으면 기록만 하고(value.recorded_only) 종료 코드에서 뺀다. 고정 견본의 페이지 전환 코드는 관리 블록 밖이기 때문이다.
---base-checks는 기준 커밋 checkout의 checks/ 폴더다. spec 「기계 판정」대로 L1의 공식 측정이 쓴다. 그 부모 폴더에 금지어.md가 없으면 멈춘다.
+--base-checks는 기준 커밋 checkout의 checks/ 폴더다. spec 「기계 판정」대로 L1의 공식 측정이 쓴다. 옛 checks가 읽는 금지어.md 사본이 그 부모 폴더에 없으면 멈춘다.
 규칙 항목은 gates.py가 놓인 워크트리의 checks/로 실행한다. 후보를 판정할 때는 후보 워크트리의 eval/gates.py를 실행하고,
 기준 커밋 규칙은 --base-checks로 함께 실행한다.
 문서를 열기 전의 예외(파일 없음, Chromium 실행 실패 등)도 그 문서의 밝은 테마 error 기록으로 남긴다.

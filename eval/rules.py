@@ -28,8 +28,10 @@ print(json.dumps(out, ensure_ascii=False))
 
 def violations(checks_dir, modules, html_path):
     """checks_dir의 규칙 모듈(RULES)을 따로 띄운 파이썬에서 실행해 위반 문장 목록을 돌려준다.
-    금지어 검사(common)는 checks_dir의 부모 폴더에 있는 금지어.md를 읽으므로, 그 파일이 없으면 멈춘다."""
-    if "common" in modules and not (Path(checks_dir).parent / "금지어.md").exists():
+    옛 checks의 금지어 검사(common)는 checks_dir의 부모 폴더에 있는 금지어.md 사본을 읽으므로, 그 사본이 없으면 멈춘다.
+    지금 checks는 dc코더·KW 원본을 읽는다(사본 삭제 2026-10-05)."""
+    old_style = '"금지어.md"' in (Path(checks_dir) / "common.py").read_text(encoding="utf-8")
+    if "common" in modules and old_style and not (Path(checks_dir).parent / "금지어.md").exists():
         raise RuntimeError(f"{Path(checks_dir).parent}에 금지어.md가 없어 금지어 검사를 할 수 없다")
     r = subprocess.run([sys.executable, "-B", "-c", RUNNER, str(checks_dir), ",".join(modules), str(html_path)],
                        capture_output=True, text=True, encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))

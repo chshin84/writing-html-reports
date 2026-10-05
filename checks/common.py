@@ -5,7 +5,10 @@ from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 
-BANNED_FILE = Path(__file__).resolve().parent.parent / "금지어.md"  # disciplined-coder 금지어 표의 사본
+# 금지어 원본. dc코더가 있으면 dc코더가, 없으면 KW 플러그인이 같은 표를 세션에 싣는다(KW 설치를 전제로 사본을 두지 않는다)
+BANNED_SOURCES = [Path.home() / ".claude" / "disciplined-coder" / "korean-banned-words.md",
+                  Path.home() / ".claude" / "kw-ax" / "korean-banned-words.md"]
+BANNED_FILE = next((p for p in BANNED_SOURCES if p.exists()), BANNED_SOURCES[0])
 CHARTS_BLOCK = re.compile(r"/\* BEGIN report-charts[^*]*\*/.*?/\* END report-charts \*/", re.S)
 PAGE_ID = re.compile(r'<section class="(page[^"]*)" id="(p\d+)"[^>]*>(.*?)</section>', re.S)
 TOC = re.compile(r'<p class="toc">(.*?)</p>', re.S)
@@ -90,9 +93,9 @@ def script_strings(html):
 
 
 def banned_rules():
-    """korean-banned-words.md의 표에서 (금지어, 대신 쓰는 말, 제외 목록)을 읽는다. 파일이 없으면 None."""
+    """korean-banned-words.md의 표에서 (금지어, 대신 쓰는 말, 제외 목록)을 읽는다. 원본이 없으면 멈춘다."""
     if not BANNED_FILE.exists():
-        return None
+        raise SystemExit("금지어 원본이 없다: " + " · ".join(map(str, BANNED_SOURCES)) + ". dc코더나 KW 플러그인을 설치한다")
     rules = []
     for line in BANNED_FILE.read_text(encoding="utf-8").splitlines():
         cols = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -123,9 +126,6 @@ def all_text(html):
 
 def banned_violations(new_html, old_html=None):
     rules = banned_rules()
-    if rules is None:
-        print(f"참고: {BANNED_FILE}가 없어 금지어 검사를 생략했다")
-        return []
     advice = {t: a for t, a, _ in rules}
     new = banned_hits(all_text(new_html), rules)
     if old_html is not None:
